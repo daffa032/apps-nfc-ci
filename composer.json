@@ -69,9 +69,11 @@
         "lint": "php-cs-fixer fix --dry-run --diff",
         "lint:fix": "php-cs-fixer fix",
         "analyse": "phpstan analyse --memory-limit=1G",
+        "audit:deps": "composer audit --locked",
         "check": [
             "@lint",
             "@analyse",
+            "@audit:deps",
             "@test"
         ]
     }
