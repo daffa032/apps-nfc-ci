@@ -100,8 +100,8 @@ final class TemplateCatalog
     }
 
     /**
-     * Source HTML of a built-in Pro design (app/Views/digital_card/pro/<design>.html, copied from
-     * docs/ui-ux-2026/templates/pro), or null for other layouts. It goes through the same sanitizer
+     * Source HTML of a built-in Pro design (app/Views/digital_card/pro/<design>.html), or null for
+     * other layouts. It goes through the same sanitizer
      * as uploaded templates on every render.
      */
     public static function proSourcePath(?string $file): ?string

@@ -89,7 +89,7 @@ Jadi:
 
 Karena upload tidak boleh membawa CSS, desain dengan tampilan baru ditambahkan sebagai **desain Pro bawaan**:
 
-1. **HTML sumber**: buat `docs/ui-ux-2026/templates/pro/<desain>.html` dan salin ke `app/Views/digital_card/pro/<desain>.html`. Struktur mengikuti desain lain:
+1. **HTML sumber**: buat `app/Views/digital_card/pro/<desain>.html`. Struktur mengikuti desain lain:
    ```html
    <section class="tpl-pro-<desain>">
      <header class="tpl-pro-<desain>-hero">

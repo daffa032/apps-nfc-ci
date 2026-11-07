@@ -125,21 +125,12 @@ final class TemplateHtmlSanitizerTest extends TestCase
         }
     }
 
-    public function testTheProDesignsFromDocsAreAcceptedAndMatchTheAppCopies(): void
+    public function testEveryProDesignIsAcceptedAndExposesItsSlots(): void
     {
-        // The docs sources stay out of the repository, so this drift check is local-only.
-        if (! is_dir(ROOTPATH . 'docs/ui-ux-2026/templates/pro')) {
-            $this->markTestSkipped('docs/ui-ux-2026/templates/pro is not available in this checkout.');
-        }
-
         $sanitizer = new TemplateHtmlSanitizer();
 
         foreach (TemplateHtmlSanitizer::PRO_DESIGNS as $design) {
-            $docs = (string) file_get_contents(ROOTPATH . 'docs/ui-ux-2026/templates/pro/' . $design . '.html');
-            $app  = (string) file_get_contents(APPPATH . 'Views/digital_card/pro/' . $design . '.html');
-            $this->assertSame($docs, $app, "app copy of {$design} must equal the docs source");
-
-            $html = $sanitizer->normalize($docs);
+            $html = $sanitizer->normalize((string) file_get_contents(APPPATH . 'Views/digital_card/pro/' . $design . '.html'));
             $this->assertSame($design, TemplateHtmlSanitizer::proDesign($html));
             $slots = array_column(array_filter($sanitizer->segments($html), static fn (array $s): bool => isset($s['slot'])), 'slot');
 

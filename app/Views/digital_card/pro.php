@@ -1,7 +1,7 @@
 <?php
 /**
- * Pro card designs (PRD NT-01..07). The layout of each built-in design is its source HTML from
- * docs/ui-ux-2026/templates/pro (copied to app/Views/digital_card/pro/<design>.html), split by
+ * Pro card designs (PRD NT-01..07). The layout of each built-in design is its source HTML at
+ * app/Views/digital_card/pro/<design>.html, split by
  * TemplateHtmlSanitizer into $segments exactly like an uploaded template; uploads built on a Pro
  * design use the same view. Card data and buttons come only from digital_card/slots/.
  *
