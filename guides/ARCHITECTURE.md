@@ -64,7 +64,7 @@ Folder fitur di `Services/` cukup untuk skala kode sekarang. Sistem modul Larave
 
 ### Aturan repository
 
-Rincian lengkap dan daftar repository usulan ada di [PRD bagian 9](../docs/ui-ux-2026/PRD.md#9-pola-repository); detail transaksi di [TECHNICAL](../docs/ui-ux-2026/TECHNICAL.md#repository-helper-trait-dan-komponen-view). Ringkasnya:
+Rincian lengkap dan daftar repository usulan ada di PRD bagian 9 (dokumen internal); detail transaksi di TECHNICAL (dokumen internal). Ringkasnya:
 
 - Buat repository bila query membawa scope pemilik/role yang dipakai ulang, menulis beberapa tabel dalam transaksi, memerlukan lock baris, berupa agregat/filter admin berpaginasi, atau append-only (audit log).
 - Class konkret di `App\Repositories`, `declare(strict_types=1)`, constructor menerima CI4 Model dan `BaseConnection` opsional dengan default `??=` seperti `AdminRepository`. Tanpa interface per tabel dan tanpa service provider.
@@ -76,7 +76,7 @@ Perbedaan dengan `apps-mutugading`: di sana setiap entitas memiliki `{Entitas}Re
 
 ### Komponen reusable
 
-Rincian di [PRD bagian 10](../docs/ui-ux-2026/PRD.md#10-komponen-reusable-layout-partial-css-helper-trait). Ringkasnya:
+Rincian di PRD bagian 10 (dokumen internal). Ringkasnya:
 
 | Jenis | Aturan | Contoh usulan |
 | --- | --- | --- |

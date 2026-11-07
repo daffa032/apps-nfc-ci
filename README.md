@@ -1,55 +1,214 @@
-# NFC Digital Card (CodeIgniter 4)
+# NFC Digital Card
 
-Aplikasi kartu digital dengan login, pengelolaan akun, profil, galeri, template, dan halaman kartu publik. Perapian dilakukan bertahap; manajemen User/Admin, reset password, penyimpanan profil, kartu publik, dan tautan sosial sudah memiliki service dan repository sesuai kebutuhan.
+Aplikasi kartu nama digital: satu tap NFC atau satu pindai QR membuka halaman kartu, lengkap dengan kontak, galeri, dan tautan sosial. Dibangun di atas CodeIgniter 4 dengan lapisan service dan repository, pembayaran Midtrans, langganan berjenjang, dan panel admin.
 
-## Kebutuhan dan setup lokal
+[![CI](https://github.com/daffa032/apps-nfc-ci/actions/workflows/ci.yml/badge.svg)](https://github.com/daffa032/apps-nfc-ci/actions/workflows/ci.yml)
+[![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)](https://php.net)
+[![CodeIgniter](https://img.shields.io/badge/CodeIgniter-4.5-EF4223?logo=codeigniter&logoColor=white)](https://codeigniter.com)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%202-brightgreen)](phpstan.neon.dist)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-- PHP yang sesuai dengan CI4 vendored, dengan `intl`, `mbstring`, dan `mysqli`. Lingkungan lokal ini sudah teruji pada PHP 8.3 di container `nfc-ci`; PHP CLI host 8.5 gagal saat memuat `CodeIgniter\I18n\Time`.
-- MySQL/MariaDB dan schema aplikasi yang sesuai.
-- Composer untuk dependensi pengembangan dan PHPUnit. Framework CI4 sudah ada di `system/`.
+---
+
+## Daftar isi
+
+- [Fitur](#fitur)
+- [Arsitektur](#arsitektur)
+- [Alur pembayaran](#alur-pembayaran)
+- [Keputusan teknis](#keputusan-teknis)
+- [Keamanan](#keamanan)
+- [Struktur proyek](#struktur-proyek)
+- [Menjalankan secara lokal](#menjalankan-secara-lokal)
+- [Pengujian dan kualitas](#pengujian-dan-kualitas)
+- [Dokumentasi lanjutan](#dokumentasi-lanjutan)
+
+---
+
+## Fitur
+
+| Domain | Kemampuan |
+| --- | --- |
+| **Kartu digital** | Halaman kartu publik, halaman berbagi ber-QR, profil, galeri foto, tautan sosial, aset merek, kartu dua bahasa (ID/EN) |
+| **Template** | Katalog template Basic dan Pro, unggah HTML kustom lewat sanitizer allowlist, 12 desain Pro bawaan |
+| **Pembayaran** | Checkout Midtrans Snap, webhook notifikasi, rekonsiliasi terjadwal, pembatalan, riwayat tagihan |
+| **Langganan** | Paket berjenjang, versi harga, pemberian akses, pengingat perpanjangan dan kuitansi otomatis |
+| **Statistik** | Hitungan tampilan dan klik kontak, pengunjung unik tanpa menyimpan IP mentah, agregat harian |
+| **Admin** | Manajemen pengguna dan admin, master data paket/template, pemantauan pembayaran, penangguhan akun |
+| **Audit** | Activity log append-only untuk aksi sensitif |
+
+## Arsitektur
+
+Rantai permintaan berjalan satu arah: setiap lapis hanya mengenal lapis di bawahnya.
+
+```mermaid
+flowchart TD
+    Client["Browser / Tap NFC"] --> R["Routes<br/>auto-routing dimatikan"]
+
+    subgraph HTTP["Lapis HTTP"]
+        R --> F["Filters<br/>Auth · Access · Subscription · Locale"]
+        F --> C["Controllers<br/>ambil input, render"]
+    end
+
+    subgraph App["Lapis aplikasi"]
+        S["Services<br/>aturan bisnis, transaksi"]
+        L["Libraries<br/>MidtransClient · QrCode · MaxMindReader"]
+    end
+
+    subgraph Data["Lapis data"]
+        Repo["Repositories<br/>query ber-scope, lock"]
+        M["Models<br/>CRUD sederhana"]
+    end
+
+    C --> S
+    S --> Repo
+    S --> M
+    S --> L
+    Repo --> DB[("MySQL")]
+    M --> DB
+    L --> GW["Midtrans"]
+```
+
+Tanggung jawab tiap lapis:
+
+- **Routes** — auto-routing dimatikan; setiap URI dideklarasikan eksplisit per metode HTTP. Otorisasi dinyatakan sebagai struktur grup bersarang, sehingga hak akses terbaca dari berkas rute.
+- **Filters** — autentikasi sesi, pemeriksaan role, pemeriksaan langganan aktif, dan locale. Penolakan akses ditulis ke audit log.
+- **Controllers** — tipis. Mengambil input, memanggil service, merender view. Tidak memuat SQL.
+- **Services** — tempat aturan bisnis, transaksi, dan koordinasi. Dependensi di-inject lewat constructor dengan nilai default, sehingga dapat diuji tanpa container.
+- **Repositories** — query dengan scope kepemilikan atau role, transaksi lintas tabel, dan locking. Menerima koneksi, mengembalikan array; tidak pernah mengembalikan query builder dan tidak pernah membaca session atau request.
+- **Models** — CI4 Model untuk CRUD sederhana saja.
+
+### Contoh alur vertikal
+
+`POST dashboard/billing/checkout` menempuh jalur berikut:
+
+```
+Routes.php  →  filter auth  →  BillingController::checkout()
+            →  CheckoutService::checkout($userId, $planCode, $requestKey, $now)
+                 ├─ AccountRepository::find()           cek role dan status akun
+                 ├─ findByRequestKey()                  idempotensi
+                 ├─ CancelPaymentService                tutup order terbuka lain
+                 ├─ insertOrder()                       status "creating" + snapshot harga
+                 ├─ MidtransClient::snap()              dipanggil di luar lock DB
+                 └─ update status "pending" + token
+            →  audit log  →  redirect ke host Midtrans yang di-allowlist
+```
+
+## Alur pembayaran
+
+Pembayaran adalah bagian paling rawan balapan: notifikasi webhook dan pengecekan status dari pengguna bisa tiba bersamaan.
+
+```mermaid
+sequenceDiagram
+    actor U as Pengguna
+    participant C as BillingController
+    participant S as CheckoutService
+    participant R as PaymentOrderRepository
+    participant GW as Midtrans
+
+    U->>C: POST checkout (request_key)
+    C->>S: checkout(userId, planCode, requestKey)
+    S->>R: findByRequestKey — idempotensi
+    S->>R: insertOrder (creating)
+    S->>GW: Snap charge (di luar lock)
+    GW-->>S: snap_token
+    S->>R: update (pending)
+    C-->>U: redirect ke Midtrans
+
+    GW->>C: webhook notifikasi
+    C->>R: withLockedOrder — kunci account lalu order
+    R->>R: terapkan pembayaran, perpanjang langganan
+    R->>R: tulis audit (wajib berhasil)
+```
+
+Kuncinya: `PaymentOrderRepository::withLockedOrder()` mengunci baris account lalu order dalam urutan tetap di satu transaksi, sehingga pembayaran diterapkan **tepat satu kali** meski notifikasi dan pengecekan status tiba bersamaan.
+
+## Keputusan teknis
+
+Beberapa pilihan yang dibuat sadar, beserta alasannya:
+
+- **Repository hanya untuk yang membutuhkan.** Dibuat saat ada query ber-scope pemilik, transaksi lintas tabel, locking, agregat admin, atau tabel append-only. Bukan satu repository per tabel — karena itu hanya ada 15 repository untuk puluhan tabel.
+- **Tanpa interface per repository.** Repository adalah kelas konkret. Abstraksi tambahan tidak dibuat sampai ada kebutuhan nyata seperti implementasi pengganti.
+- **Audit log append-only.** `AuditLogRepository` sengaja tidak memiliki metode update atau delete. Lebih jauh, `withRequiredAudit()` membatalkan aksi bila penulisan audit gagal — aksi sensitif tidak boleh terjadi tanpa jejak.
+- **Idempotensi checkout.** `request_key` unik per pengguna. Pengguna yang menekan tombol dua kali atau percobaan ulang jaringan tidak menghasilkan dua transaksi.
+- **Backoff eksponensial.** Rekonsiliasi order yang gagal mundur `5 menit × 2^kegagalan`, dibatasi 6 jam, dihitung langsung di SQL.
+- **Panggilan jaringan di luar transaksi.** Permintaan Snap dilakukan di luar lock database agar koneksi lambat tidak menahan baris terkunci.
+- **Statistik tanpa menyimpan IP.** Pengunjung unik diidentifikasi lewat HMAC dengan metadata yang berganti harian; IP dan user-agent mentah tidak pernah disimpan.
+
+## Keamanan
+
+- **CSRF global**, dengan tepat dua pengecualian beralasan: beacon statistik kartu (memakai token per-kartu) dan webhook Midtrans (diverifikasi lewat tanda tangan SHA-512 dengan `hash_equals`).
+- **Otorisasi berbasis kepemilikan.** Kepemilikan selalu menjadi parameter eksplisit, misalnya `findOwnedOrder($code, $userId)`. Order milik pengguna lain menghasilkan 404, bukan 403 — status 403 akan membocorkan bahwa order itu ada.
+- **Sanitizer HTML allowlist** untuk unggahan template: batas 100 KB, 100 elemen, kedalaman 16; tag dan class dibatasi daftar; keluaran dibangun ulang dari DOM, bukan dari sumber mentah; divalidasi ulang setiap render.
+- **Validasi unggahan** berlapis: `isValid()`, ukuran maksimum 5 MB, dan `getimagesize()` untuk memastikan berkas benar-benar gambar.
+- **Rate limiting** pada aksi pembayaran, 6 permintaan per menit per pengguna.
+- **Redirect gateway dibatasi allowlist host**, sehingga parameter tidak dapat dipakai untuk open redirect.
+- `password_hash` / `password_verify`, token reset 32 byte acak sekali pakai, serta pencabutan sesi lewat `session_version`.
+
+## Struktur proyek
+
+```
+app/
+├── Config/Routes.php      Deklarasi rute eksplisit, otorisasi lewat grup bersarang
+├── Filters/               Auth, Access (role), Subscription, Locale
+├── Controllers/           18 controller tipis
+├── Services/              36 service dalam 9 domain — aturan bisnis
+│   ├── Auth/              Login, reset password
+│   ├── Cards/             Profil, galeri, template, render kartu publik
+│   ├── Payments/          Checkout, apply, cancel, notifikasi tagihan
+│   └── Users/             Manajemen akun dan admin
+├── Repositories/          15 repository — query ber-scope, transaksi, lock
+├── Models/                5 model untuk CRUD sederhana
+├── Libraries/             MidtransClient, QrCode, MaxMindReader, AppMailer
+├── Commands/              payments:reconcile, billing:notify, analytics:purge, geoip:update
+├── Database/Migrations/   23 migration
+└── Views/                 Layout, partial, template kartu
+
+tests/
+├── unit/                  39 berkas — service, sanitizer, QR, mailer
+├── database/              3 berkas — integrasi repository terhadap MySQL nyata
+└── session/               1 berkas
+```
+
+## Menjalankan secara lokal
+
+Dibutuhkan PHP 8.3 dengan ekstensi `intl`, `mbstring`, `mysqli`, serta MySQL 8 atau MariaDB 10.5+.
 
 ```bash
+composer install
 cp .env.example .env
-# Isi kredensial database lokal di .env, lalu siapkan schema/data uji.
+# Isi kredensial database di .env
+php spark migrate --all
 php spark serve
 ```
 
-Isi `billing.whatsapp`, `billing.email`, dan (opsional) `billing.transferInstructions` di `.env` agar halaman "Paket & pembayaran" menampilkan kontak perpanjangan; tanpa nilai itu halaman meminta pengguna menghubungi admin. Jangan menaruh nomor rekening atau kontak asli di repository.
+Langkah konfigurasi selengkapnya — `app.baseURL`, pengaturan tagihan, cron statistik, dan document root — ada di [panduan deployment](guides/DEPLOYMENT.md).
 
-`app.baseURL` di `.env` harus sama dengan alamat yang benar-benar dibuka di browser, termasuk skema (`http`/`https`) dan subfolder. Di cPanel, gunakan URL publik aplikasi, misalnya `https://domain-anda.example/nfc/`; untuk lokal gunakan alamat server lokal. Ketidaksesuaian alamat dapat membuat cookie CSRF tidak ikut pada POST dan menghasilkan HTTP 403 saat login. Cookie CSRF dan session aplikasi ini memakai nama khusus `nfc_ci_csrf` dan `nfc_ci_session`; setelah deployment perubahan cookie atau alamat, muat ulang halaman login sebelum mengirim form.
+## Pengujian dan kualitas
 
-Tabel yang dipakai antara lain `table_user`, `table_data_personal`, dan `sosial_media`. Setelah schema dasar tersedia, jalankan `php spark migrate --all`. Migration mengubah `table_user.reset_expired_at` dari DATE menjadi DATETIME, menambah `account_status` (default `enabled`) serta `session_version` (default 1) untuk penangguhan akun dan pencabutan sesi, lalu membuat tabel `plans`, `subscriptions`, dan `subscription_grants` dan mengimpor masa aktif dari `expired_date`, menambah `table_data_personal.gallery_columns` (default 1) untuk tata letak galeri kartu, lalu membuat `audit_events` (Activity Logs), kolom paket/status/urutan pada `templates` beserta empat layout kartu baru (non-aktif), `plan_price_versions` (riwayat harga paket), `card_daily_metrics`/`card_daily_visitors` (statistik Pro), dan `card_aliases` (URL username lama). Isi `analytics.secret` di `.env` privat dengan string acak panjang dan pasang cron harian `php spark analytics:purge` untuk retensi statistik (hash 30 hari, agregat 12 bulan). Kode membaca hak akses dari `subscriptions`; jalankan migration bersamaan dengan deploy kode, karena tanpa tabel itu dashboard dan kartu publik gagal (HTTP 500). Backup database sebelum migrate. Keduanya dapat di-rollback dengan `php spark migrate:rollback`. Migration menghapus token reset lama yang disimpan dalam format mentah. Siapkan backup database dan gunakan data uji terpisah dari produksi. Konfigurasikan `email.*` di `.env` sebelum menguji pengiriman reset password. Kredensial SMTP yang pernah tertulis dalam source harus dirotasi.
+```bash
+composer test         # PHPUnit
+composer lint         # php-cs-fixer, standar CodeIgniter 4
+composer analyse      # PHPStan
+composer audit:deps   # pemindaian CVE dependensi
+composer check        # keempatnya sekaligus
+```
 
-**Deploy bahasa kartu:** penyimpanan bahasa kartu membutuhkan kolom `table_data_personal.card_locale` dari migration `2026-10-30-090000_AddCardLocaleToProfiles.php`. Adanya file migration belum berarti schema database aplikasi sudah diperbarui. Periksa `php spark migrate:status -g default` pada database yang dipakai server. Setelah backup dan izin perubahan schema tersedia, jalankan `php spark migrate -n App -g default`; perintah ini menjalankan seluruh migration `App` yang tertunda, jadi periksa daftarnya dahulu. Pada container lokal, awali perintah dengan `docker exec nfc-ci`. Pastikan status `AddCardLocaleToProfiles` sudah memiliki tanggal/batch, lalu uji simpan bahasa lewat sesi pemilik. Tes repository memakai database uji terpisah yang menjalankan migration sendiri, bukan bukti schema aplikasi telah diperbarui.
+**251 tes, 1118 assertion.** Dua puluh sembilan di antaranya adalah tes integrasi repository yang berjalan terhadap MySQL sungguhan; tes itu dilewati bila MySQL tidak tersedia, dan dijalankan penuh di CI.
 
-**Aset statis:** file yang dipakai view telah tersedia di `public/assets/`. CSS login tetap di `assets/login/`, dashboard memakai Bootstrap 5 dan `assets/dashboard/css/app.css`, sedangkan kartu publik memakai `assets/cards/css/base.css` serta `dark.css`. Dependensi dashboard Bootstrap, Font Awesome, dan Simple DataTables disimpan di `public/assets/dashboard/vendor/` agar tidak bergantung pada CDN. Arahkan document root web server ke `public/`. Folder `assets/` di root masih dipertahankan sementara untuk kompatibilitas deployment lama dan berisi file demo serta dump SQL; jangan jadikan root repository sebagai document root produksi karena terdapat `.env` dan berkas internal di sana. Upload dan URL gambarnya sekarang memakai `public/uploads` secara fisik dan `/uploads/...` dari web. Deploy perubahan URL dan document root secara bersamaan di cPanel.
+Yang diuji tes integrasi bukan hal yang mudah dipalsukan dengan mock: scoping kepemilikan, cascade delete, periode langganan yang tidak boleh tumpang-tindih, super-admin terakhir yang tidak dapat dihapus, atomicity statistik, serta sembilan skenario pembayaran termasuk idempotensi dan backoff.
 
-## Struktur
+Setiap push dan pull request menjalankan empat gate — gaya kode, analisis statis, audit dependensi, dan tes — terhadap MySQL 8 di GitHub Actions. Branch `master` dan `develop` dilindungi dan menuntut keempatnya hijau.
 
-| Lokasi | Isi |
+## Dokumentasi lanjutan
+
+| Dokumen | Isi |
 | --- | --- |
-| `app/Config/Routes.php` | Route login, dashboard, akun, dan kartu publik |
-| `app/Controllers/` | Endpoint HTTP; sebagian controller lama masih memuat logika bisnis yang sedang dipindahkan ke service |
-| `app/Services/` | Aturan bisnis, otorisasi objek, transaksi, dan koordinasi file/email (`Auth/`, `Users/`, `Cards/`, `Uploads/`) |
-| `app/Repositories/` | Query domain dengan scope kepemilikan/role dan transaksi; tidak dibuat untuk setiap tabel |
-| `app/Models/` | Metadata tabel dan query sederhana melalui CI4 Model |
-| `app/Filters/` | Autentikasi dan pemeriksaan akses |
-| `app/Views/` | Tampilan login, dashboard, dan kartu |
-| `app/Helpers/`, `app/Traits/` | Helper format murni (`asset_url`, `flash_feedback`, `remaining_days_label`) dan trait controller (`ResolvesCurrentUser`, `RespondsWithFeedback`). View Cell (`app/Cells/`) belum dibuat. Lihat [PRD bagian 10](docs/ui-ux-2026/PRD.md#10-komponen-reusable-layout-partial-css-helper-trait) |
-| `app/Views/layouts/`, `app/Views/partials/` | Layout `dashboard` dan partial `dashboard/`, `feedback/`, `shared/`, `cards/`. Semua halaman dashboard memakainya; layout lama `dashboard-home.php` sudah dihapus. View login tidak diubah |
-| `public/assets/` | Aset login dan dashboard yang benar-benar dipakai view |
-| `assets/` | Aset legacy untuk deployment lama; bukan lokasi penambahan aset baru |
-| `public/` | Front controller dan sebagian upload |
-| `writable/` | Session, cache, dan log |
+| [Arsitektur](guides/ARCHITECTURE.md) | Lapisan dan urutan refactor |
+| [Pengembangan](guides/DEVELOPMENT.md) | Standar penulisan kode |
+| [Deployment](guides/DEPLOYMENT.md) | Konfigurasi, migration, cron, document root |
+| [Template kartu](guides/TEMPLATES.md) | Unggah, CSS, dan menambah desain baru |
+| [Aset](guides/ASSETS.md) | Penataan aset dan CSS |
 
-## Panduan
+## Lisensi
 
-- [Arsitektur dan urutan refactor](guides/ARCHITECTURE.md)
-- [Standar pengembangan](guides/DEVELOPMENT.md)
-- [Penataan aset dan CSS](guides/ASSETS.md)
-- [Template kartu: upload, CSS, dan desain baru](guides/TEMPLATES.md)
-- [Prioritas perbaikan kode](guides/NEXT_STEPS.md)
-- [Rancangan UI/UX, PRD, dan rancangan teknis 2026](docs/ui-ux-2026/README.md), termasuk pola repository dan komponen reusable
-- [Instruksi Claude](CLAUDE.md)
-
-Jalankan `php -l path/ke/file.php` untuk pemeriksaan sintaks. Untuk perintah CLI yang memuat framework pada lingkungan lokal ini, gunakan PHP 8.3 di container, misalnya `docker exec nfc-ci php spark routes`. Seluruh 11 view dashboard sudah diuji render dengan PHP 8.3 dan data contoh. Setelah dependensi pengembangan tersedia, jalankan `composer test`. Per 11 Oktober 2026 ada 95 tes unit (User/Admin, login, profil/galeri, kartu publik dan alias, langganan, template per paket, master data, audit, upload WebP, statistik). Tes request dan browser dijalankan manual terhadap DB uji terpisah; hasilnya di [QA](docs/ui-ux-2026/QA.md#hasil-pemeriksaan-aplikasi-11-oktober-2026).
+[MIT](LICENSE).

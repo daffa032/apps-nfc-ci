@@ -1,6 +1,6 @@
 # Rangkuman pekerjaan — aplikasi NFC (CodeIgniter 4)
 
-Diperbarui 12 Oktober 2026. Dokumen ini merangkum pekerjaan yang sudah selesai, pengujian yang tercatat, dan pekerjaan tersisa. Statusnya dicocokkan dengan kode pada tanggal tersebut. Bila berbeda dengan dokumen lain, kode yang menjadi acuan. Rencana kebutuhan ada di [PRD](../docs/ui-ux-2026/PRD.md), dan urutan fase ada di [NEXT_STEPS](NEXT_STEPS.md).
+Diperbarui 12 Oktober 2026. Dokumen ini merangkum pekerjaan yang sudah selesai, pengujian yang tercatat, dan pekerjaan tersisa. Statusnya dicocokkan dengan kode pada tanggal tersebut. Bila berbeda dengan dokumen lain, kode yang menjadi acuan. Rencana kebutuhan ada di PRD (dokumen internal), dan urutan fase ada di [NEXT_STEPS](NEXT_STEPS.md).
 
 Legenda status: **Selesai** = sudah ada di kode dan diuji lokal · **Sebagian** = berjalan dengan batasan yang dicatat · **Belum** = belum dikerjakan.
 

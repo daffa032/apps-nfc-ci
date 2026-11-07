@@ -22,7 +22,7 @@ Gunakan `base_url('assets/login/...')`, `base_url('assets/dashboard/...')`, atau
 
 ## Aturan CSS reusable
 
-Rancangan lengkap ada di [PRD bagian 10.2](../docs/ui-ux-2026/PRD.md#102-pengaturan-css) dan urutan muat di [TECHNICAL](../docs/ui-ux-2026/TECHNICAL.md#repository-helper-trait-dan-komponen-view). Per 10 Oktober 2026 `public/assets/shared/` berisi `css/tokens.css`, `css/feedback.css`, dan `js/feedback.js`, dimuat oleh `layouts/dashboard`. Salinannya ada di `assets/shared/` untuk deployment lama. Login dan kartu belum memuatnya.
+Rancangan lengkap ada di PRD bagian 10.2 (dokumen internal) dan urutan muat di TECHNICAL (dokumen internal). Per 10 Oktober 2026 `public/assets/shared/` berisi `css/tokens.css`, `css/feedback.css`, dan `js/feedback.js`, dimuat oleh `layouts/dashboard`. Salinannya ada di `assets/shared/` untuk deployment lama. Login dan kartu belum memuatnya.
 
 ```text
 public/assets/
@@ -38,7 +38,7 @@ public/assets/
 
 | Aturan | Ketentuan |
 | --- | --- |
-| Token | Warna, radius, spasi, dan durasi ditulis sebagai custom property berprefiks `--nfc-` di `tokens.css`. Nilai warna mengikuti palet Coffra (terang dan `[data-theme="dark"]`), lihat [MOTION.md](../docs/ui-ux-2026/MOTION.md). Komponen baru membaca token, bukan nilai hex langsung. |
+| Token | Warna, radius, spasi, dan durasi ditulis sebagai custom property berprefiks `--nfc-` di `tokens.css`. Nilai warna mengikuti palet Coffra (terang dan `[data-theme="dark"]`), lihat MOTION.md (dokumen internal). Komponen baru membaca token, bukan nilai hex langsung. |
 | Prefiks class | `dash-`, `auth-`, `card-`, dan `nfc-` untuk shared, agar tidak bentrok dengan Bootstrap/SB Admin. Class Bootstrap tetap dipakai untuk grid dan utilitas. Class lama seperti `dashboard-welcome` dipertahankan sampai halamannya direfactor. |
 | Inline style | Tidak menambah `style=""` atau `<style>` di view. Inline style lama dipindah ke CSS area saat halamannya direfactor. Nilai dinamis (misalnya galeri 1/2 kolom) dikirim sebagai class atau `data-*`. |
 | Aset per halaman | Halaman pada layout baru mendaftarkan CSS/JS di section `styles`/`scripts`; layout tidak memeriksa nama `$page` untuk memilih aset. |
