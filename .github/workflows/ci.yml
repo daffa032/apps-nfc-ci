@@ -27,6 +27,21 @@ jobs:
 
       - run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+
+      # Reads composer.lock only, so no install step is needed.
+      - run: composer audit
+
   analyse:
     name: Static analysis
     runs-on: ubuntu-latest
