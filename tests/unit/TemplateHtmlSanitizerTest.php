@@ -127,6 +127,11 @@ final class TemplateHtmlSanitizerTest extends TestCase
 
     public function testTheProDesignsFromDocsAreAcceptedAndMatchTheAppCopies(): void
     {
+        // The docs sources stay out of the repository, so this drift check is local-only.
+        if (! is_dir(ROOTPATH . 'docs/ui-ux-2026/templates/pro')) {
+            $this->markTestSkipped('docs/ui-ux-2026/templates/pro is not available in this checkout.');
+        }
+
         $sanitizer = new TemplateHtmlSanitizer();
 
         foreach (TemplateHtmlSanitizer::PRO_DESIGNS as $design) {

@@ -31,6 +31,8 @@ SET @nfc_card_locale_sql = NULL;
 -- Register the exact CI4 migration identity, only once and only if the expected column exists.
 -- Hex encodes the class name so this works with or without NO_BACKSLASH_ESCAPES SQL mode:
 -- App\Database\Migrations\AddCardLocaleToProfiles
+-- CONVERT() takes the server collation, which is utf8mb4_0900_ai_ci on MySQL 8 and would
+-- clash with the column's utf8mb4_general_ci; comparisons state the collation explicitly.
 INSERT INTO `migrations` (`version`, `class`, `group`, `namespace`, `time`, `batch`)
 SELECT
     '2026-10-30-090000',
@@ -42,7 +44,7 @@ SELECT
 WHERE NOT EXISTS (
     SELECT 1 FROM `migrations` AS existing
     WHERE REPLACE(existing.`version`, '-', '') = '20261030090000'
-      AND existing.`class` = CONVERT(0x4170705c44617461626173655c4d6967726174696f6e735c416464436172644c6f63616c65546f50726f66696c6573 USING utf8mb4)
+      AND existing.`class` = CONVERT(0x4170705c44617461626173655c4d6967726174696f6e735c416464436172644c6f63616c65546f50726f66696c6573 USING utf8mb4) COLLATE utf8mb4_general_ci
       AND existing.`group` = 'default'
       AND existing.`namespace` = 'App'
 )
@@ -65,6 +67,6 @@ SHOW COLUMNS FROM `table_data_personal` WHERE `Field` = 'card_locale';
 SELECT `version`, `class`, `group`, `namespace`, `batch`
 FROM `migrations`
 WHERE REPLACE(`version`, '-', '') = '20261030090000'
-  AND `class` = CONVERT(0x4170705c44617461626173655c4d6967726174696f6e735c416464436172644c6f63616c65546f50726f66696c6573 USING utf8mb4)
+  AND `class` = CONVERT(0x4170705c44617461626173655c4d6967726174696f6e735c416464436172644c6f63616c65546f50726f66696c6573 USING utf8mb4) COLLATE utf8mb4_general_ci
   AND `group` = 'default'
   AND `namespace` = 'App';
