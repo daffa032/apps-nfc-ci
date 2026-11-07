@@ -24,26 +24,26 @@ final class AccountSettingsService
     public function update(int $id, array $input): void
     {
         $user = $this->accounts->find($id);
-        if (!$user) {
+        if (! $user) {
             throw new DomainException(lang('Settings.accountMissing'));
         }
 
-        $email = trim((string) ($input['email'] ?? ''));
-        $password = (string) ($input['password'] ?? '');
+        $email        = trim((string) ($input['email'] ?? ''));
+        $password     = (string) ($input['password'] ?? '');
         $confirmation = (string) ($input['repeat_password'] ?? '');
         $emailChanged = $email !== $user['email'];
 
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new FieldException('email', lang('Settings.errEmail'));
         }
         if ($emailChanged && $this->accounts->emailTaken($email, $id)) {
             throw new FieldException('email', lang('Settings.errEmailTaken'));
         }
-        if (!$emailChanged && $password === '' && $confirmation === '') {
+        if (! $emailChanged && $password === '' && $confirmation === '') {
             // Nothing would be written; reporting success here would be a false "saved" (PRD FB-01).
             throw new DomainException(lang('Settings.noChanges'));
         }
-        if (!password_verify((string) ($input['current_password'] ?? ''), $user['password'])) {
+        if (! password_verify((string) ($input['current_password'] ?? ''), $user['password'])) {
             throw new FieldException('current_password', lang('Settings.errCurrent'));
         }
         if ($password === '' && $confirmation !== '') {
@@ -63,10 +63,10 @@ final class AccountSettingsService
             }
             $changes['password'] = password_hash($password, PASSWORD_DEFAULT);
         }
-        $changes['reset_token'] = null;
+        $changes['reset_token']      = null;
         $changes['reset_expired_at'] = null;
 
-        if (!$this->accounts->update($id, $changes)) {
+        if (! $this->accounts->update($id, $changes)) {
             throw new RuntimeException(lang('Settings.saveFailed'));
         }
     }

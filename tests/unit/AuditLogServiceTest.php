@@ -4,25 +4,29 @@ declare(strict_types=1);
 
 use App\Repositories\AuditLogRepository;
 use App\Services\Audit\AuditLogService;
+use CodeIgniter\Database\MySQLi\Connection;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class AuditLogServiceTest extends TestCase
 {
     public function testRecordsOnlyKnownActionsWithFieldNames(): void
     {
         $repository = new MemoryAuditRepository();
-        $service = new AuditLogService($repository);
+        $service    = new AuditLogService($repository);
 
         $service->record('user.updated', 'success', 3, 'user', 9, ['email', 'password', 'email']);
         $service->record('made.up', 'success', 3);
         $service->record('user.updated', 'maybe', 3);
 
-        self::assertCount(1, $repository->events);
+        $this->assertCount(1, $repository->events);
         $event = $repository->events[0];
-        self::assertSame('email,password', $event['changed_fields']);
-        self::assertSame('9', $event['target_id']);
-        self::assertMatchesRegularExpression('/\A[a-f0-9]{16}\z/', $event['request_id']);
-        self::assertSame(AuditLogService::requestId(), $event['request_id']);
+        $this->assertSame('email,password', $event['changed_fields']);
+        $this->assertSame('9', $event['target_id']);
+        $this->assertMatchesRegularExpression('/\A[a-f0-9]{16}\z/', $event['request_id']);
+        $this->assertSame(AuditLogService::requestId(), $event['request_id']);
     }
 
     public function testFailedWriteDoesNotThrow(): void
@@ -35,8 +39,9 @@ final class AuditLogServiceTest extends TestCase
     {
         // An unregistered action is dropped by record() and makes withRequiredAudit() fail the whole
         // mutation (QA 26 Oct 2026: template.limits_changed broke "Simpan batas").
-        $used = [];
+        $used  = [];
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(APPPATH, FilesystemIterator::SKIP_DOTS));
+
         foreach ($files as $file) {
             if ($file->getExtension() !== 'php' || str_contains($file->getPathname(), DIRECTORY_SEPARATOR . 'Views' . DIRECTORY_SEPARATOR)) {
                 continue;
@@ -46,52 +51,55 @@ final class AuditLogServiceTest extends TestCase
             $used = [...$used, ...$m[1], ...$n[1]];
         }
         $used = array_values(array_unique($used));
-        self::assertNotEmpty($used);
+        $this->assertNotEmpty($used);
         $id = require APPPATH . 'Language/id/Audit.php';
         $en = require APPPATH . 'Language/en/Audit.php';
+
         foreach ($used as $action) {
-            self::assertArrayHasKey($action, AuditLogService::ACTIONS, "Audit action {$action} is used but not registered.");
+            $this->assertArrayHasKey($action, AuditLogService::ACTIONS, "Audit action {$action} is used but not registered.");
             $key = 'action_' . str_replace('.', '_', $action);
-            self::assertArrayHasKey($key, $id, "Missing id translation for {$action}.");
-            self::assertArrayHasKey($key, $en, "Missing en translation for {$action}.");
+            $this->assertArrayHasKey($key, $id, "Missing id translation for {$action}.");
+            $this->assertArrayHasKey($key, $en, "Missing en translation for {$action}.");
         }
     }
 
     public function testRequiredAuditCommitsMutationWithItsEvent(): void
     {
         $repository = new MemoryAuditRepository();
-        $db = new RecordingTransactions();
-        $result = (new AuditLogService($repository, $db))->withRequiredAudit(
+        $db         = new RecordingTransactions();
+        $result     = (new AuditLogService($repository, $db))->withRequiredAudit(
             9,
             static fn (): int => 4,
-            static fn (int $version): array => ['plan.updated', 'plan', 'pro', ['price_idr'], 'v' . $version]
+            static fn (int $version): array => ['plan.updated', 'plan', 'pro', ['price_idr'], 'v' . $version],
         );
 
-        self::assertSame(4, $result);
-        self::assertSame(['begin', 'commit'], $db->calls);
-        self::assertSame(['plan.updated', 'success', 'v4', 'price_idr'], [$repository->events[0]['action'], $repository->events[0]['outcome'], $repository->events[0]['reason'], $repository->events[0]['changed_fields']]);
+        $this->assertSame(4, $result);
+        $this->assertSame(['begin', 'commit'], $db->calls);
+        $this->assertSame(['plan.updated', 'success', 'v4', 'price_idr'], [$repository->events[0]['action'], $repository->events[0]['outcome'], $repository->events[0]['reason'], $repository->events[0]['changed_fields']]);
     }
 
     public function testFailedAuditWriteCancelsHighRiskMutation(): void
     {
-        $db = new RecordingTransactions();
+        $db  = new RecordingTransactions();
         $ran = false;
+
         try {
             (new AuditLogService(new FailingAuditRepository(), $db))->withRequiredAudit(9, static function () use (&$ran): void {
                 $ran = true;
             }, static fn (): array => ['user.deleted', 'user', 5]);
-            self::fail('A failed audit write must surface as a failure.');
+            $this->fail('A failed audit write must surface as a failure.');
         } catch (RuntimeException) {
         }
 
-        self::assertTrue($ran);
-        self::assertSame(['begin', 'rollback'], $db->calls);
+        $this->assertTrue($ran);
+        $this->assertSame(['begin', 'rollback'], $db->calls);
     }
 
     public function testFailedMutationWritesNoSuccessEvent(): void
     {
         $repository = new MemoryAuditRepository();
-        $db = new RecordingTransactions();
+        $db         = new RecordingTransactions();
+
         try {
             (new AuditLogService($repository, $db))->withRequiredAudit(9, static function (): void {
                 throw new DomainException('Super Admin terakhir tidak dapat dihapus.');
@@ -99,27 +107,27 @@ final class AuditLogServiceTest extends TestCase
         } catch (DomainException) {
         }
 
-        self::assertSame([], $repository->events);
-        self::assertSame(['begin', 'rollback'], $db->calls);
+        $this->assertSame([], $repository->events);
+        $this->assertSame(['begin', 'rollback'], $db->calls);
     }
 
     public function testSearchIgnoresUnknownFiltersAndConvertsWibDays(): void
     {
         $repository = new MemoryAuditRepository();
-        $result = (new AuditLogService($repository))->search([
+        $result     = (new AuditLogService($repository))->search([
             'action' => 'DROP TABLE', 'outcome' => 'denied', 'target' => "1' OR '1",
-            'from' => '2026-10-10', 'to' => '2026-10-10', 'actor' => 'ada',
+            'from'   => '2026-10-10', 'to' => '2026-10-10', 'actor' => 'ada',
         ], 0);
 
-        self::assertSame(['action' => '', 'outcome' => 'denied', 'actor' => 'ada', 'target' => '', 'from' => '2026-10-09 17:00:00', 'to' => '2026-10-10 17:00:00'], $repository->lastFilters);
-        self::assertSame(1, $result['page']);
-        self::assertSame('2026-10-10', $result['filters']['from']);
+        $this->assertSame(['action' => '', 'outcome' => 'denied', 'actor' => 'ada', 'target' => '', 'from' => '2026-10-09 17:00:00', 'to' => '2026-10-10 17:00:00'], $repository->lastFilters);
+        $this->assertSame(1, $result['page']);
+        $this->assertSame('2026-10-10', $result['filters']['from']);
     }
 }
 
 class MemoryAuditRepository extends AuditLogRepository
 {
-    public array $events = [];
+    public array $events      = [];
     public array $lastFilters = [];
 
     public function __construct()
@@ -154,7 +162,7 @@ class FailingAuditRepository extends AuditLogRepository
 /**
  * Stands in for the DB connection: only records transaction calls.
  */
-class RecordingTransactions extends CodeIgniter\Database\MySQLi\Connection
+class RecordingTransactions extends Connection
 {
     public array $calls = [];
 

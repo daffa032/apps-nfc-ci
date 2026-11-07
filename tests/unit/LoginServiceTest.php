@@ -6,6 +6,9 @@ use App\Models\UserModel;
 use App\Services\Auth\LoginService;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class LoginServiceTest extends TestCase
 {
     public function testMessagesFollowTheExistingOrder(): void
@@ -15,9 +18,9 @@ final class LoginServiceTest extends TestCase
         foreach ([['nobody', 'x', 'Username tidak ditemukan'], ['ada', 'wrong', 'Kata sandi salah'], ['', 'x', 'Username tidak ditemukan']] as [$user, $pass, $message]) {
             try {
                 $service->attempt($user, $pass);
-                self::fail('Sign-in must fail for ' . $user);
+                $this->fail('Sign-in must fail for ' . $user);
             } catch (DomainException $exception) {
-                self::assertSame($message, $exception->getMessage());
+                $this->assertSame($message, $exception->getMessage());
             }
         }
     }
@@ -28,9 +31,9 @@ final class LoginServiceTest extends TestCase
 
         try {
             $service->attempt('sus', 'wrong');
-            self::fail('Wrong password must fail first.');
+            $this->fail('Wrong password must fail first.');
         } catch (DomainException $exception) {
-            self::assertSame('Kata sandi salah', $exception->getMessage());
+            $this->assertSame('Kata sandi salah', $exception->getMessage());
         }
 
         $this->expectExceptionMessage('Akun Anda ditangguhkan. Hubungi admin.');
@@ -41,7 +44,7 @@ final class LoginServiceTest extends TestCase
     {
         $values = (new LoginService(new FakeLoginUsers()))->attempt('ada', 'secret-pass');
 
-        self::assertSame(['id_user' => 7, 'username' => 'ada', 'access_level' => 'User', 'session_version' => 4, 'logged_in' => true], $values);
+        $this->assertSame(['id_user' => 7, 'username' => 'ada', 'access_level' => 'User', 'session_version' => 4, 'logged_in' => true], $values);
     }
 }
 
@@ -51,7 +54,7 @@ class FakeLoginUsers extends UserModel
 
     public function __construct()
     {
-        $hash = password_hash('secret-pass', PASSWORD_DEFAULT);
+        $hash       = password_hash('secret-pass', PASSWORD_DEFAULT);
         $this->rows = [
             'ada' => ['id_user' => 7, 'username' => 'ada', 'password' => $hash, 'access_level' => 'User', 'account_status' => 'enabled', 'session_version' => 4],
             'sus' => ['id_user' => 8, 'username' => 'sus', 'password' => $hash, 'access_level' => 'User', 'account_status' => 'suspended', 'session_version' => 1],

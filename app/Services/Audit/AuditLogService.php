@@ -23,43 +23,45 @@ use Throwable;
  */
 final class AuditLogService
 {
-    /** Allowed action codes; the page shows translated labels from app/Language/{id,en}/Audit.php. */
+    /**
+     * Allowed action codes; the page shows translated labels from app/Language/{id,en}/Audit.php.
+     */
     public const ACTIONS = [
-        'auth.login' => 'Masuk',
-        'auth.login_failed' => 'Gagal masuk',
-        'auth.access_denied' => 'Akses ditolak',
-        'profile.updated' => 'Profil diubah',
-        'gallery.uploaded' => 'Foto galeri diunggah',
-        'gallery.deleted' => 'Foto galeri dihapus',
-        'gallery.caption_updated' => 'Keterangan foto diubah',
-        'gallery.layout_updated' => 'Tata letak galeri diubah',
-        'social.updated' => 'Tautan sosial diubah',
-        'brand.updated' => 'Aset merek diubah',
-        'payment.checkout' => 'Tagihan dibuat',
-        'payment.applied' => 'Pembayaran diterapkan',
+        'auth.login'               => 'Masuk',
+        'auth.login_failed'        => 'Gagal masuk',
+        'auth.access_denied'       => 'Akses ditolak',
+        'profile.updated'          => 'Profil diubah',
+        'gallery.uploaded'         => 'Foto galeri diunggah',
+        'gallery.deleted'          => 'Foto galeri dihapus',
+        'gallery.caption_updated'  => 'Keterangan foto diubah',
+        'gallery.layout_updated'   => 'Tata letak galeri diubah',
+        'social.updated'           => 'Tautan sosial diubah',
+        'brand.updated'            => 'Aset merek diubah',
+        'payment.checkout'         => 'Tagihan dibuat',
+        'payment.applied'          => 'Pembayaran diterapkan',
         'payment.webhook_rejected' => 'Notifikasi pembayaran ditolak',
-        'payment.reconciled' => 'Status pembayaran diperiksa',
-        'payment.cancelled' => 'Tagihan dibatalkan',
-        'payment.resolved' => 'Tinjauan pembayaran diselesaikan',
-        'payment.refunded' => 'Pembayaran dikembalikan, masa aktif dicabut',
-        'theme.selected' => 'Tampilan kartu dipilih',
+        'payment.reconciled'       => 'Status pembayaran diperiksa',
+        'payment.cancelled'        => 'Tagihan dibatalkan',
+        'payment.resolved'         => 'Tinjauan pembayaran diselesaikan',
+        'payment.refunded'         => 'Pembayaran dikembalikan, masa aktif dicabut',
+        'theme.selected'           => 'Tampilan kartu dipilih',
         'account.settings_updated' => 'Pengaturan akun diubah',
-        'user.created' => 'User dibuat',
-        'user.updated' => 'User diubah',
-        'user.deleted' => 'User dihapus',
-        'admin.created' => 'Admin dibuat',
-        'admin.updated' => 'Admin diubah',
-        'admin.deleted' => 'Admin dihapus',
-        'account.suspended' => 'Akun ditangguhkan',
-        'account.restored' => 'Akun dipulihkan',
-        'subscription.granted' => 'Masa aktif diberikan',
-        'subscription.revoked' => 'Masa aktif dicabut',
-        'plan.updated' => 'Paket diubah',
-        'template.created' => 'Template dibuat',
-        'template.status_changed' => 'Status template diubah',
-        'template.renamed' => 'Nama template diubah',
-        'template.limits_changed' => 'Batas slot template diubah',
-        'audit.viewed' => 'Activity Logs dibuka',
+        'user.created'             => 'User dibuat',
+        'user.updated'             => 'User diubah',
+        'user.deleted'             => 'User dihapus',
+        'admin.created'            => 'Admin dibuat',
+        'admin.updated'            => 'Admin diubah',
+        'admin.deleted'            => 'Admin dihapus',
+        'account.suspended'        => 'Akun ditangguhkan',
+        'account.restored'         => 'Akun dipulihkan',
+        'subscription.granted'     => 'Masa aktif diberikan',
+        'subscription.revoked'     => 'Masa aktif dicabut',
+        'plan.updated'             => 'Paket diubah',
+        'template.created'         => 'Template dibuat',
+        'template.status_changed'  => 'Status template diubah',
+        'template.renamed'         => 'Nama template diubah',
+        'template.limits_changed'  => 'Batas slot template diubah',
+        'audit.viewed'             => 'Activity Logs dibuka',
     ];
 
     public const OUTCOMES = ['success' => 'Berhasil', 'denied' => 'Ditolak', 'failed' => 'Gagal'];
@@ -78,17 +80,20 @@ final class AuditLogService
      * a failed audit write, rolls everything back and is rethrown for the caller's failure message.
      *
      * @template T
-     * @param callable(): T $mutation
+     *
+     * @param callable(): T                                                                                $mutation
      * @param callable(T): array{0: string, 1: ?string, 2: int|string|null, 3?: list<string>, 4?: ?string} $event
-     *        [action, targetType, targetId, changedFields, reason] built from the mutation result
+     *                                                                                                               [action, targetType, targetId, changedFields, reason] built from the mutation result
+     *
      * @return T
      */
     public function withRequiredAudit(?int $actorId, callable $mutation, callable $event): mixed
     {
         $this->db ??= db_connect();
         $this->db->transBegin();
+
         try {
-            $result = $mutation();
+            $result                           = $mutation();
             [$action, $targetType, $targetId] = $args = $event($result);
             $this->events->append($this->event($action, 'success', $actorId, $targetType, $targetId, $args[3] ?? [], $args[4] ?? null));
             if ($this->db->transStatus() === false) {
@@ -99,6 +104,7 @@ final class AuditLogService
             return $result;
         } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }
@@ -122,10 +128,11 @@ final class AuditLogService
         int|string|null $targetId = null,
         array $changedFields = [],
         ?string $reason = null,
-        string $actorType = 'user'
+        string $actorType = 'user',
     ): void {
-        if (!isset(self::ACTIONS[$action]) || !isset(self::OUTCOMES[$outcome])) {
+        if (! isset(self::ACTIONS[$action]) || ! isset(self::OUTCOMES[$outcome])) {
             log_message('error', 'Unknown audit action/outcome: ' . $action . '/' . $outcome);
+
             return;
         }
         $event = $this->event($action, $outcome, $actorId, $targetType, $targetId, $changedFields, $reason, $actorType);
@@ -135,7 +142,7 @@ final class AuditLogService
         } catch (Throwable $exception) {
             log_message('error', 'Audit write failed [{request}] {action}: {message}', [
                 'request' => $event['request_id'],
-                'action' => $action,
+                'action'  => $action,
                 'message' => $exception->getMessage(),
             ]);
         }
@@ -155,10 +162,10 @@ final class AuditLogService
         int|string|null $targetId,
         array $changedFields = [],
         ?string $reason = null,
-        string $actorType = 'user'
+        string $actorType = 'user',
     ): void {
         $db = $this->db ?? db_connect();
-        if (!$db->table('audit_events')->insert($this->event($action, $outcome, $actorId, $targetType, $targetId, $changedFields, $reason, $actorType))) {
+        if (! $db->table('audit_events')->insert($this->event($action, $outcome, $actorId, $targetType, $targetId, $changedFields, $reason, $actorType))) {
             throw new RuntimeException('Audit write failed.');
         }
     }
@@ -174,23 +181,23 @@ final class AuditLogService
         int|string|null $targetId,
         array $changedFields,
         ?string $reason,
-        string $actorType = 'user'
+        string $actorType = 'user',
     ): array {
-        if (!isset(self::ACTIONS[$action]) || !isset(self::OUTCOMES[$outcome])) {
+        if (! isset(self::ACTIONS[$action]) || ! isset(self::OUTCOMES[$outcome])) {
             throw new DomainException('Unknown audit action/outcome: ' . $action . '/' . $outcome);
         }
 
         return [
-            'request_id' => self::requestId(),
-            'actor_id' => $actorId !== null && $actorId > 0 ? $actorId : null,
-            'actor_type' => $actorType,
-            'action' => $action,
-            'target_type' => $targetType,
-            'target_id' => $targetId === null ? null : substr((string) $targetId, 0, 32),
-            'outcome' => $outcome,
-            'reason' => $reason === null ? null : mb_substr($reason, 0, 64),
+            'request_id'     => self::requestId(),
+            'actor_id'       => $actorId !== null && $actorId > 0 ? $actorId : null,
+            'actor_type'     => $actorType,
+            'action'         => $action,
+            'target_type'    => $targetType,
+            'target_id'      => $targetId === null ? null : substr((string) $targetId, 0, 32),
+            'outcome'        => $outcome,
+            'reason'         => $reason === null ? null : mb_substr($reason, 0, 64),
             'changed_fields' => $changedFields === [] ? null : mb_substr(implode(',', array_unique($changedFields)), 0, 255),
-            'occurred_at' => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
+            'occurred_at'    => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
         ];
     }
 
@@ -200,26 +207,26 @@ final class AuditLogService
     public function search(array $input, int $page): array
     {
         $filters = [
-            'action' => isset(self::ACTIONS[$input['action'] ?? '']) ? (string) $input['action'] : '',
+            'action'  => isset(self::ACTIONS[$input['action'] ?? '']) ? (string) $input['action'] : '',
             'outcome' => isset(self::OUTCOMES[$input['outcome'] ?? '']) ? (string) $input['outcome'] : '',
-            'actor' => mb_substr(trim((string) ($input['actor'] ?? '')), 0, 64),
-            'target' => preg_match('/\A[A-Za-z0-9_-]{1,32}\z/', (string) ($input['target'] ?? '')) ? (string) $input['target'] : '',
-            'from' => $this->wibDateToUtc((string) ($input['from'] ?? ''), false),
-            'to' => $this->wibDateToUtc((string) ($input['to'] ?? ''), true),
+            'actor'   => mb_substr(trim((string) ($input['actor'] ?? '')), 0, 64),
+            'target'  => preg_match('/\A[A-Za-z0-9_-]{1,32}\z/', (string) ($input['target'] ?? '')) ? (string) $input['target'] : '',
+            'from'    => $this->wibDateToUtc((string) ($input['from'] ?? ''), false),
+            'to'      => $this->wibDateToUtc((string) ($input['to'] ?? ''), true),
         ];
-        $page = max(1, $page);
+        $page   = max(1, $page);
         $result = $this->events->search($filters, $page);
 
         return $result + [
-            'pages' => max(1, (int) ceil($result['total'] / AuditLogRepository::PAGE_SIZE)),
-            'page' => $page,
+            'pages'   => max(1, (int) ceil($result['total'] / AuditLogRepository::PAGE_SIZE)),
+            'page'    => $page,
             'filters' => [
-                'action' => $filters['action'],
+                'action'  => $filters['action'],
                 'outcome' => $filters['outcome'],
-                'actor' => $filters['actor'],
-                'target' => $filters['target'],
-                'from' => $filters['from'] === '' ? '' : (string) $input['from'],
-                'to' => $filters['to'] === '' ? '' : (string) $input['to'],
+                'actor'   => $filters['actor'],
+                'target'  => $filters['target'],
+                'from'    => $filters['from'] === '' ? '' : (string) $input['from'],
+                'to'      => $filters['to'] === '' ? '' : (string) $input['to'],
             ],
         ];
     }

@@ -15,7 +15,7 @@ class AddBrandAssetVisibility extends Migration
     public function up()
     {
         $this->forge->addColumn('card_brand_assets', [
-            'brand_logo_visible' => ['type' => 'TINYINT', 'constraint' => 1, 'null' => false, 'default' => 1, 'after' => 'brand_logo'],
+            'brand_logo_visible'        => ['type' => 'TINYINT', 'constraint' => 1, 'null' => false, 'default' => 1, 'after' => 'brand_logo'],
             'header_background_visible' => ['type' => 'TINYINT', 'constraint' => 1, 'null' => false, 'default' => 1, 'after' => 'header_background'],
         ]);
     }

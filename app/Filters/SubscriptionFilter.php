@@ -25,7 +25,7 @@ class SubscriptionFilter implements FilterInterface
         if (str_contains($request->getHeaderLine('Accept'), 'application/json')) {
             return service('response')->setStatusCode(403)->setJSON([
                 'success' => false,
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => $message,
             ]);
         }

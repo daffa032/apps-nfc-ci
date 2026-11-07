@@ -12,7 +12,7 @@ namespace App\Services\Users;
  */
 final class AccountStatus
 {
-    public const ENABLED = 'enabled';
+    public const ENABLED   = 'enabled';
     public const SUSPENDED = 'suspended';
 
     public static function isSuspended(array $account): bool
@@ -30,6 +30,6 @@ final class AccountStatus
      */
     public static function sessionIsCurrent(array $account, mixed $sessionVersion): bool
     {
-        return !self::isSuspended($account) && (int) $sessionVersion === self::sessionVersion($account);
+        return ! self::isSuspended($account) && (int) $sessionVersion === self::sessionVersion($account);
     }
 }

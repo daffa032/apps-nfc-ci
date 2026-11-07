@@ -23,13 +23,12 @@ use Throwable;
 final class CardAnalyticsService
 {
     public const EVENTS = ['whatsapp', 'phone', 'email'];
-
-    private const BOTS = '/bot|crawl|spider|slurp|preview|facebookexternalhit|whatsapp|telegram|discord|skype|curl|wget|python|httpclient|headless|lighthouse|monitor/i';
+    private const BOTS  = '/bot|crawl|spider|slurp|preview|facebookexternalhit|whatsapp|telegram|discord|skype|curl|wget|python|httpclient|headless|lighthouse|monitor/i';
 
     public function __construct(
         private ?CardAnalyticsRepository $metrics = null,
         private ?SubscriptionAccessService $access = null,
-        private ?string $secret = null
+        private ?string $secret = null,
     ) {
         $this->metrics ??= new CardAnalyticsRepository();
         $this->access ??= new SubscriptionAccessService();
@@ -68,7 +67,7 @@ final class CardAnalyticsService
         }
 
         try {
-            if (!$this->isPro($card, $now)) {
+            if (! $this->isPro($card, $now)) {
                 return false;
             }
             $day = self::wibDay($now);
@@ -97,14 +96,14 @@ final class CardAnalyticsService
 
     public function recordContactClick(array $card, string $type, string $token, string $userAgent, DateTimeInterface $now): bool
     {
-        $cardId = (int) ($card['id_user'] ?? 0);
+        $cardId   = (int) ($card['id_user'] ?? 0);
         $expected = $this->eventToken($cardId, $now);
-        if ($expected === null || !in_array($type, self::EVENTS, true) || !hash_equals($expected, $token) || self::isBot($userAgent)) {
+        if ($expected === null || ! in_array($type, self::EVENTS, true) || ! hash_equals($expected, $token) || self::isBot($userAgent)) {
             return false;
         }
 
         try {
-            if (!$this->isPro($card, $now)) {
+            if (! $this->isPro($card, $now)) {
                 return false;
             }
             $this->metrics->recordContactClick($cardId, self::wibDay($now));
@@ -126,29 +125,31 @@ final class CardAnalyticsService
     {
         $months = self::selectableMonths($now);
         $values = array_column($months, 'value');
-        $month = in_array($month, $values, true) ? $month : $values[0];
+        $month  = in_array($month, $values, true) ? $month : $values[0];
 
-        $tz = new DateTimeZone('Asia/Jakarta');
-        $first = new DateTimeImmutable($month . '-01', $tz);
-        $next = $first->modify('first day of next month');
-        $today = self::wibDay($now);
+        $tz     = new DateTimeZone('Asia/Jakarta');
+        $first  = new DateTimeImmutable($month . '-01', $tz);
+        $next   = $first->modify('first day of next month');
+        $today  = self::wibDay($now);
         $stored = $this->metrics->month($cardId, $first->format('Y-m-d'), $next->format('Y-m-d'));
 
-        $days = [];
+        $days   = [];
         $totals = ['views' => 0, 'unique_visitors' => 0, 'contact_clicks' => 0];
+
         for ($day = $first; $day < $next; $day = $day->modify('+1 day')) {
-            $date = $day->format('Y-m-d');
+            $date     = $day->format('Y-m-d');
             $isFuture = $date > $today;
-            $counts = $isFuture ? [] : ($stored[$date] ?? []);
-            $row = [
-                'date' => $date,
-                'day' => (int) $day->format('j'),
-                'views' => (int) ($counts['views'] ?? 0),
+            $counts   = $isFuture ? [] : ($stored[$date] ?? []);
+            $row      = [
+                'date'            => $date,
+                'day'             => (int) $day->format('j'),
+                'views'           => (int) ($counts['views'] ?? 0),
                 'unique_visitors' => (int) ($counts['unique_visitors'] ?? 0),
-                'contact_clicks' => (int) ($counts['contact_clicks'] ?? 0),
-                'is_today' => $date === $today,
-                'is_future' => $isFuture,
+                'contact_clicks'  => (int) ($counts['contact_clicks'] ?? 0),
+                'is_today'        => $date === $today,
+                'is_future'       => $isFuture,
             ];
+
             foreach ($totals as $key => $value) {
                 $totals[$key] = $value + $row[$key];
             }
@@ -156,10 +157,10 @@ final class CardAnalyticsService
         }
 
         return [
-            'month' => $month,
-            'label' => $months[array_search($month, $values, true)]['label'],
-            'as_of' => DateTimeImmutable::createFromInterface($now)->setTimezone($tz)->format(DATE_ATOM),
-            'days' => $days,
+            'month'  => $month,
+            'label'  => $months[array_search($month, $values, true)]['label'],
+            'as_of'  => DateTimeImmutable::createFromInterface($now)->setTimezone($tz)->format(DATE_ATOM),
+            'days'   => $days,
             'totals' => $totals,
             'months' => $months,
         ];
@@ -172,13 +173,14 @@ final class CardAnalyticsService
      */
     public static function selectableMonths(DateTimeInterface $now): array
     {
-        $names = explode(',', lang('Date.months'));
-        $first = new DateTimeImmutable(self::wibDay($now) . ' 00:00', new DateTimeZone('Asia/Jakarta'));
-        $first = $first->modify('first day of this month');
+        $names  = explode(',', lang('Date.months'));
+        $first  = new DateTimeImmutable(self::wibDay($now) . ' 00:00', new DateTimeZone('Asia/Jakarta'));
+        $first  = $first->modify('first day of this month');
         $months = [];
-        $count = max(1, (int) config('Analytics')->metricsRetentionMonths);
+        $count  = max(1, (int) config('Analytics')->metricsRetentionMonths);
+
         for ($i = 0; $i < $count; $i++) {
-            $month = $first->modify('-' . $i . ' month');
+            $month    = $first->modify('-' . $i . ' month');
             $months[] = ['value' => $month->format('Y-m'), 'label' => $names[(int) $month->format('n') - 1] . ' ' . $month->format('Y')];
         }
 
@@ -191,11 +193,11 @@ final class CardAnalyticsService
     public function purge(DateTimeInterface $now): array
     {
         $config = config('Analytics');
-        $today = new DateTimeImmutable(self::wibDay($now));
+        $today  = new DateTimeImmutable(self::wibDay($now));
 
         return $this->metrics->purge(
             $today->modify('-' . max(1, $config->visitorRetentionDays) . ' days')->format('Y-m-d'),
-            $today->modify('first day of this month')->modify('-' . (max(1, $config->metricsRetentionMonths) - 1) . ' months')->format('Y-m-d')
+            $today->modify('first day of this month')->modify('-' . (max(1, $config->metricsRetentionMonths) - 1) . ' months')->format('Y-m-d'),
         );
     }
 

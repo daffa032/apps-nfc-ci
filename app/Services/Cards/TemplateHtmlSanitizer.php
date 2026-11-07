@@ -25,28 +25,45 @@ use DOMNode;
  */
 final class TemplateHtmlSanitizer
 {
-    public const MAX_BYTES = 100 * 1024;
+    public const MAX_BYTES    = 100 * 1024;
     public const MAX_ELEMENTS = 100;
-    public const MAX_DEPTH = 16;
+    public const MAX_DEPTH    = 16;
+    public const TAGS         = ['section', 'article', 'header', 'div', 'h2', 'h3', 'p', 'span', 'strong', 'em', 'ul', 'li', 'figure', 'figcaption'];
+    public const CLASSES      = ['tpl-stack', 'tpl-grid', 'tpl-hero', 'tpl-panel', 'tpl-center', 'tpl-divider', 'tpl-title'];
 
-    public const TAGS = ['section', 'article', 'header', 'div', 'h2', 'h3', 'p', 'span', 'strong', 'em', 'ul', 'li', 'figure', 'figcaption'];
-    public const CLASSES = ['tpl-stack', 'tpl-grid', 'tpl-hero', 'tpl-panel', 'tpl-center', 'tpl-divider', 'tpl-title'];
-    /** The Pro designs (PRD NT-01..07, docs/ui-ux-2026/templates/pro). Listed one by one, no prefix match. */
+    /**
+     * The Pro designs (PRD NT-01..07, docs/ui-ux-2026/templates/pro). Listed one by one, no prefix match.
+     */
     public const PRO_DESIGNS = ['aurora', 'meridian', 'atelier', 'vista', 'ledger', 'kanvas', 'halo', 'rona', 'sorot', 'ombak', 'siluet', 'bingkai'];
-    /** Structure classes the Pro designs use, styled by assets/cards/css/pro.css. */
+
+    /**
+     * Structure classes the Pro designs use, styled by assets/cards/css/pro.css.
+     */
     public const PRO_CLASSES = ['tpl-pro-cover', 'tpl-pro-brand', 'tpl-pro-photo', 'tpl-pro-identity', 'tpl-pro-kicker', 'tpl-pro-content', 'tpl-pro-contact', 'tpl-pro-social', 'tpl-pro-gallery', 'tpl-pro-actions'];
-    /** Every template must contain each of these once, so all card features stay available. */
+
+    /**
+     * Every template must contain each of these once, so all card features stay available.
+     */
     public const PLACEHOLDERS = ['photo', 'name', 'company', 'contact', 'social', 'gallery', 'actions'];
-    /** May appear at most once (PRD BR-01/02): job title, brand logo, header background. */
+
+    /**
+     * May appear at most once (PRD BR-01/02): job title, brand logo, header background.
+     */
     public const OPTIONAL_PLACEHOLDERS = ['job_title', 'brand_logo', 'header_background'];
 
-    /** Placeholders that render block content and so need a block container. */
+    /**
+     * Placeholders that render block content and so need a block container.
+     */
     private const BLOCK_PLACEHOLDERS = ['photo', 'contact', 'social', 'gallery', 'actions', 'brand_logo', 'header_background'];
+
     private const BLOCK_PARENTS = ['section', 'article', 'header', 'div', 'figure', 'li'];
-    private const FORBIDDEN = '/<\s*\/?\s*(script|style|iframe|frame|object|embed|svg|math|link|meta|base|form|input|button|textarea|select|img|video|audio|source|template|noscript|a)\b/i';
+    private const FORBIDDEN     = '/<\s*\/?\s*(script|style|iframe|frame|object|embed|svg|math|link|meta|base|form|input|button|textarea|select|img|video|audio|source|template|noscript|a)\b/i';
 
     private int $elements = 0;
-    /** @var array<string, int> */
+
+    /**
+     * @var array<string, int>
+     */
     private array $seen = [];
 
     /**
@@ -54,7 +71,7 @@ final class TemplateHtmlSanitizer
      */
     public function normalize(string $source): string
     {
-        if (strlen($source) > self::MAX_BYTES || !mb_check_encoding($source, 'UTF-8')) {
+        if (strlen($source) > self::MAX_BYTES || ! mb_check_encoding($source, 'UTF-8')) {
             throw $this->fail(lang('Master.tplFileRules'));
         }
         if (preg_match(self::FORBIDDEN, $source, $match)) {
@@ -64,19 +81,20 @@ final class TemplateHtmlSanitizer
             throw $this->fail(lang('Master.tplNoScript'));
         }
 
-        $doc = new DOMDocument('1.0', 'UTF-8');
+        $doc      = new DOMDocument('1.0', 'UTF-8');
         $previous = libxml_use_internal_errors(true);
-        $loaded = $doc->loadHTML('<?xml encoding="UTF-8"?><!DOCTYPE html><html><body>' . $source . '</body></html>', LIBXML_NONET | LIBXML_NOBLANKS);
+        $loaded   = $doc->loadHTML('<?xml encoding="UTF-8"?><!DOCTYPE html><html><body>' . $source . '</body></html>', LIBXML_NONET | LIBXML_NOBLANKS);
         libxml_clear_errors();
         libxml_use_internal_errors($previous);
         $body = $loaded ? $doc->getElementsByTagName('body')->item(0) : null;
-        if (!$body instanceof DOMElement) {
+        if (! $body instanceof DOMElement) {
             throw $this->fail(lang('Master.tplUnreadable'));
         }
 
         $this->elements = 0;
-        $this->seen = [];
-        $html = '';
+        $this->seen     = [];
+        $html           = '';
+
         foreach ($body->childNodes as $child) {
             $html .= $this->serialize($child, 0, 'div');
         }
@@ -86,6 +104,7 @@ final class TemplateHtmlSanitizer
                 throw $this->fail(lang('Master.tplPlaceholderOnce', ['{{' . $key . '}}']));
             }
         }
+
         foreach (self::PLACEHOLDERS as $key) {
             if (($this->seen[$key] ?? 0) !== 1) {
                 throw $this->fail(lang(($this->seen[$key] ?? 0) === 0 ? 'Master.tplPlaceholderRequired' : 'Master.tplPlaceholderOnce', ['{{' . $key . '}}']));
@@ -102,8 +121,9 @@ final class TemplateHtmlSanitizer
      */
     public function segments(string $storedHtml): array
     {
-        $parts = preg_split('/\{\{(' . implode('|', self::allPlaceholders()) . ')\}\}/', $this->normalize($storedHtml), -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
+        $parts    = preg_split('/\{\{(' . implode('|', self::allPlaceholders()) . ')\}\}/', $this->normalize($storedHtml), -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
         $segments = [];
+
         foreach ($parts as $index => $part) {
             if ($index % 2 === 1) {
                 $segments[] = ['slot' => $part];
@@ -123,6 +143,7 @@ final class TemplateHtmlSanitizer
     public static function allowedClasses(): array
     {
         $designs = [];
+
         foreach (self::PRO_DESIGNS as $design) {
             $designs[] = 'tpl-pro-' . $design;
             $designs[] = 'tpl-pro-' . $design . '-hero';
@@ -156,12 +177,12 @@ final class TemplateHtmlSanitizer
         if ($node->nodeType === XML_TEXT_NODE) {
             return $this->text((string) $node->nodeValue, $parentTag);
         }
-        if (!$node instanceof DOMElement) {
+        if (! $node instanceof DOMElement) {
             throw $this->fail(lang('Master.tplOnlyHtml'));
         }
 
         $tag = strtolower($node->tagName);
-        if (!in_array($tag, self::TAGS, true)) {
+        if (! in_array($tag, self::TAGS, true)) {
             throw $this->fail(lang('Master.tplTagNotAllowed', [$tag]));
         }
         if (++$this->elements > self::MAX_ELEMENTS || $depth >= self::MAX_DEPTH) {
@@ -169,15 +190,17 @@ final class TemplateHtmlSanitizer
         }
 
         $classes = [];
+
         foreach ($node->attributes as $attribute) {
             if (strtolower($attribute->name) !== 'class') {
                 throw $this->fail(lang('Master.tplAttributeNotAllowed', [$attribute->name]));
             }
+
             foreach (preg_split('/\s+/', trim($attribute->value)) ?: [] as $class) {
                 if ($class === '') {
                     continue;
                 }
-                if (!in_array($class, self::allowedClasses(), true)) {
+                if (! in_array($class, self::allowedClasses(), true)) {
                     throw $this->fail(lang('Master.tplClassNotAllowed', [mb_substr($class, 0, 40), implode(', ', self::CLASSES)]));
                 }
                 $classes[$class] = true;
@@ -185,6 +208,7 @@ final class TemplateHtmlSanitizer
         }
 
         $inner = '';
+
         foreach ($node->childNodes as $child) {
             $inner .= $this->serialize($child, $depth + 1, $tag);
         }
@@ -194,15 +218,16 @@ final class TemplateHtmlSanitizer
 
     private function text(string $text, string $parentTag): string
     {
-        $out = '';
+        $out    = '';
         $offset = 0;
         preg_match_all('/\{\{\s*([^{}]*?)\s*\}\}/u', $text, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER);
+
         foreach ($matches as [$whole, $key]) {
             $name = $key[0];
-            if (!in_array($name, self::allPlaceholders(), true)) {
+            if (! in_array($name, self::allPlaceholders(), true)) {
                 throw $this->fail(lang('Master.tplPlaceholderUnknown', ['{{' . mb_substr($name, 0, 30) . '}}', implode(', ', self::allPlaceholders())]));
             }
-            if (in_array($name, self::BLOCK_PLACEHOLDERS, true) && !in_array($parentTag, self::BLOCK_PARENTS, true)) {
+            if (in_array($name, self::BLOCK_PLACEHOLDERS, true) && ! in_array($parentTag, self::BLOCK_PARENTS, true)) {
                 throw $this->fail(lang('Master.tplPlaceholderBlock', ['{{' . $name . '}}', implode('/', self::BLOCK_PARENTS)]));
             }
             $this->seen[$name] = ($this->seen[$name] ?? 0) + 1;

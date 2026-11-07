@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use CodeIgniter\Database\BaseConnection;
+use DateTimeImmutable;
+use DateTimeZone;
 use DomainException;
 use RuntimeException;
 use Throwable;
@@ -71,12 +73,13 @@ class SubscriptionRepository
     public function appendPeriod(int $userId, int $planId, string $source, callable $startFor, array $grant): array
     {
         $this->db->transBegin();
+
         try {
             $user = $this->db->query(
                 "SELECT id_user FROM {$this->db->prefixTable('table_user')} WHERE id_user = ? AND access_level = ? FOR UPDATE",
-                [$userId, 'User']
+                [$userId, 'User'],
             )->getRowArray();
-            if (!$user) {
+            if (! $user) {
                 throw new DomainException(lang('Accounts.userMissing'));
             }
 
@@ -85,14 +88,14 @@ class SubscriptionRepository
             [$startsAt, $endsAt] = $startFor($latest);
 
             $now = gmdate('Y-m-d H:i:s');
-            if (!$this->db->table('subscriptions')->insert([
+            if (! $this->db->table('subscriptions')->insert([
                 'user_id' => $userId, 'plan_id' => $planId, 'starts_at' => $startsAt, 'ends_at' => $endsAt,
-                'source' => $source, 'created_at' => $now,
+                'source'  => $source, 'created_at' => $now,
             ])) {
                 throw new RuntimeException('Masa aktif gagal disimpan.');
             }
             $subscriptionId = (int) $this->db->insertID();
-            if (!$this->db->table('subscription_grants')->insert($grant + ['subscription_id' => $subscriptionId, 'created_at' => $now])) {
+            if (! $this->db->table('subscription_grants')->insert($grant + ['subscription_id' => $subscriptionId, 'created_at' => $now])) {
                 throw new RuntimeException('Pemberian masa aktif gagal dicatat.');
             }
             $this->syncLegacyExpiry($userId);
@@ -105,6 +108,7 @@ class SubscriptionRepository
             return ['id' => $subscriptionId, 'starts_at' => $startsAt, 'ends_at' => $endsAt];
         } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }
@@ -122,7 +126,7 @@ class SubscriptionRepository
      */
     public function endingBetween(string $fromUtc, string $toUtc, string $kind, int $limit): array
     {
-        $subs = $this->db->prefixTable('subscriptions');
+        $subs      = $this->db->prefixTable('subscriptions');
         $reminders = $this->db->prefixTable('subscription_reminders');
 
         return $this->db->query(
@@ -131,7 +135,7 @@ class SubscriptionRepository
                AND NOT EXISTS (SELECT 1 FROM {$subs} later WHERE later.user_id = s.user_id AND later.revoked_at IS NULL AND later.ends_at > s.ends_at)
                AND NOT EXISTS (SELECT 1 FROM {$reminders} r WHERE r.subscription_id = s.id AND r.kind = ?)
              ORDER BY s.id ASC LIMIT ?",
-            [$fromUtc, $toUtc, $kind, $limit]
+            [$fromUtc, $toUtc, $kind, $limit],
         )->getResultArray();
     }
 
@@ -142,7 +146,7 @@ class SubscriptionRepository
     {
         $this->db->query(
             'INSERT IGNORE INTO ' . $this->db->prefixTable('subscription_reminders') . ' (subscription_id, kind, sent_at) VALUES (?, ?, ?)',
-            [$subscriptionId, $kind, $nowUtc]
+            [$subscriptionId, $kind, $nowUtc],
         );
 
         return $this->db->affectedRows() === 1;
@@ -163,6 +167,7 @@ class SubscriptionRepository
     public function revokePeriod(int $subscriptionId, int $userId, string $nowUtc): void
     {
         $this->db->transBegin();
+
         try {
             $this->db->query("SELECT id_user FROM {$this->db->prefixTable('table_user')} WHERE id_user = ? FOR UPDATE", [$userId]);
             $this->db->table('subscriptions')->where('id', $subscriptionId)->where('user_id', $userId)->where('revoked_at', null)
@@ -174,6 +179,7 @@ class SubscriptionRepository
             $this->db->transCommit();
         } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }
@@ -184,10 +190,11 @@ class SubscriptionRepository
     public function revokeActive(int $userId, string $nowUtc): void
     {
         $this->db->transBegin();
+
         try {
             $this->db->query(
                 "SELECT id_user FROM {$this->db->prefixTable('table_user')} WHERE id_user = ? FOR UPDATE",
-                [$userId]
+                [$userId],
             );
             $this->db->table('subscriptions')
                 ->where('user_id', $userId)->where('revoked_at', null)->where('ends_at >', $nowUtc)
@@ -199,6 +206,7 @@ class SubscriptionRepository
             $this->db->transCommit();
         } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }
@@ -214,8 +222,8 @@ class SubscriptionRepository
 
         $date = '0000-00-00';
         if ($latest !== null) {
-            $date = (new \DateTimeImmutable($latest, new \DateTimeZone('UTC')))
-                ->setTimezone(new \DateTimeZone('Asia/Jakarta'))->modify('-1 second')->format('Y-m-d');
+            $date = (new DateTimeImmutable($latest, new DateTimeZone('UTC')))
+                ->setTimezone(new DateTimeZone('Asia/Jakarta'))->modify('-1 second')->format('Y-m-d');
         }
         // Zero date needs a relaxed sql_mode for this one statement on strict servers.
         $this->db->query("SET @nfc_prev_mode = @@SESSION.sql_mode, SESSION sql_mode = REPLACE(REPLACE(@@SESSION.sql_mode, 'NO_ZERO_DATE', ''), 'NO_ZERO_IN_DATE', '')");

@@ -42,26 +42,29 @@ class AdminController extends BaseController
         } catch (Throwable $exception) {
             log_message('error', 'Admin creation failed: {exception}', ['exception' => $exception]);
             $this->audit('admin.created', 'failed', 'admin', null, [], 'server_error');
+
             return $this->redirectFailureWithoutSecrets('dashboard/add_admin', $this->withReference(lang('Accounts.adminAddFailed')));
         }
 
         $this->audit('admin.created', 'success', 'admin', null, ['username', 'email', 'access_level'], (string) $this->request->getPost('access_level'));
+
         return $this->redirectSuccess(self::ADMIN_TABLE, lang('Accounts.adminAdded'));
     }
 
     public function listAdmins(): string
     {
         return $this->render('dashboard/pages/admin_table/admin_table', [
-            'users' => (new AdminManagementService())->list(),
+            'users'         => (new AdminManagementService())->list(),
             'currentUserId' => $this->currentUserId(),
         ]);
     }
 
-    public function editAdmin(int $id_user): string|RedirectResponse
+    public function editAdmin(int $id_user): RedirectResponse|string
     {
         if ($id_user === $this->currentUserId()) {
             return redirect()->to('dashboard/setting/' . $this->dashboardShellData()['encryptedId']);
         }
+
         try {
             $user = (new AdminManagementService())->find($id_user);
         } catch (DomainException $exception) {
@@ -82,6 +85,7 @@ class AdminController extends BaseController
         } catch (Throwable $exception) {
             log_message('error', 'Admin update failed: {exception}', ['exception' => $exception]);
             $this->audit('admin.updated', 'failed', 'admin', $id_user, [], 'server_error');
+
             return $this->redirectFailureWithoutSecrets('dashboard/admin_table/edit_admin/' . $id_user, $this->withReference(lang('Accounts.adminUpdateFailed')));
         }
 
@@ -90,6 +94,7 @@ class AdminController extends BaseController
             $fields[] = 'password';
         }
         $this->audit('admin.updated', 'success', 'admin', $id_user, $fields);
+
         return $this->redirectSuccess(self::ADMIN_TABLE, lang('Accounts.adminUpdated'));
     }
 
@@ -99,10 +104,12 @@ class AdminController extends BaseController
             $this->auditedMutation('admin.deleted', 'admin', $id_user, fn () => (new AdminManagementService())->delete($id_user, $this->currentUserId()));
         } catch (DomainException $exception) {
             $this->audit('admin.deleted', 'denied', 'admin', $id_user, [], 'rule');
+
             return $this->redirectFailure(self::ADMIN_TABLE, $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Admin deletion failed: {exception}', ['exception' => $exception]);
             $this->audit('admin.deleted', 'failed', 'admin', $id_user, [], 'server_error');
+
             return $this->redirectFailure(self::ADMIN_TABLE, $this->withReference(lang('Accounts.adminDeleteFailed')));
         }
 

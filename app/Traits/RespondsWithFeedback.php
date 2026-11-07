@@ -28,14 +28,14 @@ trait RespondsWithFeedback
      * (PRD AUD-02, ARC-04). Exceptions, including a failed audit write, reach the caller unchanged.
      *
      * @param callable(): mixed $mutation
-     * @param list<string> $changedFields field names only
+     * @param list<string>      $changedFields field names only
      */
     protected function auditedMutation(string $action, ?string $targetType, int|string|null $targetId, callable $mutation, array $changedFields = [], ?string $reason = null): mixed
     {
         return (new AuditLogService())->withRequiredAudit(
             (int) session()->get('id_user') ?: null,
             $mutation,
-            static fn (): array => [$action, $targetType, $targetId, $changedFields, $reason]
+            static fn (): array => [$action, $targetType, $targetId, $changedFields, $reason],
         );
     }
 
@@ -108,7 +108,7 @@ trait RespondsWithFeedback
 
         return flash_feedback(
             is_string($error = $session->getFlashdata('error')) ? $error : null,
-            is_string($success = $session->getFlashdata('success')) ? $success : null
+            is_string($success = $session->getFlashdata('success')) ? $success : null,
         );
     }
 }

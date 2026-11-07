@@ -23,7 +23,7 @@ class PasswordResetRepository
     public function saveToken(int $userId, string $hash, string $expiresAt): bool
     {
         return $this->users->update($userId, [
-            'reset_token' => $hash,
+            'reset_token'      => $hash,
             'reset_expired_at' => $expiresAt,
         ]);
     }
@@ -44,8 +44,8 @@ class PasswordResetRepository
             ->where('reset_expired_at >=', $now)
             ->set('session_version', 'session_version + 1', false)
             ->update([
-                'password' => $passwordHash,
-                'reset_token' => null,
+                'password'         => $passwordHash,
+                'reset_token'      => null,
                 'reset_expired_at' => null,
             ]);
 
@@ -55,7 +55,7 @@ class PasswordResetRepository
     public function invalidate(string $hash): void
     {
         $this->db->table('table_user')->where('reset_token', $hash)->update([
-            'reset_token' => null,
+            'reset_token'      => null,
             'reset_expired_at' => null,
         ]);
     }

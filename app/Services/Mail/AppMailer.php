@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Mail;
 
 use Config\Email;
+use Config\Services;
 
 /**
  * Sends the app's emails (receipt, refund, reminder, password reset) with one look: an HTML view
@@ -29,7 +30,7 @@ class AppMailer
      */
     public function send(string $to, string $subject, string $view, array $data = []): bool
     {
-        if (!$this->isConfigured() || filter_var($to, FILTER_VALIDATE_EMAIL) === false) {
+        if (! $this->isConfigured() || filter_var($to, FILTER_VALIDATE_EMAIL) === false) {
             return false;
         }
         helper('date');
@@ -38,7 +39,7 @@ class AppMailer
         // One retry: a brief DNS or network hiccup (e.g. "getaddrinfo failed") must not cancel a
         // password reset or lose a receipt. Each attempt uses a fresh mailer and connection.
         for ($attempt = 1; $attempt <= 2; $attempt++) {
-            $mailer = \Config\Services::email(null, false);
+            $mailer = Services::email(null, false);
             $mailer->setMailType('html');
             $mailer->setFrom($this->config->fromEmail, $this->config->fromName);
             $mailer->setTo($to);
@@ -62,15 +63,18 @@ class AppMailer
      * the previous one. Cron has no browser request, so the saved account choice decides.
      *
      * @template T
+     *
      * @param callable(): T $build
+     *
      * @return T
      */
     public static function inLocale(?string $locale, callable $build): mixed
     {
-        $language = \Config\Services::language();
+        $language = Services::language();
         $previous = $language->getLocale();
-        $locale = in_array($locale, config('Locale')->supported, true) ? $locale : config('Locale')->fallback;
+        $locale   = in_array($locale, config('Locale')->supported, true) ? $locale : config('Locale')->fallback;
         $language->setLocale($locale);
+
         try {
             return $build();
         } finally {
@@ -86,8 +90,8 @@ class AppMailer
     public function render(string $view, string $subject, array $data = []): string
     {
         // Own renderer per email: the shared one keeps data from earlier views.
-        $renderer = \Config\Services::renderer(null, null, false);
-        $renderer->setData($data + ['subject' => $subject, 'locale' => \Config\Services::language()->getLocale(), 'year' => (int) date('Y')]);
+        $renderer = Services::renderer(null, null, false);
+        $renderer->setData($data + ['subject' => $subject, 'locale' => Services::language()->getLocale(), 'year' => (int) date('Y')]);
         $html = $renderer->render('emails/' . $view, ['debug' => false]);
 
         // In development the toolbar wraps included partials in "DEBUG-VIEW" comments with file
@@ -104,7 +108,7 @@ class AppMailer
         // Each table row on one line ("Label: value"), each paragraph on its own line.
         $html = preg_replace('#</td>\s*<td[^>]*>#', ': ', $html) ?? $html;
         $html = preg_replace_callback('#<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>#s', static function (array $m): string {
-            $href = html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $href  = html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
             $label = html_entity_decode(strip_tags($m[2]), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
             // A link whose text is already the URL (button fallback) is printed once.

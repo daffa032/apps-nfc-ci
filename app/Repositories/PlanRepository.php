@@ -28,20 +28,21 @@ class PlanRepository
     public function saveVersion(string $code, ?int $priceIdr, ?int $durationMonths, bool $enabled, int $actorId): int
     {
         $this->db->transBegin();
+
         try {
             $plan = $this->db->query("SELECT * FROM {$this->db->prefixTable('plans')} WHERE code = ? FOR UPDATE", [$code])->getRowArray();
-            if (!$plan) {
+            if (! $plan) {
                 throw new DomainException(lang('Master.planMissing'));
             }
             $version = (int) $plan['version'] + 1;
-            $now = gmdate('Y-m-d H:i:s');
+            $now     = gmdate('Y-m-d H:i:s');
             $this->db->table('plan_price_versions')->insert([
                 'plan_id' => $plan['id'], 'version' => $version, 'price_idr' => $priceIdr, 'duration_months' => $durationMonths,
                 'enabled' => $enabled ? 1 : 0, 'actor_id' => $actorId, 'created_at' => $now,
             ]);
             $this->db->table('plans')->where('id', $plan['id'])->update([
                 'price_idr' => $priceIdr, 'duration_months' => $durationMonths, 'enabled' => $enabled ? 1 : 0,
-                'version' => $version, 'updated_at' => $now,
+                'version'   => $version, 'updated_at' => $now,
             ]);
             if ($this->db->transStatus() === false) {
                 throw new RuntimeException('Paket gagal disimpan.');
@@ -51,6 +52,7 @@ class PlanRepository
             return $version;
         } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }

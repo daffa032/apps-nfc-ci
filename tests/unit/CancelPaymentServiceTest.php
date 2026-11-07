@@ -4,64 +4,74 @@ declare(strict_types=1);
 
 use App\Libraries\GatewayUnknownException;
 use App\Libraries\MidtransClient;
+use App\Repositories\AccountRepository;
+use App\Repositories\AuditLogRepository;
 use App\Repositories\PaymentOrderRepository;
+use App\Repositories\SubscriptionRepository;
+use App\Services\Audit\AuditLogService;
 use App\Services\Payments\ApplyPaymentService;
 use App\Services\Payments\CancelPaymentService;
 use Config\Midtrans;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class CancelPaymentServiceTest extends TestCase
 {
     public function testCancelsAtMidtransFirstThenClosesLocally(): void
     {
         [$service, $orders, $gateway] = $this->service('200');
-        self::assertSame('cancelled', $service->cancel(21, 'NFC-C-1', $this->now()));
-        self::assertSame(['NFC-C-1'], $gateway->cancelled);
-        self::assertSame('cancelled', $orders->row['status']);
+        $this->assertSame('cancelled', $service->cancel(21, 'NFC-C-1', $this->now()));
+        $this->assertSame(['NFC-C-1'], $gateway->cancelled);
+        $this->assertSame('cancelled', $orders->row['status']);
     }
 
     public function testNoTransactionYetAtMidtransIsStillCancelled(): void
     {
         // 404: the buyer opened Snap but never picked a method; nothing can be paid on it.
         [$service, $orders] = $this->service('404');
-        self::assertSame('cancelled', $service->cancel(21, 'NFC-C-1', $this->now()));
-        self::assertSame('cancelled', $orders->row['status']);
+        $this->assertSame('cancelled', $service->cancel(21, 'NFC-C-1', $this->now()));
+        $this->assertSame('cancelled', $orders->row['status']);
     }
 
     public function testRefusedByMidtransWhileStillUnpaidIsReportedAndKeptOpen(): void
     {
         // 412 and Midtrans still reports pending: tell the owner, change nothing.
         [$service, $orders] = $this->service('412');
+
         try {
             $service->cancel(21, 'NFC-C-1', $this->now());
-            self::fail('Must be refused');
+            $this->fail('Must be refused');
         } catch (DomainException $exception) {
-            self::assertNotSame('', $exception->getMessage());
+            $this->assertNotSame('', $exception->getMessage());
         }
-        self::assertSame('pending', $orders->row['status']);
+        $this->assertSame('pending', $orders->row['status']);
     }
 
     public function testNetworkErrorLeavesTheInvoiceOpen(): void
     {
         [$service, $orders, $gateway] = $this->service('200');
-        $gateway->down = true;
+        $gateway->down                = true;
+
         try {
             $service->cancel(21, 'NFC-C-1', $this->now());
-            self::fail('Must surface the error');
+            $this->fail('Must surface the error');
         } catch (GatewayUnknownException) {
         }
-        self::assertSame('pending', $orders->row['status'], 'Nothing is closed unless Midtrans answered.');
+        $this->assertSame('pending', $orders->row['status'], 'Nothing is closed unless Midtrans answered.');
     }
 
     public function testOnlyTheOwnersOpenInvoiceCanBeCancelled(): void
     {
         [$service, $orders, $gateway] = $this->service('200');
+
         foreach ([[99, 'NFC-C-1'], [21, 'NFC-OTHER']] as [$user, $code]) {
             try {
                 $service->cancel($user, $code, $this->now());
-                self::fail("$user/$code must be refused");
+                $this->fail("{$user}/{$code} must be refused");
             } catch (DomainException $exception) {
-                self::assertNotSame('', $exception->getMessage());
+                $this->assertNotSame('', $exception->getMessage());
             }
         }
         $orders->row['status'] = 'paid';
@@ -79,7 +89,7 @@ final class CancelPaymentServiceTest extends TestCase
      */
     private function service(string $cancelCode): array
     {
-        $orders = new class extends PaymentOrderRepository {
+        $orders = new class () extends PaymentOrderRepository {
             public array $row = ['id' => 1, 'order_code' => 'NFC-C-1', 'user_id' => 21, 'status' => 'pending', 'snap_token' => 't', 'redirect_url' => 'u', 'expires_at' => '2026-10-14 06:00:00', 'amount_idr' => 99000];
 
             public function __construct()
@@ -113,11 +123,11 @@ final class CancelPaymentServiceTest extends TestCase
                 return true;
             }
         };
-        $config = new Midtrans();
+        $config            = new Midtrans();
         $config->serverKey = 'k';
-        $gateway = new class ($config, $cancelCode) extends MidtransClient {
-            public array $cancelled = [];
-            public bool $down = false;
+        $gateway           = new class ($config, $cancelCode) extends MidtransClient {
+            public array $cancelled    = [];
+            public bool $down          = false;
             public string $statusReply = 'pending';
 
             public function __construct(Midtrans $config, private string $code)
@@ -142,22 +152,22 @@ final class CancelPaymentServiceTest extends TestCase
         };
         $payments = new ApplyPaymentService(
             $orders,
-            new class extends \App\Repositories\SubscriptionRepository {
+            new class () extends SubscriptionRepository {
                 public function __construct()
                 {
                 }
             },
-            new class extends \App\Repositories\AccountRepository {
+            new class () extends AccountRepository {
                 public function __construct()
                 {
                 }
             },
-            new \App\Services\Audit\AuditLogService(new class extends \App\Repositories\AuditLogRepository {
+            new AuditLogService(new class () extends AuditLogRepository {
                 public function __construct()
                 {
                 }
             }),
-            $gateway
+            $gateway,
         );
 
         return [new CancelPaymentService($orders, $gateway, $payments), $orders, $gateway];

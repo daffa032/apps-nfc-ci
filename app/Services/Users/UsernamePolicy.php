@@ -12,7 +12,9 @@ use App\Exceptions\FieldException;
  */
 final class UsernamePolicy
 {
-    /** First path segments the app uses or will use; compared case-insensitively. */
+    /**
+     * First path segments the app uses or will use; compared case-insensitively.
+     */
     public const RESERVED = [
         'admin', 'api', 'assets', 'billing', 'cards', 'checkout', 'dashboard', 'favicon.ico',
         'forgot-password', 'forgot_password', 'index.php', 'login', 'loginpost', 'logout',

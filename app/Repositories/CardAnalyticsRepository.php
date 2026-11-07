@@ -25,7 +25,7 @@ class CardAnalyticsRepository
         if ($visitorHash !== null) {
             $this->db->query(
                 "INSERT IGNORE INTO {$this->db->prefixTable('card_daily_visitors')} (card_user_id, date_wib, visitor_hash) VALUES (?, ?, ?)",
-                [$cardUserId, $dateWib, $visitorHash]
+                [$cardUserId, $dateWib, $visitorHash],
             );
             $isNewVisitor = $this->db->affectedRows() === 1;
         }
@@ -33,7 +33,7 @@ class CardAnalyticsRepository
             "INSERT INTO {$this->db->prefixTable('card_daily_metrics')} (card_user_id, date_wib, views, unique_visitors, contact_clicks)
              VALUES (?, ?, 1, ?, 0)
              ON DUPLICATE KEY UPDATE views = views + 1, unique_visitors = unique_visitors + VALUES(unique_visitors)",
-            [$cardUserId, $dateWib, $isNewVisitor ? 1 : 0]
+            [$cardUserId, $dateWib, $isNewVisitor ? 1 : 0],
         );
     }
 
@@ -43,7 +43,7 @@ class CardAnalyticsRepository
             "INSERT INTO {$this->db->prefixTable('card_daily_metrics')} (card_user_id, date_wib, views, unique_visitors, contact_clicks)
              VALUES (?, ?, 0, 0, 1)
              ON DUPLICATE KEY UPDATE contact_clicks = contact_clicks + 1",
-            [$cardUserId, $dateWib]
+            [$cardUserId, $dateWib],
         );
     }
 
@@ -60,6 +60,7 @@ class CardAnalyticsRepository
             ->get()->getResultArray();
 
         $byDay = [];
+
         foreach ($rows as $row) {
             $byDay[$row['date_wib']] = ['views' => (int) $row['views'], 'unique_visitors' => (int) $row['unique_visitors'], 'contact_clicks' => (int) $row['contact_clicks']];
         }

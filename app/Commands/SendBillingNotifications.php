@@ -17,8 +17,8 @@ use DateTimeImmutable;
  */
 class SendBillingNotifications extends BaseCommand
 {
-    protected $group = 'Payments';
-    protected $name = 'billing:notify';
+    protected $group       = 'Payments';
+    protected $name        = 'billing:notify';
     protected $description = 'Kirim email kwitansi, pemberitahuan refund, dan pengingat perpanjangan (H-7, H-1).';
 
     public function run(array $params)

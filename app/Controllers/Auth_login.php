@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Models\UserModel;
 use App\Services\Audit\AuditLogService;
 use App\Services\Auth\LoginService;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -14,10 +15,11 @@ class Auth_login extends BaseController
     public function loginPost(): RedirectResponse
     {
         $session = session();
+
         try {
             $values = (new LoginService())->attempt(
                 trim((string) $this->request->getPost('username')),
-                (string) $this->request->getPost('password')
+                (string) $this->request->getPost('password'),
             );
         } catch (DomainException $exception) {
             // No username, password or account ID is stored for failed attempts.
@@ -36,7 +38,7 @@ class Auth_login extends BaseController
 
         $redirect = redirect()->to($target);
         // The account's saved language follows the user to a new device or browser.
-        $saved = (string) ((new \App\Models\UserModel())->find((int) $values['id_user'])['preferred_locale'] ?? '');
+        $saved  = (string) ((new UserModel())->find((int) $values['id_user'])['preferred_locale'] ?? '');
         $config = config('Locale');
         if (in_array($saved, $config->supported, true)) {
             $redirect->setCookie($config->cookieName, $saved, 365 * 86400, '', '/', '', null, false, 'Lax');
@@ -52,9 +54,9 @@ class Auth_login extends BaseController
     private static function safeTarget(mixed $value): string
     {
         $value = is_string($value) ? $value : '';
-        $path = (string) parse_url($value, PHP_URL_PATH);
+        $path  = (string) parse_url($value, PHP_URL_PATH);
 
-        return preg_match('#^/dashboard(/[A-Za-z0-9_\-/.]*)?$#', $path) === 1 && !str_contains($value, '..') && !str_contains($value, '//')
+        return preg_match('#^/dashboard(/[A-Za-z0-9_\-/.]*)?$#', $path) === 1 && ! str_contains($value, '..') && ! str_contains($value, '//')
             ? $value
             : '/dashboard';
     }

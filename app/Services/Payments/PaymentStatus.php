@@ -10,15 +10,17 @@ namespace App\Services\Payments;
  */
 final class PaymentStatus
 {
-    public const PENDING = 'pending';
-    public const CHECKING = 'checking';
-    public const PAID = 'paid';
-    public const FAILED = 'failed';
+    public const PENDING   = 'pending';
+    public const CHECKING  = 'checking';
+    public const PAID      = 'paid';
+    public const FAILED    = 'failed';
     public const CANCELLED = 'cancelled';
-    public const EXPIRED = 'expired';
-    public const REFUNDED = 'refunded';
+    public const EXPIRED   = 'expired';
+    public const REFUNDED  = 'refunded';
 
-    /** Statuses that never change again (except a paid order being refunded). */
+    /**
+     * Statuses that never change again (except a paid order being refunded).
+     */
     public const FINAL = [self::PAID, self::FAILED, self::CANCELLED, self::EXPIRED, self::REFUNDED];
 
     public static function fromGateway(string $transactionStatus, ?string $fraudStatus): string
@@ -26,14 +28,14 @@ final class PaymentStatus
         $fraud = $fraudStatus === null || $fraudStatus === '' ? 'accept' : strtolower($fraudStatus);
 
         return match (strtolower($transactionStatus)) {
-            'settlement' => self::PAID,
-            'capture' => $fraud === 'accept' ? self::PAID : self::CHECKING,
-            'pending', 'authorize' => self::PENDING,
-            'deny', 'failure' => self::FAILED,
-            'cancel' => self::CANCELLED,
-            'expire' => self::EXPIRED,
+            'settlement'                                                   => self::PAID,
+            'capture'                                                      => $fraud === 'accept' ? self::PAID : self::CHECKING,
+            'pending', 'authorize'                                         => self::PENDING,
+            'deny', 'failure'                                              => self::FAILED,
+            'cancel'                                                       => self::CANCELLED,
+            'expire'                                                       => self::EXPIRED,
             'refund', 'partial_refund', 'chargeback', 'partial_chargeback' => self::REFUNDED,
-            default => self::CHECKING,
+            default                                                        => self::CHECKING,
         };
     }
 

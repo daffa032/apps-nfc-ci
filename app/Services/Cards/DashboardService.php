@@ -6,6 +6,7 @@ namespace App\Services\Cards;
 
 use App\Repositories\AccountRepository;
 use App\Repositories\ProfileRepository;
+use DateTimeImmutable;
 use DateTimeInterface;
 
 /**
@@ -20,7 +21,7 @@ final class DashboardService
     public function __construct(
         private ?AccountRepository $accounts = null,
         private ?ProfileRepository $profiles = null,
-        private ?SubscriptionAccessService $access = null
+        private ?SubscriptionAccessService $access = null,
     ) {
         $this->accounts ??= new AccountRepository();
         $this->profiles ??= new ProfileRepository();
@@ -33,38 +34,38 @@ final class DashboardService
     public function summaryFor(int $userId, DateTimeInterface $now): ?array
     {
         $account = $userId > 0 ? $this->accounts->find($userId) : null;
-        if (!$account) {
+        if (! $account) {
             return null;
         }
 
-        $isStaff = $this->access->isStaff($account);
-        $period = $this->access->currentPeriod($account, $now) ?? $this->access->latestPeriod($account);
-        $expiry = subscription_last_day($period['ends_at'] ?? null);
+        $isStaff  = $this->access->isStaff($account);
+        $period   = $this->access->currentPeriod($account, $now) ?? $this->access->latestPeriod($account);
+        $expiry   = subscription_last_day($period['ends_at'] ?? null);
         $daysLeft = $expiry === null ? null : legacy_expiry_days_left($expiry, $now);
-        $active = $this->access->isActive($account, $now);
+        $active   = $this->access->isActive($account, $now);
 
         $profile = $this->profiles->findForUser($userId);
-        $name = trim((string) ($profile['nama'] ?? ''));
+        $name    = trim((string) ($profile['nama'] ?? ''));
 
         return [
-            'isStaff' => $isStaff,
-            'isActive' => $active,
-            'neverActivated' => !$isStaff && $expiry === null,
-            'planCode' => (string) ($period['plan_code'] ?? 'basic'),
-            'planLabel' => (string) ($period['plan_label'] ?? self::DEFAULT_PLAN_LABEL),
-            'expiryLabel' => $this->expiryLabel($expiry, $daysLeft),
-            'remainingDays' => remaining_days_label($expiry?->format('Y-m-d'), $now),
-            'hasProfile' => $profile !== null,
-            'displayName' => $name !== '' ? $name : (string) $account['username'],
-            'firstName' => $name !== '' ? explode(' ', $name)[0] : (string) $account['username'],
-            'initials' => $this->initials($name !== '' ? $name : (string) $account['username']),
-            'company' => trim((string) ($profile['company_name'] ?? '')),
-            'profileImage' => CardPresentation::imageName($profile['profile_image'] ?? null),
-            'publicUrl' => base_url(rawurlencode((string) $account['username'])),
+            'isStaff'        => $isStaff,
+            'isActive'       => $active,
+            'neverActivated' => ! $isStaff && $expiry === null,
+            'planCode'       => (string) ($period['plan_code'] ?? 'basic'),
+            'planLabel'      => (string) ($period['plan_label'] ?? self::DEFAULT_PLAN_LABEL),
+            'expiryLabel'    => $this->expiryLabel($expiry, $daysLeft),
+            'remainingDays'  => remaining_days_label($expiry?->format('Y-m-d'), $now),
+            'hasProfile'     => $profile !== null,
+            'displayName'    => $name !== '' ? $name : (string) $account['username'],
+            'firstName'      => $name !== '' ? explode(' ', $name)[0] : (string) $account['username'],
+            'initials'       => $this->initials($name !== '' ? $name : (string) $account['username']),
+            'company'        => trim((string) ($profile['company_name'] ?? '')),
+            'profileImage'   => CardPresentation::imageName($profile['profile_image'] ?? null),
+            'publicUrl'      => base_url(rawurlencode((string) $account['username'])),
         ];
     }
 
-    private function expiryLabel(?\DateTimeImmutable $expiry, ?int $daysLeft): string
+    private function expiryLabel(?DateTimeImmutable $expiry, ?int $daysLeft): string
     {
         if ($expiry === null) {
             return lang('Home.neverActivated');

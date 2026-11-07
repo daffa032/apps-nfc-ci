@@ -33,7 +33,7 @@ trait ResolvesCurrentUser
     protected function dashboardShellData(): array
     {
         return [
-            'username' => $this->currentUsername(),
+            'username'    => $this->currentUsername(),
             'accessLevel' => $this->currentRole(),
             'encryptedId' => rtrim(strtr(base64_encode((string) $this->currentUserId()), '+/', '-_'), '='),
             // Set by the `auth` filter from SubscriptionAccessService for this request.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Repositories\AccountRepository;
 use App\Repositories\PaymentOrderRepository;
 use App\Services\Payments\ApplyPaymentService;
 use App\Traits\ResolvesCurrentUser;
@@ -13,6 +14,7 @@ use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
 use DateTimeImmutable;
 use DateTimeZone;
+use DomainException;
 use Throwable;
 
 /**
@@ -53,7 +55,7 @@ class PaymentAdminController extends BaseController
         session()->close();
         $this->response->setHeader('Cache-Control', 'private, no-store');
         $marker = (new PaymentOrderRepository())->changeMarker();
-        $base = ['marker' => $marker, 'as_of' => gmdate('Y-m-d\TH:i:s\Z'), 'csrf' => csrf_hash()];
+        $base   = ['marker' => $marker, 'as_of' => gmdate('Y-m-d\TH:i:s\Z'), 'csrf' => csrf_hash()];
         if ((string) $this->request->getGet('since') === $marker) {
             return $this->response->setJSON($base + ['changed' => false]);
         }
@@ -63,10 +65,10 @@ class PaymentAdminController extends BaseController
 
         return $this->response->setJSON($base + [
             'changed' => true,
-            'html' => [
-                'summary' => view('dashboard/pages/payments/_summary', $data, ['debug' => false]),
+            'html'    => [
+                'summary'   => view('dashboard/pages/payments/_summary', $data, ['debug' => false]),
                 'attention' => view('dashboard/pages/payments/_attention', $data, ['debug' => false]),
-                'table' => view('dashboard/pages/payments/_table', $data, ['debug' => false]),
+                'table'     => view('dashboard/pages/payments/_table', $data, ['debug' => false]),
             ],
         ]);
     }
@@ -82,7 +84,7 @@ class PaymentAdminController extends BaseController
     {
         session()->close();
         $this->response->setHeader('Cache-Control', 'private, no-store');
-        if (!config('Midtrans')->isConfigured()) {
+        if (! config('Midtrans')->isConfigured()) {
             return $this->response->setJSON(['checked' => 0, 'skipped' => 'gateway_off']);
         }
         $cache = cache();
@@ -91,15 +93,17 @@ class PaymentAdminController extends BaseController
         }
         $cache->save('payments_live_sync', 1, 60);
 
-        $repo = new PaymentOrderRepository();
+        $repo    = new PaymentOrderRepository();
         $service = new ApplyPaymentService();
         $checked = 0;
         $changed = 0;
         $started = microtime(true);
+
         foreach ($repo->openForLiveSync(gmdate('Y-m-d H:i:s'), 5) as $order) {
             if (microtime(true) - $started > 8) {
                 break;
             }
+
             try {
                 $outcome = $service->refresh($order, new DateTimeImmutable('now'));
                 $checked++;
@@ -122,39 +126,39 @@ class PaymentAdminController extends BaseController
      */
     private function listData(): array
     {
-        $input = (array) $this->request->getGet();
+        $input   = (array) $this->request->getGet();
         $filters = [
             'status' => in_array($input['status'] ?? '', self::STATUSES, true) ? (string) $input['status'] : '',
             'review' => ($input['review'] ?? '') === '1' ? '1' : '',
-            'q' => mb_substr(trim((string) ($input['q'] ?? '')), 0, 50),
-            'from' => $this->date($input['from'] ?? ''),
-            'to' => $this->date($input['to'] ?? ''),
+            'q'      => mb_substr(trim((string) ($input['q'] ?? '')), 0, 50),
+            'from'   => $this->date($input['from'] ?? ''),
+            'to'     => $this->date($input['to'] ?? ''),
         ];
-        $wib = new DateTimeZone('Asia/Jakarta');
-        $utc = new DateTimeZone('UTC');
+        $wib   = new DateTimeZone('Asia/Jakarta');
+        $utc   = new DateTimeZone('UTC');
         $query = $filters + [
             'fromUtc' => $filters['from'] === '' ? '' : (new DateTimeImmutable($filters['from'], $wib))->setTimezone($utc)->format('Y-m-d H:i:s'),
-            'toUtc' => $filters['to'] === '' ? '' : (new DateTimeImmutable($filters['to'], $wib))->modify('+1 day')->setTimezone($utc)->format('Y-m-d H:i:s'),
+            'toUtc'   => $filters['to'] === '' ? '' : (new DateTimeImmutable($filters['to'], $wib))->modify('+1 day')->setTimezone($utc)->format('Y-m-d H:i:s'),
         ];
-        $page = max(1, (int) ($input['page'] ?? 1));
-        $repo = new PaymentOrderRepository();
-        $result = $repo->searchForAdmin($query, $page);
+        $page       = max(1, (int) ($input['page'] ?? 1));
+        $repo       = new PaymentOrderRepository();
+        $result     = $repo->searchForAdmin($query, $page);
         $monthStart = (new DateTimeImmutable('first day of this month 00:00', $wib));
 
         return [
-            'rows' => $result['rows'],
-            'total' => $result['total'],
-            'page' => $page,
-            'pages' => max(1, (int) ceil($result['total'] / 25)),
-            'filters' => $filters,
-            'summary' => $repo->summary($monthStart->setTimezone($utc)->format('Y-m-d H:i:s'), $monthStart->modify('+1 month')->setTimezone($utc)->format('Y-m-d H:i:s')),
+            'rows'      => $result['rows'],
+            'total'     => $result['total'],
+            'page'      => $page,
+            'pages'     => max(1, (int) ceil($result['total'] / 25)),
+            'filters'   => $filters,
+            'summary'   => $repo->summary($monthStart->setTimezone($utc)->format('Y-m-d H:i:s'), $monthStart->modify('+1 month')->setTimezone($utc)->format('Y-m-d H:i:s')),
             'attention' => $repo->needingAttention(gmdate('Y-m-d H:i:s')),
         ];
     }
 
     public function show(string $orderCode): string
     {
-        $repo = new PaymentOrderRepository();
+        $repo  = new PaymentOrderRepository();
         $order = preg_match('/\A[A-Za-z0-9-]{1,50}\z/', $orderCode) === 1 ? $repo->findByCode($orderCode) : null;
         if ($order === null) {
             throw PageNotFoundException::forPageNotFound();
@@ -162,32 +166,34 @@ class PaymentAdminController extends BaseController
         $this->response->setHeader('Cache-Control', 'private, no-store');
 
         return view('dashboard/pages/payments/payment_detail', $this->dashboardShellData() + [
-            'order' => $order,
-            'events' => $repo->eventsFor((int) $order['id']),
-            'username' => $this->currentUsername(),
-            'buyer' => (new \App\Repositories\AccountRepository())->find((int) $order['user_id'])['username'] ?? '#' . $order['user_id'],
+            'order'      => $order,
+            'events'     => $repo->eventsFor((int) $order['id']),
+            'username'   => $this->currentUsername(),
+            'buyer'      => (new AccountRepository())->find((int) $order['user_id'])['username'] ?? '#' . $order['user_id'],
             'canResolve' => $this->currentRole() === 'Super Admin',
-            'reviewer' => $order['reviewed_by'] ? ((new \App\Repositories\AccountRepository())->find((int) $order['reviewed_by'])['username'] ?? '#' . $order['reviewed_by']) : null,
-            'feedback' => $this->pendingFeedback(),
+            'reviewer'   => $order['reviewed_by'] ? ((new AccountRepository())->find((int) $order['reviewed_by'])['username'] ?? '#' . $order['reviewed_by']) : null,
+            'feedback'   => $this->pendingFeedback(),
         ]);
     }
 
     public function check(string $orderCode): RedirectResponse
     {
-        $repo = new PaymentOrderRepository();
+        $repo  = new PaymentOrderRepository();
         $order = preg_match('/\A[A-Za-z0-9-]{1,50}\z/', $orderCode) === 1 ? $repo->findByCode($orderCode) : null;
-        $back = 'dashboard/payments/' . rawurlencode($orderCode);
+        $back  = 'dashboard/payments/' . rawurlencode($orderCode);
         if ($order === null) {
             throw PageNotFoundException::forPageNotFound();
         }
-        if (!service('throttler')->check('admin_pay_check_' . $this->currentUserId(), 20, MINUTE)) {
+        if (! service('throttler')->check('admin_pay_check_' . $this->currentUserId(), 20, MINUTE)) {
             return $this->redirectFailure($back, lang('Billing.checkTooOften'));
         }
+
         try {
             $outcome = (new ApplyPaymentService())->refresh($order, new DateTimeImmutable('now'));
         } catch (Throwable $exception) {
             log_message('warning', 'Admin status check failed for {order}: {message}', ['order' => $orderCode, 'message' => $exception->getMessage()]);
             $this->audit('payment.reconciled', 'failed', 'payment_order', $orderCode, [], 'gateway_error');
+
             return $this->redirectFailure($back, $this->withReference(lang('Billing.checkFailed')));
         }
         $this->audit('payment.reconciled', 'success', 'payment_order', $orderCode, [], $outcome);
@@ -205,14 +211,17 @@ class PaymentAdminController extends BaseController
             throw PageNotFoundException::forPageNotFound();
         }
         $action = (string) $this->request->getPost('action');
+
         try {
             (new ApplyPaymentService())->resolve($orderCode, $action, (string) $this->request->getPost('note'), $this->currentUserId(), new DateTimeImmutable('now'));
-        } catch (\DomainException $exception) {
+        } catch (DomainException $exception) {
             $this->audit('payment.resolved', 'denied', 'payment_order', $orderCode, [], mb_substr($action, 0, 16));
+
             return $this->redirectFailure($back, $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Payment resolution failed for {order}: {exception}', ['order' => $orderCode, 'exception' => $exception]);
             $this->audit('payment.resolved', 'failed', 'payment_order', $orderCode, [], 'server_error');
+
             return $this->redirectFailure($back, $this->withReference(lang('Billing.resolveFailed')));
         }
 

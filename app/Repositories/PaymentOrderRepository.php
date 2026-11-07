@@ -6,6 +6,7 @@ namespace App\Repositories;
 
 use CodeIgniter\Database\BaseConnection;
 use DomainException;
+use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
@@ -76,7 +77,7 @@ class PaymentOrderRepository
 
     public function insertOrder(array $row): int
     {
-        if (!$this->db->table('payment_orders')->insert($row)) {
+        if (! $this->db->table('payment_orders')->insert($row)) {
             throw new RuntimeException('Tagihan gagal dibuat.');
         }
 
@@ -115,9 +116,10 @@ class PaymentOrderRepository
     public function withLockedOrder(int $orderId, callable $change): array
     {
         $this->db->transBegin();
+
         try {
             $order = $this->db->query('SELECT user_id FROM ' . $this->db->prefixTable('payment_orders') . ' WHERE id = ?', [$orderId])->getRowArray();
-            if (!$order) {
+            if (! $order) {
                 throw new DomainException('Order not found.');
             }
             $this->db->query('SELECT id_user FROM ' . $this->db->prefixTable('table_user') . ' WHERE id_user = ? FOR UPDATE', [$order['user_id']]);
@@ -135,6 +137,7 @@ class PaymentOrderRepository
             return $fields + $locked;
         } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }
@@ -161,7 +164,7 @@ class PaymentOrderRepository
                     AND (last_checked_at IS NULL OR last_checked_at < DATE_SUB(?, INTERVAL 6 HOUR)))
              ORDER BY last_checked_at IS NOT NULL, last_checked_at ASC, id ASC
              LIMIT ?",
-            [$nowUtc, $nowUtc, $nowUtc, $limit]
+            [$nowUtc, $nowUtc, $nowUtc, $limit],
         )->getResultArray();
     }
 
@@ -176,7 +179,7 @@ class PaymentOrderRepository
         $row = $this->db->query(
             'SELECT (SELECT MAX(id) FROM ' . $this->db->prefixTable('payment_orders') . ') AS last_id,'
             . ' (SELECT MAX(updated_at) FROM ' . $this->db->prefixTable('payment_orders') . ') AS last_update,'
-            . ' (SELECT MAX(id) FROM ' . $this->db->prefixTable('payment_events') . ') AS last_event'
+            . ' (SELECT MAX(id) FROM ' . $this->db->prefixTable('payment_events') . ') AS last_event',
         )->getRowArray() ?? [];
 
         return substr(hash('sha256', implode('|', [$row['last_id'] ?? 0, $row['last_update'] ?? '', $row['last_event'] ?? 0])), 0, 16);
@@ -209,9 +212,9 @@ class PaymentOrderRepository
             ->select('o.order_code, o.status, o.needs_review, o.amount_idr, o.created_at, u.username')
             ->join('table_user u', 'u.id_user = o.user_id', 'left')
             ->groupStart()
-                ->where('o.needs_review', 1)
-                ->orGroupStart()->whereIn('o.status', ['creating', 'pending', 'checking'])->where('o.expires_at <', gmdate('Y-m-d H:i:s', strtotime($nowUtc . ' UTC') - 3600))->groupEnd()
-                ->orGroupStart()->where('o.status', 'paid')->where('o.applied_at', null)->where('o.paid_at <', gmdate('Y-m-d H:i:s', strtotime($nowUtc . ' UTC') - 3600))->groupEnd()
+            ->where('o.needs_review', 1)
+            ->orGroupStart()->whereIn('o.status', ['creating', 'pending', 'checking'])->where('o.expires_at <', gmdate('Y-m-d H:i:s', strtotime($nowUtc . ' UTC') - 3600))->groupEnd()
+            ->orGroupStart()->where('o.status', 'paid')->where('o.applied_at', null)->where('o.paid_at <', gmdate('Y-m-d H:i:s', strtotime($nowUtc . ' UTC') - 3600))->groupEnd()
             ->groupEnd()
             ->orderBy('o.id', 'ASC')->limit($limit)->get()->getResultArray();
     }
@@ -247,8 +250,8 @@ class PaymentOrderRepository
      */
     public function claimNotice(int $orderId, string $column, ?string $nowUtc): bool
     {
-        if (!in_array($column, ['receipt_sent_at', 'refund_notice_sent_at'], true)) {
-            throw new \InvalidArgumentException('Unknown notice column.');
+        if (! in_array($column, ['receipt_sent_at', 'refund_notice_sent_at'], true)) {
+            throw new InvalidArgumentException('Unknown notice column.');
         }
         $builder = $this->db->table('payment_orders')->where('id', $orderId);
         if ($nowUtc !== null) {
@@ -293,7 +296,7 @@ class PaymentOrderRepository
             $builder->where('o.created_at <', $filters['toUtc']);
         }
         $total = $builder->countAllResults(false);
-        $rows = $builder->orderBy('o.id', 'DESC')->limit($perPage, max(0, ($page - 1) * $perPage))->get()->getResultArray();
+        $rows  = $builder->orderBy('o.id', 'DESC')->limit($perPage, max(0, ($page - 1) * $perPage))->get()->getResultArray();
 
         return ['rows' => $rows, 'total' => $total];
     }
@@ -319,8 +322,8 @@ class PaymentOrderRepository
         return [
             'paidCount' => (int) ($paid['n'] ?? 0),
             'paidGross' => (int) ($paid['gross'] ?? 0),
-            'waiting' => $this->db->table('payment_orders')->whereIn('status', ['creating', 'pending', 'checking'])->countAllResults(),
-            'review' => $this->db->table('payment_orders')->where('needs_review', 1)->countAllResults(),
+            'waiting'   => $this->db->table('payment_orders')->whereIn('status', ['creating', 'pending', 'checking'])->countAllResults(),
+            'review'    => $this->db->table('payment_orders')->where('needs_review', 1)->countAllResults(),
         ];
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filters;
 
+use App\Models\UserModel;
 use App\Services\Locale\CountryLookup;
 use App\Services\Locale\LocaleResolver;
 use CodeIgniter\Filters\FilterInterface;
@@ -21,10 +22,10 @@ class LocaleFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        if (!$request instanceof IncomingRequest) {
+        if (! $request instanceof IncomingRequest) {
             return null;
         }
-        $config = config('Locale');
+        $config   = config('Locale');
         $resolver = new LocaleResolver($config);
 
         $choice = $request->getGet('lang');
@@ -33,21 +34,21 @@ class LocaleFilter implements FilterInterface
             unset($query['lang']);
             // Path relative to baseURL: redirect()->to() prepends baseURL, so the full URI path
             // would double a sub-folder install (/nfc/nfc/dashboard).
-            $path = '/' . ltrim($request->getPath(), '/');
+            $path   = '/' . ltrim($request->getPath(), '/');
             $target = $path . ($query === [] ? '' : '?' . http_build_query($query));
 
             // A signed-in account keeps the choice too, so emails sent later (cron) use it.
             $userId = (int) session()->get('id_user');
             if ($userId > 0) {
-                (new \App\Models\UserModel())->update($userId, ['preferred_locale' => $choice]);
+                (new UserModel())->update($userId, ['preferred_locale' => $choice]);
             }
 
             return redirect()->to($target)
                 ->setCookie($config->cookieName, $choice, 365 * 86400, '', '/', '', null, false, 'Lax');
         }
 
-        $cookie = $request->getCookie($config->cookieName);
-        $choice = is_string($cookie) && $resolver->supports($cookie) ? $cookie : null;
+        $cookie  = $request->getCookie($config->cookieName);
+        $choice  = is_string($cookie) && $resolver->supports($cookie) ? $cookie : null;
         $country = null;
         if ($choice === null) {
             // Only first visits need a guess; the IP is used for this lookup and never stored.

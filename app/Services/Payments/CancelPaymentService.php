@@ -19,13 +19,13 @@ use DomainException;
  */
 final class CancelPaymentService
 {
-    public const CANCELLED = 'cancelled';
+    public const CANCELLED    = 'cancelled';
     public const ALREADY_PAID = 'already_paid';
 
     public function __construct(
         private ?PaymentOrderRepository $orders = null,
         private ?MidtransClient $gateway = null,
-        private ?ApplyPaymentService $payments = null
+        private ?ApplyPaymentService $payments = null,
     ) {
         $this->orders ??= new PaymentOrderRepository();
         $this->gateway ??= new MidtransClient();
@@ -34,7 +34,7 @@ final class CancelPaymentService
     public function cancel(int $userId, string $orderCode, DateTimeInterface $now): string
     {
         $order = $this->orders->findOwnedOrder($orderCode, $userId);
-        if ($order === null || !in_array($order['status'], ['creating', 'pending', 'checking'], true)) {
+        if ($order === null || ! in_array($order['status'], ['creating', 'pending', 'checking'], true)) {
             throw new DomainException(lang('Billing.cancelNotOpen'));
         }
 
@@ -47,6 +47,7 @@ final class CancelPaymentService
             if ($fresh !== null && $fresh['status'] === PaymentStatus::PAID) {
                 return self::ALREADY_PAID;
             }
+
             throw new DomainException(lang('Billing.cancelRefused'));
         }
 

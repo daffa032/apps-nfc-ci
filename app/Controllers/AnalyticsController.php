@@ -23,32 +23,32 @@ class AnalyticsController extends BaseController
 
     protected $helpers = ['asset', 'feedback', 'date'];
 
-    public function index(): string|RedirectResponse
+    public function index(): RedirectResponse|string
     {
         $account = (new AccountRepository())->find($this->currentUserId());
-        if (!$account) {
+        if (! $account) {
             return redirect()->to('/login');
         }
 
-        $now = new DateTimeImmutable('now');
+        $now       = new DateTimeImmutable('now');
         $analytics = new CardAnalyticsService();
-        $isPro = $analytics->isPro($account, $now);
+        $isPro     = $analytics->isPro($account, $now);
         $this->response->setHeader('Cache-Control', 'private, no-store');
 
         return view('dashboard/pages/analytics/analytics', $this->dashboardShellData() + [
-            'isPro' => $isPro,
-            'stats' => $isPro ? $analytics->month($this->currentUserId(), $this->monthParam(), $now) : null,
+            'isPro'    => $isPro,
+            'stats'    => $isPro ? $analytics->month($this->currentUserId(), $this->monthParam(), $now) : null,
             'feedback' => $this->pendingFeedback(),
         ]);
     }
 
     public function data(): ResponseInterface
     {
-        $account = (new AccountRepository())->find($this->currentUserId());
-        $now = new DateTimeImmutable('now');
+        $account   = (new AccountRepository())->find($this->currentUserId());
+        $now       = new DateTimeImmutable('now');
         $analytics = new CardAnalyticsService();
         $this->response->setHeader('Cache-Control', 'private, no-store');
-        if (!$account || !$analytics->isPro($account, $now)) {
+        if (! $account || ! $analytics->isPro($account, $now)) {
             return $this->response->setStatusCode(403)->setJSON(['message' => lang('Analytics.proOnly')]);
         }
 

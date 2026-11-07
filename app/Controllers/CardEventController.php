@@ -22,16 +22,16 @@ class CardEventController extends BaseController
         $this->response->setStatusCode(204)->setHeader('Cache-Control', 'no-store');
 
         $origin = (string) $this->request->getHeaderLine('Origin');
-        $base = rtrim((string) config('App')->baseURL, '/');
+        $base   = rtrim((string) config('App')->baseURL, '/');
         if ($origin !== '' && parse_url($origin, PHP_URL_HOST) !== parse_url($base, PHP_URL_HOST)) {
             return $this->response;
         }
         $throttleKey = 'card_event_' . hash('sha256', $this->request->getIPAddress() . '|' . strtolower($username));
-        if (!service('throttler')->check($throttleKey, 30, MINUTE)) {
+        if (! service('throttler')->check($throttleKey, 30, MINUTE)) {
             return $this->response;
         }
 
-        $now = new DateTimeImmutable('now');
+        $now  = new DateTimeImmutable('now');
         $card = (new PublicCardService())->forUsername($username, $now);
         if ($card['state'] !== PublicCardService::SHOW) {
             return $this->response;
@@ -42,7 +42,7 @@ class CardEventController extends BaseController
             (string) $this->request->getPost('type'),
             (string) $this->request->getPost('token'),
             (string) $this->request->getUserAgent(),
-            $now
+            $now,
         );
 
         return $this->response;

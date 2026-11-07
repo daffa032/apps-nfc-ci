@@ -31,7 +31,7 @@ final class UserManagementService
     public function create(array $input): void
     {
         $username = trim((string) ($input['username'] ?? ''));
-        $email = trim((string) ($input['email'] ?? ''));
+        $email    = trim((string) ($input['email'] ?? ''));
         $password = (string) ($input['password'] ?? '');
 
         $this->validateIdentity($username, $email);
@@ -40,20 +40,20 @@ final class UserManagementService
         $this->assertUnique($username, $email);
 
         $this->users->createCustomer([
-            'username' => $username,
-            'email' => $email,
-            'password' => password_hash($password, PASSWORD_DEFAULT),
+            'username'          => $username,
+            'email'             => $email,
+            'password'          => password_hash($password, PASSWORD_DEFAULT),
             'registration_date' => date('Y-m-d'),
-            'expired_date' => '0000-00-00',
-            'access_level' => 'User',
+            'expired_date'      => '0000-00-00',
+            'access_level'      => 'User',
         ]);
     }
 
     public function update(int $id, array $input): void
     {
-        $current = $this->find($id);
+        $current  = $this->find($id);
         $username = trim((string) ($input['username'] ?? ''));
-        $email = trim((string) ($input['email'] ?? ''));
+        $email    = trim((string) ($input['email'] ?? ''));
         $password = (string) ($input['password'] ?? '');
 
         $this->validateIdentity($username, $email);
@@ -68,7 +68,7 @@ final class UserManagementService
             $data['password'] = password_hash($password, PASSWORD_DEFAULT);
         }
 
-        if (!$this->users->updateCustomer($id, $data, (string) $current['username'])) {
+        if (! $this->users->updateCustomer($id, $data, (string) $current['username'])) {
             throw new DomainException(lang('Accounts.userUpdateFailed'));
         }
     }
@@ -76,7 +76,7 @@ final class UserManagementService
     public function delete(int $id): void
     {
         $this->find($id);
-        if (!$this->users->deleteCustomer($id)) {
+        if (! $this->users->deleteCustomer($id)) {
             throw new DomainException(lang('Accounts.userDeleteFailed'));
         }
     }
@@ -92,6 +92,7 @@ final class UserManagementService
 
         if ($duration === null) {
             $this->grants->revoke($id, $now);
+
             return;
         }
         $this->grants->grant($id, $actorId, $duration, $now, $reason);
@@ -102,7 +103,7 @@ final class UserManagementService
         if ($username === '' || mb_strlen($username) > 255) {
             throw new FieldException('username', lang('Accounts.errUsername'));
         }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
             throw new FieldException('email', lang('Accounts.errEmail'));
         }
     }

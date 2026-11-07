@@ -12,34 +12,38 @@ use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../_support/Fakes/PeriodListRepository.php';
 
+/**
+ * @internal
+ */
 final class TemplateSelectionServiceTest extends TestCase
 {
     public function testPageListsActiveCatalogTemplatesWithSelectedFirst(): void
     {
         $page = self::service(new TemplateProfileRepository('index-dark.php'))->pageFor(7);
 
-        self::assertSame('index-dark.php', $page['selectedTemplate']);
-        self::assertSame([2, 1, 4], array_column($page['templates'], 'id_template'));
-        self::assertNull($page['templates'][1]['images_template']);
+        $this->assertSame('index-dark.php', $page['selectedTemplate']);
+        $this->assertSame([2, 1, 4], array_column($page['templates'], 'id_template'));
+        $this->assertNull($page['templates'][1]['images_template']);
     }
 
     public function testPageIsNullWithoutProfile(): void
     {
-        self::assertNull(self::service(new TemplateProfileRepository(null))->pageFor(7));
+        $this->assertNull(self::service(new TemplateProfileRepository(null))->pageFor(7));
     }
 
     public function testSelectRejectsTemplateOutsideCatalogBeforeWriting(): void
     {
         $profiles = new TemplateProfileRepository('index-white.php');
+
         foreach ([0, 3, 99] as $templateId) {
             try {
                 self::service($profiles)->select(7, $templateId);
-                self::fail('Template ' . $templateId . ' must be rejected.');
+                $this->fail('Template ' . $templateId . ' must be rejected.');
             } catch (DomainException $exception) {
-                self::assertNotInstanceOf(MissingProfileException::class, $exception);
+                $this->assertNotInstanceOf(MissingProfileException::class, $exception);
             }
         }
-        self::assertSame([], $profiles->saved);
+        $this->assertSame([], $profiles->saved);
     }
 
     public function testSelectWithoutProfileAsksForProfile(): void
@@ -53,42 +57,44 @@ final class TemplateSelectionServiceTest extends TestCase
         $profiles = new TemplateProfileRepository('index-white.php');
         self::service($profiles)->select(7, 2);
 
-        self::assertSame([[7, 'index-dark.php']], $profiles->saved);
+        $this->assertSame([[7, 'index-dark.php']], $profiles->saved);
     }
 
     public function testBasicCannotPickProButProCan(): void
     {
         $profiles = new TemplateProfileRepository('index-white.php');
+
         try {
             self::service($profiles, 'basic')->select(7, 4);
-            self::fail('Basic must not select a Pro template.');
+            $this->fail('Basic must not select a Pro template.');
         } catch (DomainException $exception) {
-            self::assertSame('Tampilan ini tersedia untuk paket Pro.', $exception->getMessage());
+            $this->assertSame('Tampilan ini tersedia untuk paket Pro.', $exception->getMessage());
         }
-        self::assertSame([], $profiles->saved);
+        $this->assertSame([], $profiles->saved);
 
         self::service($profiles, 'pro')->select(7, 4);
-        self::assertSame([[7, 'layout-hangat']], $profiles->saved);
+        $this->assertSame([[7, 'layout-hangat']], $profiles->saved);
     }
 
     public function testInactiveTemplateCannotBeChosenButStillShowsWhenInUse(): void
     {
         $profiles = new TemplateProfileRepository('layout-gelap');
+
         try {
             self::service($profiles, 'pro')->select(7, 5);
-            self::fail('Inactive template must be rejected.');
+            $this->fail('Inactive template must be rejected.');
         } catch (DomainException) {
         }
 
         $page = self::service($profiles, 'basic')->pageFor(7);
-        self::assertSame(['layout-gelap', 'index-white.php', 'index-dark.php', 'layout-hangat'], array_column($page['templates'], 'nama_file'));
-        self::assertSame([true, true, true, false], array_column($page['templates'], 'allowed'));
-        self::assertSame('basic', $page['planCode']);
+        $this->assertSame(['layout-gelap', 'index-white.php', 'index-dark.php', 'layout-hangat'], array_column($page['templates'], 'nama_file'));
+        $this->assertSame([true, true, true, false], array_column($page['templates'], 'allowed'));
+        $this->assertSame('basic', $page['planCode']);
     }
 
     private static function service(TemplateProfileRepository $profiles, string $plan = 'basic'): TemplateSelectionService
     {
-        $periods = [7 => [['2026-01-01 00:00:00', '2099-01-01 00:00:00']]];
+        $periods    = [7 => [['2026-01-01 00:00:00', '2099-01-01 00:00:00']]];
         $repository = new class ($periods, $plan) extends PeriodListRepository {
             public function __construct(array $periods, private string $plan)
             {

@@ -20,10 +20,10 @@ use DomainException;
 final class SubscriptionGrantService
 {
     public const DURATIONS = [
-        '+1 month' => 1,
+        '+1 month'  => 1,
         '+3 months' => 3,
         '+6 months' => 6,
-        '+1 year' => 12,
+        '+1 year'   => 12,
     ];
 
     public function __construct(private ?SubscriptionRepository $subscriptions = null)
@@ -31,9 +31,7 @@ final class SubscriptionGrantService
         $this->subscriptions ??= new SubscriptionRepository();
     }
 
-    /**
-     * @return array{starts_at: string, ends_at: string} UTC
-     */
+    /** @return array{starts_at: string, ends_at: string} UTC */
     /**
      * Manual grant by staff (PRD AD-02): needs a reason, kept in subscription_grants.note. It is not
      * a payment and is never counted as revenue.
@@ -60,7 +58,7 @@ final class SubscriptionGrantService
             $planId,
             'manual',
             static fn (?string $latestEnd): array => self::period($latestEnd, $nowUtc, $months),
-            ['actor_id' => $actorId, 'kind' => 'manual', 'duration_months' => $months, 'note' => $reason]
+            ['actor_id' => $actorId, 'kind' => 'manual', 'duration_months' => $months, 'note' => $reason],
         );
     }
 
@@ -74,8 +72,8 @@ final class SubscriptionGrantService
      */
     public static function period(?string $latestEndUtc, string $nowUtc, int $months): array
     {
-        $utc = new DateTimeZone('UTC');
-        $wib = new DateTimeZone('Asia/Jakarta');
+        $utc   = new DateTimeZone('UTC');
+        $wib   = new DateTimeZone('Asia/Jakarta');
         $start = new DateTimeImmutable($latestEndUtc !== null && $latestEndUtc > $nowUtc ? $latestEndUtc : $nowUtc, $utc);
 
         // Count months on WIB calendar days: the anchor is the last day already covered (or today).
@@ -84,9 +82,9 @@ final class SubscriptionGrantService
             $anchor = $anchor->modify('-1 second');
         }
         $anchorDay = $anchor->setTime(0, 0);
-        $target = $anchorDay->modify('first day of this month')->modify('+' . $months . ' months');
-        $day = min((int) $anchorDay->format('d'), (int) $target->format('t'));
-        $lastDay = $target->setDate((int) $target->format('Y'), (int) $target->format('m'), $day);
+        $target    = $anchorDay->modify('first day of this month')->modify('+' . $months . ' months');
+        $day       = min((int) $anchorDay->format('d'), (int) $target->format('t'));
+        $lastDay   = $target->setDate((int) $target->format('Y'), (int) $target->format('m'), $day);
 
         return [$start->format('Y-m-d H:i:s'), $lastDay->modify('+1 day')->setTimezone($utc)->format('Y-m-d H:i:s')];
     }

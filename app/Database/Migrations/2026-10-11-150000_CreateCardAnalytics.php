@@ -16,11 +16,11 @@ class CreateCardAnalytics extends Migration
     public function up()
     {
         $this->forge->addField([
-            'card_user_id' => ['type' => 'INT'],
-            'date_wib' => ['type' => 'DATE'],
-            'views' => ['type' => 'INT', 'unsigned' => true, 'default' => 0],
+            'card_user_id'    => ['type' => 'INT'],
+            'date_wib'        => ['type' => 'DATE'],
+            'views'           => ['type' => 'INT', 'unsigned' => true, 'default' => 0],
             'unique_visitors' => ['type' => 'INT', 'unsigned' => true, 'default' => 0],
-            'contact_clicks' => ['type' => 'INT', 'unsigned' => true, 'default' => 0],
+            'contact_clicks'  => ['type' => 'INT', 'unsigned' => true, 'default' => 0],
         ]);
         $this->forge->addPrimaryKey(['card_user_id', 'date_wib']);
         $this->forge->addForeignKey('card_user_id', 'table_user', 'id_user', 'CASCADE', 'CASCADE');
@@ -28,7 +28,7 @@ class CreateCardAnalytics extends Migration
 
         $this->forge->addField([
             'card_user_id' => ['type' => 'INT'],
-            'date_wib' => ['type' => 'DATE'],
+            'date_wib'     => ['type' => 'DATE'],
             'visitor_hash' => ['type' => 'CHAR', 'constraint' => 64],
         ]);
         $this->forge->addPrimaryKey(['card_user_id', 'date_wib', 'visitor_hash']);

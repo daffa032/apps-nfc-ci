@@ -18,13 +18,15 @@
 !/writable/uploads/index.html
 !/writable/uploads/multiple_images/index.html
 
-# Test output
+# Test & tooling output
 /build/logs/*
+/build/phpstan/
+/build/.phpunit.cache/
+/build/.php-cs-fixer.cache
 
 # Private docs & planning
 /docs/
 /docs.zip
-/deploy/
 
 # OS
 Thumbs.db

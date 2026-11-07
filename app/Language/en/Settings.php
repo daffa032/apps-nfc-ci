@@ -35,5 +35,5 @@ return [
     'errCurrent'      => 'The current password is incorrect.',
     'errNewMissing'   => 'Enter a new password or clear its confirmation.',
     'errMismatch'     => 'The new password and its confirmation do not match.',
-    'errPasswordMin' => 'The new password needs at least 8 characters.',
+    'errPasswordMin'  => 'The new password needs at least 8 characters.',
 ];

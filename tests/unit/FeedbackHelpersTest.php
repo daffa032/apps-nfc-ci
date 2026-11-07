@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class FeedbackHelpersTest extends TestCase
 {
     public static function setUpBeforeClass(): void
@@ -13,9 +16,9 @@ final class FeedbackHelpersTest extends TestCase
 
     public function testErrorWinsOverSuccessAndBlankIsIgnored(): void
     {
-        self::assertSame(['type' => 'error', 'message' => 'Bad'], flash_feedback('Bad', 'Ok'));
-        self::assertSame(['type' => 'success', 'message' => 'Ok'], flash_feedback('  ', 'Ok'));
-        self::assertNull(flash_feedback(null, ''));
+        $this->assertSame(['type' => 'error', 'message' => 'Bad'], flash_feedback('Bad', 'Ok'));
+        $this->assertSame(['type' => 'success', 'message' => 'Ok'], flash_feedback('  ', 'Ok'));
+        $this->assertNull(flash_feedback(null, ''));
     }
 
     public function testAssetUrlIsVersionedOnlyWhenFileExists(): void
@@ -26,8 +29,8 @@ final class FeedbackHelpersTest extends TestCase
         touch($root . '/assets/shared/css/tokens.css', 1700000000);
 
         try {
-            self::assertStringEndsWith('assets/shared/css/tokens.css?v=1700000000', asset_url('/shared/css/tokens.css', $root));
-            self::assertStringEndsWith('assets/missing.css', asset_url('missing.css', $root));
+            $this->assertStringEndsWith('assets/shared/css/tokens.css?v=1700000000', asset_url('/shared/css/tokens.css', $root));
+            $this->assertStringEndsWith('assets/missing.css', asset_url('missing.css', $root));
         } finally {
             unlink($root . '/assets/shared/css/tokens.css');
             rmdir($root . '/assets/shared/css');

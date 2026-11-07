@@ -11,13 +11,13 @@ use App\Services\Cards\ProfileService;
 use App\Services\Cards\PublicCardService;
 use App\Services\Cards\SocialLinkService;
 use App\Services\Cards\TemplateSelectionService;
-use CodeIgniter\Exceptions\PageNotFoundException;
-use DateTimeImmutable;
 use App\Traits\RendersCardPages;
 use App\Traits\ResolvesCurrentUser;
 use App\Traits\RespondsWithFeedback;
+use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
+use DateTimeImmutable;
 use DomainException;
 use InvalidArgumentException;
 use Throwable;
@@ -35,12 +35,12 @@ class ProfileController extends BaseController
     public function addProfileForm(): string
     {
         return view('dashboard/pages/personal_info/personal_info_form', $this->dashboardShellData() + [
-            'feedback' => $this->pendingFeedback(),
+            'feedback'    => $this->pendingFeedback(),
             'fieldErrors' => $this->pendingFieldErrors(),
         ]);
     }
 
-    public function personalInfo(): string|RedirectResponse
+    public function personalInfo(): RedirectResponse|string
     {
         $page = (new ProfileService())->pageFor($this->currentUserId());
         if ($page === null) {
@@ -48,9 +48,9 @@ class ProfileController extends BaseController
         }
 
         return view('dashboard/pages/personal_info/personal_info_page', $this->dashboardShellData() + $page + [
-            'brand' => (new BrandAssetService())->pageFor($this->currentUserId(), new DateTimeImmutable('now')),
-            'isEdit' => true,
-            'feedback' => $this->pendingFeedback(),
+            'brand'       => (new BrandAssetService())->pageFor($this->currentUserId(), new DateTimeImmutable('now')),
+            'isEdit'      => true,
+            'feedback'    => $this->pendingFeedback(),
             'fieldErrors' => $this->pendingFieldErrors(),
         ]);
     }
@@ -80,12 +80,14 @@ class ProfileController extends BaseController
     public function saveBrandAssets(): RedirectResponse
     {
         $files = [];
+
         foreach (['brand_logo', 'header_background'] as $slot) {
             $files[$slot] = $this->request->getFile($slot);
         }
         $remove = array_values(array_intersect((array) $this->request->getPost('remove'), ['brand_logo', 'header_background']));
         // Each switch posts a hidden "0" followed by the checkbox "1"; a slot without a switch is left as is.
         $visible = [];
+
         foreach ((array) $this->request->getPost('visible') as $slot => $value) {
             if (in_array($slot, ['brand_logo', 'header_background'], true)) {
                 $visible[$slot] = (string) $value === '1';
@@ -96,10 +98,12 @@ class ProfileController extends BaseController
             $changed = (new BrandAssetService())->save($this->currentUserId(), $files, $remove, new DateTimeImmutable('now'), $visible);
         } catch (FieldException $exception) {
             $this->audit('brand.updated', 'denied', 'profile', $this->currentUserId(), [$exception->field]);
+
             return $this->redirectFieldFailure(self::PROFILE_PAGE, $exception);
         } catch (Throwable $exception) {
             log_message('error', 'Brand asset save failed: {exception}', ['exception' => $exception]);
             $this->audit('brand.updated', 'failed', 'profile', $this->currentUserId(), [], 'server_error');
+
             return $this->redirectFailure(self::PROFILE_PAGE, $this->withReference(lang('Profile.brandFailed')));
         }
         if ($changed === []) {
@@ -107,6 +111,7 @@ class ProfileController extends BaseController
         }
 
         $this->audit('brand.updated', 'success', 'profile', $this->currentUserId(), $changed);
+
         return $this->redirectSuccess(self::PROFILE_PAGE, lang('Profile.brandSaved'));
     }
 
@@ -126,23 +131,26 @@ class ProfileController extends BaseController
             (new GalleryService())->upload(
                 $this->currentUserId(),
                 $this->request->getFiles()['images'] ?? [],
-                (array) $this->request->getPost('captions')
+                (array) $this->request->getPost('captions'),
             );
         } catch (DomainException|InvalidArgumentException $exception) {
             return $this->redirectFailure(self::PROFILE_PAGE, $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Gallery upload failed: {exception}', ['exception' => $exception]);
             $this->audit('gallery.uploaded', 'failed', 'profile', $this->currentUserId(), [], 'server_error');
+
             return $this->redirectFailure(self::PROFILE_PAGE, $this->withReference(lang('Profile.uploadFailed')));
         }
 
         $this->audit('gallery.uploaded', 'success', 'profile', $this->currentUserId(), ['images']);
+
         return $this->redirectSuccess(self::PROFILE_PAGE, lang('Profile.uploaded'));
     }
 
     public function saveCardLanguage(): RedirectResponse
     {
         $locale = $this->request->getPost('card_locale');
+
         try {
             (new ProfileService())->setCardLocale($this->currentUserId(), is_string($locale) ? $locale : '');
         } catch (FieldException $exception) {
@@ -152,10 +160,12 @@ class ProfileController extends BaseController
         } catch (Throwable $exception) {
             log_message('error', 'Card language save failed: {exception}', ['exception' => $exception]);
             $this->audit('profile.updated', 'failed', 'profile', $this->currentUserId(), ['card_locale'], 'server_error');
+
             return $this->redirectFailure(self::PROFILE_PAGE, $this->withReference(lang('Profile.cardLanguageFailed')));
         }
 
         $this->audit('profile.updated', 'success', 'profile', $this->currentUserId(), ['card_locale']);
+
         return $this->redirectSuccess(self::PROFILE_PAGE, lang('Profile.cardLanguageSaved'));
     }
 
@@ -167,10 +177,12 @@ class ProfileController extends BaseController
             return $this->redirectFailure(self::PROFILE_PAGE, $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Gallery layout save failed: {exception}', ['exception' => $exception]);
+
             return $this->redirectFailure(self::PROFILE_PAGE, $this->withReference(lang('Profile.layoutFailed')));
         }
 
         $this->audit('gallery.layout_updated', 'success', 'profile', $this->currentUserId(), ['gallery_columns']);
+
         return $this->redirectSuccess(self::PROFILE_PAGE, lang('Profile.layoutSaved'));
     }
 
@@ -180,16 +192,18 @@ class ProfileController extends BaseController
             (new GalleryService())->updateCaption(
                 $this->currentUserId(),
                 (int) $this->request->getPost('id'),
-                (string) $this->request->getPost('caption')
+                (string) $this->request->getPost('caption'),
             );
         } catch (DomainException $exception) {
             return $this->response->setStatusCode(422)->setJSON(['success' => false, 'message' => $exception->getMessage()]);
         } catch (Throwable $exception) {
             log_message('error', 'Gallery caption update failed: {exception}', ['exception' => $exception]);
+
             return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => $this->withReference(lang('Profile.captionFailed'))]);
         }
 
         $this->audit('gallery.caption_updated', 'success', 'image', (int) $this->request->getPost('id'), ['caption']);
+
         return $this->response->setJSON(['success' => true, 'message' => lang('Profile.captionSaved')]);
     }
 
@@ -199,13 +213,16 @@ class ProfileController extends BaseController
             (new GalleryService())->delete($this->currentUserId(), (int) $this->request->getPost('id'));
         } catch (DomainException $exception) {
             $this->audit('gallery.deleted', 'denied', 'image', (int) $this->request->getPost('id'), [], 'not_owner_or_missing');
+
             return $this->response->setStatusCode(404)->setJSON(['success' => false, 'message' => $exception->getMessage()]);
         } catch (Throwable $exception) {
             log_message('error', 'Gallery deletion failed: {exception}', ['exception' => $exception]);
+
             return $this->response->setStatusCode(500)->setJSON(['success' => false, 'message' => $this->withReference(lang('Profile.photoDeleteFailed'))]);
         }
 
         $this->audit('gallery.deleted', 'success', 'image', (int) $this->request->getPost('id'));
+
         return $this->response->setJSON(['success' => true, 'message' => lang('Profile.photoDeleted')]);
     }
 
@@ -215,17 +232,19 @@ class ProfileController extends BaseController
             (new SocialLinkService())->save(
                 $this->currentUserId(),
                 (string) $this->request->getPost('type'),
-                (string) $this->request->getPost('link')
+                (string) $this->request->getPost('link'),
             );
             // Channel name only; the URL itself is never written to the audit log.
             $this->audit('social.updated', 'success', 'profile', $this->currentUserId(), [(string) $this->request->getPost('type')]);
             // The page reloads after this response; the flash shows the result toast there.
             session()->setFlashdata('success', lang('Profile.linkSaved'));
+
             return $this->response->setJSON(['status' => 'success', 'message' => lang('Profile.linkSaved')]);
         } catch (DomainException $exception) {
             return $this->response->setStatusCode(422)->setJSON(['status' => 'error', 'message' => $exception->getMessage()]);
         } catch (Throwable $exception) {
             log_message('error', 'Social link save failed: {exception}', ['exception' => $exception]);
+
             return $this->response->setStatusCode(500)->setJSON(['status' => 'error', 'message' => lang('Profile.linkSaveFailed')]);
         }
     }
@@ -235,15 +254,17 @@ class ProfileController extends BaseController
         try {
             (new SocialLinkService())->delete(
                 $this->currentUserId(),
-                (string) $this->request->getPost('socialMediaType')
+                (string) $this->request->getPost('socialMediaType'),
             );
             $this->audit('social.updated', 'success', 'profile', $this->currentUserId(), [(string) $this->request->getPost('socialMediaType')], 'removed');
             session()->setFlashdata('success', lang('Profile.linkDeleted'));
+
             return $this->response->setJSON(['status' => 'success', 'message' => lang('Profile.linkDeleted')]);
         } catch (DomainException $exception) {
             return $this->response->setStatusCode(422)->setJSON(['status' => 'error', 'message' => $exception->getMessage()]);
         } catch (Throwable $exception) {
             log_message('error', 'Social link deletion failed: {exception}', ['exception' => $exception]);
+
             return $this->response->setStatusCode(500)->setJSON(['status' => 'error', 'message' => lang('Profile.linkDeleteFailed')]);
         }
     }
@@ -254,18 +275,21 @@ class ProfileController extends BaseController
             (new ProfileService())->save(
                 $this->currentUserId(),
                 (array) $this->request->getPost(),
-                $this->request->getFile('profile_image')
+                $this->request->getFile('profile_image'),
             );
         } catch (FieldException $exception) {
             session()->setFlashdata('field_errors', [$exception->field => $exception->getMessage()]);
+
             return $this->backWithFailure($exception->getMessage());
         } catch (DomainException|InvalidArgumentException $exception) {
             // Upload problems (type, size, dimensions) belong to the photo input.
             session()->setFlashdata('field_errors', ['profile_image' => $exception->getMessage()]);
+
             return $this->backWithFailure($exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Profile save failed: {exception}', ['exception' => $exception]);
             $this->audit('profile.updated', 'failed', 'profile', $this->currentUserId(), [], 'server_error');
+
             return $this->backWithFailure($this->withReference(lang('Profile.saveFailed')));
         }
 
@@ -274,6 +298,7 @@ class ProfileController extends BaseController
             $fields[] = 'profile_image';
         }
         $this->audit('profile.updated', 'success', 'profile', $this->currentUserId(), $fields);
+
         return $this->redirectSuccess(self::PROFILE_PAGE, lang('Profile.saved'));
     }
 }

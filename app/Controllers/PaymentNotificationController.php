@@ -27,16 +27,16 @@ class PaymentNotificationController extends BaseController
     {
         $this->response->setHeader('Cache-Control', 'no-store');
         $ipKey = hash('sha256', (string) $this->request->getIPAddress());
-        if (!service('throttler')->check('midtrans-ip-' . $ipKey, 120, MINUTE)) {
+        if (! service('throttler')->check('midtrans-ip-' . $ipKey, 120, MINUTE)) {
             return $this->response->setStatusCode(429)->setHeader('Retry-After', '60')->setJSON(['status' => 'too_many']);
         }
         $payload = json_decode((string) $this->request->getBody(), true);
-        if (!is_array($payload)) {
+        if (! is_array($payload)) {
             return $this->response->setStatusCode(400)->setJSON(['status' => 'bad_request']);
         }
 
-        if (!(new MidtransClient())->validSignature($payload)) {
-            $cache = cache();
+        if (! (new MidtransClient())->validSignature($payload)) {
+            $cache   = cache();
             $seenKey = 'midtrans-rejected-' . $ipKey;
             if ($cache->get($seenKey) === null) {
                 $cache->save($seenKey, 1, 600);

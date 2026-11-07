@@ -63,12 +63,12 @@ final class TemplateAdminService
      */
     public function create(string $name, string $planCode, bool $active, string $description, string $source, int $actorId): int
     {
-        $name = trim($name);
+        $name        = trim($name);
         $description = trim($description);
         if ($name === '' || mb_strlen($name) > 32) {
             throw new FieldException('nama_template', lang('Master.errName'));
         }
-        if (!in_array($planCode, ['basic', 'pro'], true)) {
+        if (! in_array($planCode, ['basic', 'pro'], true)) {
             throw new FieldException('plan_code', lang('Master.errPlan'));
         }
         if (mb_strlen($description) > 160) {
@@ -109,7 +109,7 @@ final class TemplateAdminService
 
     public function update(int $templateId, string $planCode, bool $active, int $order): void
     {
-        if (!in_array($planCode, ['basic', 'pro'], true)) {
+        if (! in_array($planCode, ['basic', 'pro'], true)) {
             throw new DomainException(lang('Master.errPlan'));
         }
         if ($order < 0 || $order > 999) {
@@ -119,7 +119,7 @@ final class TemplateAdminService
         $this->templates->updateLocked(
             $templateId,
             ['plan_code' => $planCode, 'is_active' => $active ? 1 : 0, 'display_order' => $order],
-            $this->slotCheck(...)
+            $this->slotCheck(...),
         );
     }
 

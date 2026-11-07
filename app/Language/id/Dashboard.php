@@ -33,5 +33,5 @@ return [
     'toastError'         => 'Gagal',
     'close'              => 'Tutup',
     'requestFailed'      => 'Permintaan gagal. Muat ulang halaman lalu coba lagi.',
-    'navPayments' => 'Pembayaran',
+    'navPayments'        => 'Pembayaran',
 ];

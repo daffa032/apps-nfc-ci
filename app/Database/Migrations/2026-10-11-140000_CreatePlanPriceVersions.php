@@ -19,14 +19,14 @@ class CreatePlanPriceVersions extends Migration
         ]);
 
         $this->forge->addField([
-            'id' => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
-            'plan_id' => ['type' => 'INT', 'unsigned' => true],
-            'version' => ['type' => 'INT', 'unsigned' => true],
-            'price_idr' => ['type' => 'INT', 'unsigned' => true, 'null' => true],
+            'id'              => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'plan_id'         => ['type' => 'INT', 'unsigned' => true],
+            'version'         => ['type' => 'INT', 'unsigned' => true],
+            'price_idr'       => ['type' => 'INT', 'unsigned' => true, 'null' => true],
             'duration_months' => ['type' => 'SMALLINT', 'unsigned' => true, 'null' => true],
-            'enabled' => ['type' => 'TINYINT', 'constraint' => 1],
-            'actor_id' => ['type' => 'INT', 'null' => true],
-            'created_at' => ['type' => 'DATETIME'],
+            'enabled'         => ['type' => 'TINYINT', 'constraint' => 1],
+            'actor_id'        => ['type' => 'INT', 'null' => true],
+            'created_at'      => ['type' => 'DATETIME'],
         ]);
         $this->forge->addPrimaryKey('id');
         $this->forge->addUniqueKey(['plan_id', 'version']);
@@ -34,9 +34,10 @@ class CreatePlanPriceVersions extends Migration
         $this->forge->createTable('plan_price_versions', true, ['ENGINE' => 'InnoDB']);
 
         $now = gmdate('Y-m-d H:i:s');
+
         foreach ($this->db->table('plans')->get()->getResultArray() as $plan) {
             $this->db->table('plan_price_versions')->insert([
-                'plan_id' => $plan['id'], 'version' => 1, 'price_idr' => $plan['price_idr'],
+                'plan_id'         => $plan['id'], 'version' => 1, 'price_idr' => $plan['price_idr'],
                 'duration_months' => $plan['duration_months'], 'enabled' => $plan['enabled'], 'created_at' => $now,
             ]);
         }

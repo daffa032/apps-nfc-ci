@@ -16,21 +16,23 @@ final class PasswordResetService
         $this->resets ??= new PasswordResetRepository();
     }
 
-    /** Returns a token only when the email belongs to an account. */
+    /**
+     * Returns a token only when the email belongs to an account.
+     */
     public function issue(string $email): ?string
     {
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return null;
         }
 
         $user = $this->resets->findByEmail($email);
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
-        $token = bin2hex(random_bytes(32));
+        $token     = bin2hex(random_bytes(32));
         $expiresAt = (new DateTimeImmutable('now'))->modify('+30 minutes')->format('Y-m-d H:i:s');
-        if (!$this->resets->saveToken((int) $user['id_user'], hash('sha256', $token), $expiresAt)) {
+        if (! $this->resets->saveToken((int) $user['id_user'], hash('sha256', $token), $expiresAt)) {
             throw new RuntimeException(lang('Auth.errIssueFailed'));
         }
 
@@ -45,7 +47,7 @@ final class PasswordResetService
 
     public function reset(string $token, string $password, string $confirmation): void
     {
-        if (!$this->validFormat($token)) {
+        if (! $this->validFormat($token)) {
             throw new DomainException(lang('Auth.errLinkInvalid'));
         }
         if (strlen($password) < 8 || $password !== $confirmation) {
@@ -53,7 +55,7 @@ final class PasswordResetService
         }
 
         $hash = hash('sha256', $token);
-        if (!$this->resets->consume($hash, date('Y-m-d H:i:s'), password_hash($password, PASSWORD_DEFAULT))) {
+        if (! $this->resets->consume($hash, date('Y-m-d H:i:s'), password_hash($password, PASSWORD_DEFAULT))) {
             throw new DomainException(lang('Auth.errLinkInvalid'));
         }
     }

@@ -7,13 +7,15 @@ namespace App\Controllers;
 use App\Exceptions\FieldException;
 use App\Services\Auth\PasswordResetService;
 use App\Services\Cards\DashboardService;
-use DateTimeImmutable;
+use App\Services\Mail\AppMailer;
 use App\Services\Users\AccountSettingsService;
 use App\Services\Users\AccountStatus;
 use App\Traits\ResolvesCurrentUser;
 use App\Traits\RespondsWithFeedback;
 use CodeIgniter\HTTP\RedirectResponse;
+use DateTimeImmutable;
 use DomainException;
+use RuntimeException;
 use Throwable;
 
 class ResetPasswordPenggunaController extends BaseController
@@ -21,7 +23,7 @@ class ResetPasswordPenggunaController extends BaseController
     use ResolvesCurrentUser;
     use RespondsWithFeedback;
 
-    public function edit_userPengguna(string $encryptedId): string|RedirectResponse
+    public function edit_userPengguna(string $encryptedId): RedirectResponse|string
     {
         helper(['asset', 'feedback', 'date']);
         $id = $this->accountId($encryptedId);
@@ -30,18 +32,18 @@ class ResetPasswordPenggunaController extends BaseController
         }
 
         $user = (new AccountSettingsService())->find($id);
-        if (!$user) {
+        if (! $user) {
             return $this->redirectFailure('dashboard', lang('Settings.accountMissing'));
         }
 
         $summary = (new DashboardService())->summaryFor($id, new DateTimeImmutable('now'));
 
         return view('dashboard/pages/edit_personal/edit_password', $this->dashboardShellData() + [
-            'user' => $user,
-            'planCode' => $summary['planCode'] ?? 'basic',
-            'planLabel' => $summary['planLabel'] ?? 'Basic',
+            'user'        => $user,
+            'planCode'    => $summary['planCode'] ?? 'basic',
+            'planLabel'   => $summary['planLabel'] ?? 'Basic',
             'expiryLabel' => $summary['expiryLabel'] ?? '-',
-            'feedback' => $this->pendingFeedback(),
+            'feedback'    => $this->pendingFeedback(),
             'fieldErrors' => $this->pendingFieldErrors(),
         ]);
     }
@@ -51,10 +53,12 @@ class ResetPasswordPenggunaController extends BaseController
         $id = $this->accountId($encryptedId);
         if ($id === null) {
             $this->audit('account.settings_updated', 'denied', 'account', null, [], 'not_owner');
+
             return $this->redirectFailure('dashboard', lang('Settings.notAllowed'));
         }
 
         $settingsPage = 'dashboard/setting/' . $encryptedId;
+
         try {
             (new AccountSettingsService())->update($id, (array) $this->request->getPost());
         } catch (DomainException $exception) {
@@ -63,6 +67,7 @@ class ResetPasswordPenggunaController extends BaseController
                 : $this->redirectFailureWithoutSecrets($settingsPage, $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Account settings update failed: {exception}', ['exception' => $exception]);
+
             return $this->redirectFailureWithoutSecrets($settingsPage, lang('Settings.saveFailed'));
         }
 
@@ -95,34 +100,35 @@ class ResetPasswordPenggunaController extends BaseController
     public function sendResetLink()
     {
         $email = trim((string) $this->request->getPost('email'));
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return redirect()->back()->with('error', lang('Auth.errEmail'));
         }
 
         // Rate limit per IP and per email address (shared cache). Same message either way so it
         // does not reveal whether the address belongs to an account.
         $throttler = service('throttler');
-        $ipKey = 'reset-ip-' . hash('sha256', (string) $this->request->getIPAddress());
-        $emailKey = 'reset-email-' . hash('sha256', strtolower($email));
-        if (!$throttler->check($ipKey, 10, HOUR) || !$throttler->check($emailKey, 3, HOUR)) {
+        $ipKey     = 'reset-ip-' . hash('sha256', (string) $this->request->getIPAddress());
+        $emailKey  = 'reset-email-' . hash('sha256', strtolower($email));
+        if (! $throttler->check($ipKey, 10, HOUR) || ! $throttler->check($emailKey, 3, HOUR)) {
             return redirect()->back()->with('error', lang('Auth.errTooMany'));
         }
 
         $resets = new PasswordResetService();
-        $token = null;
+        $token  = null;
+
         try {
             $token = $resets->issue($email);
             if ($token !== null) {
-                $mailer = new \App\Services\Mail\AppMailer();
-                if (!$mailer->isConfigured()) {
-                    throw new \RuntimeException('SMTP is not configured.');
+                $mailer = new AppMailer();
+                if (! $mailer->isConfigured()) {
+                    throw new RuntimeException('SMTP is not configured.');
                 }
                 $sent = $mailer->send($email, lang('Email.resetSubject'), 'password_reset', [
                     'resetUrl' => base_url('forgot-password/reset/' . $token),
-                    'minutes' => 30,
+                    'minutes'  => 30,
                 ]);
-                if (!$sent) {
-                    throw new \RuntimeException('Password reset email could not be sent.');
+                if (! $sent) {
+                    throw new RuntimeException('Password reset email could not be sent.');
                 }
             }
         } catch (Throwable $exception) {
@@ -134,6 +140,7 @@ class ResetPasswordPenggunaController extends BaseController
                 }
             }
             log_message('error', 'Password reset request failed: {exception}', ['exception' => $exception]);
+
             return redirect()->back()->with('error', lang('Auth.errSendFailed'));
         }
 
@@ -142,12 +149,12 @@ class ResetPasswordPenggunaController extends BaseController
 
     public function reset(string $token)
     {
-        if (!(new PasswordResetService())->isValid($token)) {
+        if (! (new PasswordResetService())->isValid($token)) {
             return redirect()->to('forgot_password')->with('error', lang('Auth.errLinkInvalid'));
         }
 
         return view('login/layouts/login-home', [
-            'page' => 'login/pages/reset_password/reset_password',
+            'page'  => 'login/pages/reset_password/reset_password',
             'token' => $token,
         ]);
     }
@@ -158,12 +165,13 @@ class ResetPasswordPenggunaController extends BaseController
             (new PasswordResetService())->reset(
                 (string) $this->request->getPost('token'),
                 (string) $this->request->getPost('password'),
-                (string) $this->request->getPost('repeat_password')
+                (string) $this->request->getPost('repeat_password'),
             );
         } catch (DomainException $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Password reset failed: {exception}', ['exception' => $exception]);
+
             return redirect()->back()->with('error', lang('Auth.errResetFailed'));
         }
 
@@ -172,11 +180,11 @@ class ResetPasswordPenggunaController extends BaseController
 
     private function accountId(string $encoded): ?int
     {
-        if (!preg_match('/\A[A-Za-z0-9_-]+\z/D', $encoded)) {
+        if (! preg_match('/\A[A-Za-z0-9_-]+\z/D', $encoded)) {
             return null;
         }
         $decoded = base64_decode(strtr($encoded, '-_', '+/'), true);
-        if ($decoded === false || !ctype_digit($decoded)) {
+        if ($decoded === false || ! ctype_digit($decoded)) {
             return null;
         }
         $id = (int) $decoded;

@@ -6,22 +6,26 @@ use App\Repositories\AdminRepository;
 use App\Services\Users\AdminManagementService;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class AdminManagementServiceTest extends TestCase
 {
     public function testCreateRejectsRoleOutsideAdminList(): void
     {
         $repository = new InMemoryAdminRepository();
         $this->expectException(DomainException::class);
+
         try {
             (new AdminManagementService($repository))->create([
-                'username' => 'newadmin',
-                'email' => 'new@example.test',
-                'access_level' => 'User',
-                'password' => 'strong-password',
+                'username'        => 'newadmin',
+                'email'           => 'new@example.test',
+                'access_level'    => 'User',
+                'password'        => 'strong-password',
                 'repeat_password' => 'strong-password',
             ]);
         } finally {
-            self::assertSame([], $repository->created);
+            $this->assertSame([], $repository->created);
         }
     }
 
@@ -30,8 +34,8 @@ final class AdminManagementServiceTest extends TestCase
         $repository = new InMemoryAdminRepository();
         $this->expectException(DomainException::class);
         (new AdminManagementService($repository))->update(1, 1, [
-            'username' => 'changed',
-            'email' => 'changed@example.test',
+            'username'     => 'changed',
+            'email'        => 'changed@example.test',
             'access_level' => 'Admin',
         ]);
     }
@@ -40,27 +44,28 @@ final class AdminManagementServiceTest extends TestCase
     {
         $repository = new InMemoryAdminRepository();
         (new AdminManagementService($repository))->update(1, 2, [
-            'username' => 'admin',
-            'email' => 'admin@example.test',
-            'access_level' => 'Super Admin',
-            'password' => '',
+            'username'        => 'admin',
+            'email'           => 'admin@example.test',
+            'access_level'    => 'Super Admin',
+            'password'        => '',
             'repeat_password' => '',
         ]);
 
-        self::assertArrayNotHasKey('password', $repository->updated);
-        self::assertSame('Super Admin', $repository->updated['access_level']);
+        $this->assertArrayNotHasKey('password', $repository->updated);
+        $this->assertSame('Super Admin', $repository->updated['access_level']);
     }
 
     public function testRenameToReservedRouteIsRejected(): void
     {
         $repository = new InMemoryAdminRepository();
+
         try {
             (new AdminManagementService($repository))->update(1, 2, ['username' => 'Dashboard', 'email' => 'admin@example.test', 'access_level' => 'Super Admin']);
-            self::fail('Reserved username must be rejected.');
+            $this->fail('Reserved username must be rejected.');
         } catch (DomainException $exception) {
-            self::assertSame('Username ini dipakai sistem. Pilih username lain.', $exception->getMessage());
+            $this->assertSame('Username ini dipakai sistem. Pilih username lain.', $exception->getMessage());
         }
-        self::assertSame([], $repository->updated);
+        $this->assertSame([], $repository->updated);
     }
 }
 
@@ -91,6 +96,7 @@ class InMemoryAdminRepository extends AdminRepository
     public function create(array $data): int
     {
         $this->created = $data;
+
         return 3;
     }
 

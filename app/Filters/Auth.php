@@ -24,13 +24,13 @@ class Auth implements FilterInterface
     public function before(RequestInterface $request, $arguments = null)
     {
         $session = session();
-        if (!$session->get('logged_in') || !(int) $session->get('id_user')) {
+        if (! $session->get('logged_in') || ! (int) $session->get('id_user')) {
             // Remember where a signed-out visitor was going (e.g. a link in an email), so login can
             // continue there. Only dashboard GET pages; the controller checks ownership as usual.
             if (strtoupper($request->getMethod()) === 'GET') {
-                $path = '/' . ltrim($request->getUri()->getPath(), '/');
+                $path  = '/' . ltrim($request->getUri()->getPath(), '/');
                 $query = $request->getUri()->getQuery();
-                if (preg_match('#^/dashboard(/[A-Za-z0-9_\-/.]*)?$#', $path) === 1 && !str_contains($path, '..')) {
+                if (preg_match('#^/dashboard(/[A-Za-z0-9_\-/.]*)?$#', $path) === 1 && ! str_contains($path, '..')) {
                     $session->set('after_login', $path . ($query !== '' ? '?' . $query : ''));
                 }
             }
@@ -39,18 +39,19 @@ class Auth implements FilterInterface
         }
 
         $user = (new UserModel())->find((int) $session->get('id_user'));
-        if (!$user || !in_array($user['access_level'], ['User', 'Admin', 'Super Admin'], true)) {
+        if (! $user || ! in_array($user['access_level'], ['User', 'Admin', 'Super Admin'], true)) {
             $session->destroy();
+
             return redirect()->to('/login');
         }
 
         // Sessions created before session versions existed carry none; adopt the current version once
         // so deploying this does not sign everyone out. Suspension is still enforced below.
-        if ($session->get('session_version') === null && !AccountStatus::isSuspended($user)) {
+        if ($session->get('session_version') === null && ! AccountStatus::isSuspended($user)) {
             $session->set('session_version', AccountStatus::sessionVersion($user));
         }
 
-        if (!AccountStatus::sessionIsCurrent($user, $session->get('session_version'))) {
+        if (! AccountStatus::sessionIsCurrent($user, $session->get('session_version'))) {
             $message = lang(AccountStatus::isSuspended($user) ? 'Auth.errSuspended' : 'Auth.sessionEnded');
             // End this session: drop its data and move to a new ID (the old ID is deleted), but keep a
             // live session so the notice reaches the login page's existing `msg` alert.

@@ -17,7 +17,7 @@ final class ExampleDatabaseTest extends CIUnitTestCase
     protected function setUp(): void
     {
         // CI4 sample on the in-memory SQLite group; app repositories are covered by RepositoryIntegrationTest.
-        if (!class_exists(SQLite3::class)) {
+        if (! class_exists(SQLite3::class)) {
             $this->markTestSkipped('SQLite3 extension not installed.');
         }
         parent::setUp();

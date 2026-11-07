@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
+use DateTimeImmutable;
+use DateTimeZone;
 
 /**
  * Subscriptions become the single source of card access (TECHNICAL, "Migrasi dan rollback" step 3).
@@ -22,14 +24,14 @@ class CreatePlansAndSubscriptions extends Migration
     public function up()
     {
         $this->forge->addField([
-            'id' => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
-            'code' => ['type' => 'VARCHAR', 'constraint' => 32],
-            'label' => ['type' => 'VARCHAR', 'constraint' => 64],
-            'enabled' => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 1],
-            'price_idr' => ['type' => 'INT', 'unsigned' => true, 'null' => true],
+            'id'              => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'code'            => ['type' => 'VARCHAR', 'constraint' => 32],
+            'label'           => ['type' => 'VARCHAR', 'constraint' => 64],
+            'enabled'         => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 1],
+            'price_idr'       => ['type' => 'INT', 'unsigned' => true, 'null' => true],
             'duration_months' => ['type' => 'SMALLINT', 'unsigned' => true, 'null' => true],
-            'created_at' => ['type' => 'DATETIME', 'null' => true],
-            'updated_at' => ['type' => 'DATETIME', 'null' => true],
+            'created_at'      => ['type' => 'DATETIME', 'null' => true],
+            'updated_at'      => ['type' => 'DATETIME', 'null' => true],
         ]);
         $this->forge->addPrimaryKey('id');
         $this->forge->addUniqueKey('code');
@@ -42,12 +44,12 @@ class CreatePlansAndSubscriptions extends Migration
         ]);
 
         $this->forge->addField([
-            'id' => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
-            'user_id' => ['type' => 'INT'],
-            'plan_id' => ['type' => 'INT', 'unsigned' => true],
-            'starts_at' => ['type' => 'DATETIME'],
-            'ends_at' => ['type' => 'DATETIME'],
-            'source' => ['type' => 'VARCHAR', 'constraint' => 16],
+            'id'         => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'user_id'    => ['type' => 'INT'],
+            'plan_id'    => ['type' => 'INT', 'unsigned' => true],
+            'starts_at'  => ['type' => 'DATETIME'],
+            'ends_at'    => ['type' => 'DATETIME'],
+            'source'     => ['type' => 'VARCHAR', 'constraint' => 16],
             'revoked_at' => ['type' => 'DATETIME', 'null' => true],
             'created_at' => ['type' => 'DATETIME', 'null' => true],
         ]);
@@ -58,13 +60,13 @@ class CreatePlansAndSubscriptions extends Migration
         $this->forge->createTable('subscriptions', true, ['ENGINE' => 'InnoDB']);
 
         $this->forge->addField([
-            'id' => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'id'              => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
             'subscription_id' => ['type' => 'INT', 'unsigned' => true],
-            'actor_id' => ['type' => 'INT', 'null' => true],
-            'kind' => ['type' => 'VARCHAR', 'constraint' => 16],
+            'actor_id'        => ['type' => 'INT', 'null' => true],
+            'kind'            => ['type' => 'VARCHAR', 'constraint' => 16],
             'duration_months' => ['type' => 'SMALLINT', 'unsigned' => true, 'null' => true],
-            'note' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
-            'created_at' => ['type' => 'DATETIME', 'null' => true],
+            'note'            => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
+            'created_at'      => ['type' => 'DATETIME', 'null' => true],
         ]);
         $this->forge->addPrimaryKey('id');
         $this->forge->addUniqueKey('subscription_id');
@@ -84,41 +86,41 @@ class CreatePlansAndSubscriptions extends Migration
     private function backfillFromExpiredDate(string $now): void
     {
         $basicId = (int) $this->db->table('plans')->select('id')->where('code', 'basic')->get()->getRow()->id;
-        $wib = new \DateTimeZone('Asia/Jakarta');
-        $utc = new \DateTimeZone('UTC');
+        $wib     = new DateTimeZone('Asia/Jakarta');
+        $utc     = new DateTimeZone('UTC');
 
         // CAST keeps 0000-00-00 readable under strict SQL modes.
         $users = $this->db->query(
             "SELECT id_user, CAST(expired_date AS CHAR) AS expired_date, CAST(registration_date AS CHAR) AS registration_date
              FROM {$this->db->prefixTable('table_user')} WHERE access_level = ?",
-            ['User']
+            ['User'],
         )->getResultArray();
 
         foreach ($users as $user) {
-            $expiry = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $user['expired_date'], $wib);
+            $expiry = DateTimeImmutable::createFromFormat('!Y-m-d', (string) $user['expired_date'], $wib);
             if ($expiry === false || $expiry->format('Y-m-d') !== $user['expired_date']) {
                 continue;
             }
             // The legacy table has no period start; use the registration day when it is before the end.
-            $registered = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $user['registration_date'], $wib);
-            $end = $expiry->modify('+1 day');
-            $start = $registered !== false && $registered < $end ? $registered : $expiry;
-            $endsAt = $end->setTimezone($utc);
-            $startsAt = $start->setTimezone($utc);
+            $registered = DateTimeImmutable::createFromFormat('!Y-m-d', (string) $user['registration_date'], $wib);
+            $end        = $expiry->modify('+1 day');
+            $start      = $registered !== false && $registered < $end ? $registered : $expiry;
+            $endsAt     = $end->setTimezone($utc);
+            $startsAt   = $start->setTimezone($utc);
 
             $this->db->table('subscriptions')->insert([
-                'user_id' => (int) $user['id_user'],
-                'plan_id' => $basicId,
-                'starts_at' => $startsAt->format('Y-m-d H:i:s'),
-                'ends_at' => $endsAt->format('Y-m-d H:i:s'),
-                'source' => 'legacy',
+                'user_id'    => (int) $user['id_user'],
+                'plan_id'    => $basicId,
+                'starts_at'  => $startsAt->format('Y-m-d H:i:s'),
+                'ends_at'    => $endsAt->format('Y-m-d H:i:s'),
+                'source'     => 'legacy',
                 'created_at' => $now,
             ]);
             $this->db->table('subscription_grants')->insert([
                 'subscription_id' => (int) $this->db->insertID(),
-                'kind' => 'legacy',
-                'note' => 'Imported from table_user.expired_date',
-                'created_at' => $now,
+                'kind'            => 'legacy',
+                'note'            => 'Imported from table_user.expired_date',
+                'created_at'      => $now,
             ]);
         }
     }

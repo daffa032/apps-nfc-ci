@@ -31,10 +31,11 @@ class AccountStatusRepository
     public function setStatus(int $id, string $status): void
     {
         $this->db->transBegin();
+
         try {
             $enabledSuperAdmins = $this->lockEnabledSuperAdmins();
-            $target = $this->users->find($id);
-            if (!$target) {
+            $target             = $this->users->find($id);
+            if (! $target) {
                 throw new DomainException(lang('Accounts.accountMissing'));
             }
             if ($status === AccountStatus::SUSPENDED && $target['access_level'] === 'Super Admin'
@@ -43,12 +44,13 @@ class AccountStatusRepository
             }
 
             $changes = ['account_status' => $status];
-            if (!$this->users->revokingSessionsIf($changes)->update($id, $changes) || $this->db->transStatus() === false) {
+            if (! $this->users->revokingSessionsIf($changes)->update($id, $changes) || $this->db->transStatus() === false) {
                 throw new RuntimeException('Status akun gagal diperbarui.');
             }
             $this->db->transCommit();
         } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }
@@ -59,9 +61,9 @@ class AccountStatusRepository
     private function lockEnabledSuperAdmins(): array
     {
         $table = $this->db->prefixTable('table_user');
-        $rows = $this->db->query(
+        $rows  = $this->db->query(
             "SELECT id_user FROM `{$table}` WHERE access_level = ? AND account_status <> ? FOR UPDATE",
-            ['Super Admin', AccountStatus::SUSPENDED]
+            ['Super Admin', AccountStatus::SUSPENDED],
         )->getResultArray();
 
         return array_map('strval', array_column($rows, 'id_user'));

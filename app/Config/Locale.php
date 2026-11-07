@@ -18,8 +18,7 @@ class Locale extends BaseConfig
      */
     public array $supported = ['id', 'en'];
 
-    public string $fallback = 'id';
-
+    public string $fallback   = 'id';
     public string $cookieName = 'nfc_lang';
 
     /**
@@ -42,5 +41,6 @@ class Locale extends BaseConfig
      * as locale.geoipAccountId / locale.geoipLicenseKey; never commit or print them.
      */
     public string $geoipAccountId = '';
+
     public string $geoipLicenseKey = '';
 }

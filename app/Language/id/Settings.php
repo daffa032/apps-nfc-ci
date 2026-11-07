@@ -35,5 +35,5 @@ return [
     'errCurrent'      => 'Kata sandi saat ini salah.',
     'errNewMissing'   => 'Isi kata sandi baru atau kosongkan kolom konfirmasinya.',
     'errMismatch'     => 'Kata sandi baru dan konfirmasinya tidak sama.',
-    'errPasswordMin' => 'Kata sandi baru minimal 8 karakter.',
+    'errPasswordMin'  => 'Kata sandi baru minimal 8 karakter.',
 ];

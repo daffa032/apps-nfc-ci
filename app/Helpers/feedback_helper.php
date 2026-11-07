@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-if (!function_exists('flash_feedback')) {
+if (! function_exists('flash_feedback')) {
     /**
      * Normalises one-time success/error messages into the shape the feedback partial renders.
      *
@@ -21,7 +21,7 @@ if (!function_exists('flash_feedback')) {
     }
 }
 
-if (!function_exists('field_error_attrs')) {
+if (! function_exists('field_error_attrs')) {
     /**
      * aria attributes for an input with a field error (PRD FB-02). Pure: $errors comes from the
      * controller (flash `field_errors`), never from session() here.
@@ -30,7 +30,7 @@ if (!function_exists('field_error_attrs')) {
      */
     function field_error_attrs(array $errors, string $field, string $inputId, ?string $hintId = null): string
     {
-        if (!isset($errors[$field])) {
+        if (! isset($errors[$field])) {
             return $hintId === null ? '' : ' aria-describedby="' . esc($hintId, 'attr') . '"';
         }
         $describedBy = trim(($hintId ?? '') . ' ' . $inputId . 'Error');

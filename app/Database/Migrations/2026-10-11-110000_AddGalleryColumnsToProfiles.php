@@ -17,11 +17,11 @@ class AddGalleryColumnsToProfiles extends Migration
     {
         $this->forge->addColumn('table_data_personal', [
             'gallery_columns' => [
-                'type' => 'TINYINT',
+                'type'       => 'TINYINT',
                 'constraint' => 1,
-                'unsigned' => true,
-                'null' => false,
-                'default' => 1,
+                'unsigned'   => true,
+                'null'       => false,
+                'default'    => 1,
             ],
         ]);
     }

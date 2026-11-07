@@ -12,12 +12,18 @@ use CodeIgniter\Config\BaseConfig;
  */
 class Analytics extends BaseConfig
 {
-    /** HMAC key for the daily anonymous visitor hash. Never logged or shown. */
+    /**
+     * HMAC key for the daily anonymous visitor hash. Never logged or shown.
+     */
     public string $secret = '';
 
-    /** Days a daily visitor hash is kept before it is deleted. */
+    /**
+     * Days a daily visitor hash is kept before it is deleted.
+     */
     public int $visitorRetentionDays = 30;
 
-    /** Months of daily aggregates kept. */
+    /**
+     * Months of daily aggregates kept.
+     */
     public int $metricsRetentionMonths = 12;
 }

@@ -29,9 +29,9 @@ final class AdminManagementService
 
     public function create(array $input): void
     {
-        $data = $this->validatedChanges($input, null, true, null);
+        $data                      = $this->validatedChanges($input, null, true, null);
         $data['registration_date'] = date('Y-m-d');
-        $data['expired_date'] = '9999-12-31';
+        $data['expired_date']      = '9999-12-31';
         $this->admins->create($data);
     }
 
@@ -55,22 +55,22 @@ final class AdminManagementService
 
     private function validatedChanges(array $input, ?int $exceptId, bool $passwordRequired, ?string $currentUsername): array
     {
-        $username = trim((string) ($input['username'] ?? ''));
-        $email = trim((string) ($input['email'] ?? ''));
-        $role = (string) ($input['access_level'] ?? '');
-        $password = (string) ($input['password'] ?? '');
+        $username     = trim((string) ($input['username'] ?? ''));
+        $email        = trim((string) ($input['email'] ?? ''));
+        $role         = (string) ($input['access_level'] ?? '');
+        $password     = (string) ($input['password'] ?? '');
         $confirmation = (string) ($input['repeat_password'] ?? '');
 
         if ($username === '' || mb_strlen($username) > 255) {
             throw new FieldException('username', lang('Accounts.errUsername'));
         }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
             throw new FieldException('email', lang('Accounts.errEmail'));
         }
         if ($username !== $currentUsername) {
             UsernamePolicy::assertAllowed($username);
         }
-        if (!in_array($role, self::ROLES, true)) {
+        if (! in_array($role, self::ROLES, true)) {
             throw new FieldException('access_level', lang('Accounts.errRole'));
         }
         if ($this->admins->usernameTaken($username, $exceptId)) {
@@ -88,10 +88,11 @@ final class AdminManagementService
 
         $data = ['username' => $username, 'email' => $email, 'access_level' => $role];
         if ($password !== '') {
-            $data['password'] = password_hash($password, PASSWORD_DEFAULT);
-            $data['reset_token'] = null;
+            $data['password']         = password_hash($password, PASSWORD_DEFAULT);
+            $data['reset_token']      = null;
             $data['reset_expired_at'] = null;
         }
+
         return $data;
     }
 }

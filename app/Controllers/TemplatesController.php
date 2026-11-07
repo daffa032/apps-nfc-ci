@@ -22,12 +22,12 @@ class TemplatesController extends BaseController
     use ResolvesCurrentUser;
     use RespondsWithFeedback;
 
-    private const PROFILE_FORM = 'dashboard/personal_info_form';
+    private const PROFILE_FORM   = 'dashboard/personal_info_form';
     private const TEMPLATES_PAGE = 'dashboard/templates';
 
     protected $helpers = ['asset', 'feedback'];
 
-    public function templatesPage(): string|RedirectResponse
+    public function templatesPage(): RedirectResponse|string
     {
         $page = (new TemplateSelectionService())->pageFor($this->currentUserId());
         if ($page === null) {
@@ -68,16 +68,20 @@ class TemplatesController extends BaseController
             return $this->redirectFailure(self::PROFILE_FORM, $exception->getMessage());
         } catch (PlanRequiredException $exception) {
             $this->audit('theme.selected', 'denied', 'template', $templateId === false ? null : $templateId, [], 'plan_required');
+
             return $this->redirectFailure(self::TEMPLATES_PAGE, $exception->getMessage());
         } catch (DomainException $exception) {
             $this->audit('theme.selected', 'denied', 'template', $templateId === false ? null : $templateId, [], 'invalid_template');
+
             return $this->redirectFailure(self::TEMPLATES_PAGE, $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Template selection failed: {exception}', ['exception' => $exception]);
+
             return $this->redirectFailure(self::TEMPLATES_PAGE, lang('Templates.selectFailed'));
         }
 
         $this->audit('theme.selected', 'success', 'template', $templateId === false ? null : $templateId);
+
         return $this->redirectSuccess(self::TEMPLATES_PAGE, lang('Templates.selected'));
     }
 }

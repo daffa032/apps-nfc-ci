@@ -25,7 +25,8 @@ class AuditLogRepository
 
     /**
      * @param array{action?: string, outcome?: string, actor?: string, target?: string, from?: string, to?: string} $filters
-     *        Values are already validated by the service; dates are UTC 'Y-m-d H:i:s'.
+     *                                                                                                                       Values are already validated by the service; dates are UTC 'Y-m-d H:i:s'.
+     *
      * @return array{rows: list<array>, total: int}
      */
     public function search(array $filters, int $page): array
@@ -54,7 +55,7 @@ class AuditLogRepository
         }
 
         $total = $builder->countAllResults(false);
-        $rows = $builder->orderBy('e.occurred_at', 'DESC')->orderBy('e.id', 'DESC')
+        $rows  = $builder->orderBy('e.occurred_at', 'DESC')->orderBy('e.id', 'DESC')
             ->limit(self::PAGE_SIZE, max(0, ($page - 1) * self::PAGE_SIZE))
             ->get()->getResultArray();
 

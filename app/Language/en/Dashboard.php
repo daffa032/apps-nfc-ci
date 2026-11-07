@@ -33,5 +33,5 @@ return [
     'toastError'         => 'Failed',
     'close'              => 'Close',
     'requestFailed'      => 'Request failed. Reload the page and try again.',
-    'navPayments' => 'Payments',
+    'navPayments'        => 'Payments',
 ];

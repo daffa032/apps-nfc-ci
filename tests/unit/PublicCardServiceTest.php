@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Exceptions\FieldException;
+use App\Libraries\QrCode;
 use App\Repositories\AccountRepository;
 use App\Repositories\CardAliasRepository;
 use App\Repositories\ProfileRepository;
@@ -12,36 +14,39 @@ use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../_support/Fakes/PeriodListRepository.php';
 
+/**
+ * @internal
+ */
 final class PublicCardServiceTest extends TestCase
 {
     public function testStatesAndNoProfileDataForNotices(): void
     {
         $service = $this->service();
-        $now = new DateTimeImmutable('2026-10-10 05:00:00', new DateTimeZone('UTC'));
+        $now     = new DateTimeImmutable('2026-10-10 05:00:00', new DateTimeZone('UTC'));
 
-        self::assertSame(['state' => 'not_found'], $service->forUsername('nobody', $now));
-        self::assertSame(['state' => 'suspended'], $service->forUsername('sus', $now));
-        self::assertSame(['state' => 'inactive'], $service->forUsername('expired', $now));
-        self::assertSame(['state' => 'not_found'], $service->forUsername('noprofile', $now));
+        $this->assertSame(['state' => 'not_found'], $service->forUsername('nobody', $now));
+        $this->assertSame(['state' => 'suspended'], $service->forUsername('sus', $now));
+        $this->assertSame(['state' => 'inactive'], $service->forUsername('expired', $now));
+        $this->assertSame(['state' => 'not_found'], $service->forUsername('noprofile', $now));
     }
 
     public function testOldUsernameRedirectsToCurrentOne(): void
     {
         $now = new DateTimeImmutable('2026-10-10 05:00:00', new DateTimeZone('UTC'));
 
-        self::assertSame(['state' => 'moved', 'username' => 'ada'], $this->service()->forUsername('ada-lama', $now));
+        $this->assertSame(['state' => 'moved', 'username' => 'ada'], $this->service()->forUsername('ada-lama', $now));
         // Alias whose account was deleted in the meantime: nothing to show.
-        self::assertSame(['state' => 'not_found'], $this->service()->forUsername('hilang', $now));
+        $this->assertSame(['state' => 'not_found'], $this->service()->forUsername('hilang', $now));
     }
 
     public function testCustomTemplateWithoutVersionIsNotShownAndTamperedVersionIsRejected(): void
     {
         $service = $this->service();
-        $user = ['id_user' => 7, 'username' => 'ada', 'access_level' => 'User'];
+        $user    = ['id_user' => 7, 'username' => 'ada', 'access_level' => 'User'];
         $profile = ['id_data' => 3, 'id_user' => 7, 'nama' => 'Ada', 'templates' => 'custom-9'];
 
-        self::assertNull($service->present($user, $profile, 'custom-9'));
-        $this->expectException(App\Exceptions\FieldException::class);
+        $this->assertNull($service->present($user, $profile, 'custom-9'));
+        $this->expectException(FieldException::class);
         $service->present($user, $profile, 'custom-8');
     }
 
@@ -49,38 +54,40 @@ final class PublicCardServiceTest extends TestCase
     {
         $card = $this->service()->forUsername('ada', new DateTimeImmutable('2026-10-10 05:00:00', new DateTimeZone('UTC')));
 
-        self::assertSame('show', $card['state']);
-        self::assertSame('digital_card/classic', $card['view']);
-        self::assertSame('classic-white', $card['data']['layout']);
-        self::assertNull($card['data']['dataPersonal']['google_map_link']);
-        self::assertNull($card['data']['dataPersonal']['profile_image']);
-        self::assertSame('', $card['data']['dataPersonal']['email']);
-        self::assertNull($card['data']['socialMediaLinks']['website']);
-        self::assertSame('https://ig.example.test', $card['data']['socialMediaLinks']['instagram']);
-        self::assertNull($card['data']['images'][0]['images']);
-        self::assertSame('x', $card['data']['images'][0]['caption']);
+        $this->assertSame('show', $card['state']);
+        $this->assertSame('digital_card/classic', $card['view']);
+        $this->assertSame('classic-white', $card['data']['layout']);
+        $this->assertNull($card['data']['dataPersonal']['google_map_link']);
+        $this->assertNull($card['data']['dataPersonal']['profile_image']);
+        $this->assertSame('', $card['data']['dataPersonal']['email']);
+        $this->assertNull($card['data']['socialMediaLinks']['website']);
+        $this->assertSame('https://ig.example.test', $card['data']['socialMediaLinks']['instagram']);
+        $this->assertNull($card['data']['images'][0]['images']);
+        $this->assertSame('x', $card['data']['images'][0]['caption']);
         // Blank or whitespace-only captions become '' so no empty caption box is rendered.
-        self::assertSame('', $card['data']['images'][1]['caption']);
-        self::assertSame('', $card['data']['images'][2]['caption']);
-        self::assertSame(2, $card['data']['galleryColumns']);
+        $this->assertSame('', $card['data']['images'][1]['caption']);
+        $this->assertSame('', $card['data']['images'][2]['caption']);
+        $this->assertSame(2, $card['data']['galleryColumns']);
     }
 
     public function testCardLanguageNeverFallsBackToDashboardOrVisitorLanguage(): void
     {
         $language = service('language');
-        $before = $language->getLocale();
+        $before   = $language->getLocale();
+
         try {
             foreach (['id', 'en'] as $dashboardLocale) {
                 $language->setLocale($dashboardLocale);
+
                 foreach ([[], ['card_locale' => null], ['card_locale' => ''], ['card_locale' => 'fr']] as $profile) {
-                    self::assertSame('id', PublicCardService::cardLocale($profile));
+                    $this->assertSame('id', PublicCardService::cardLocale($profile));
                 }
-                self::assertSame('en', PublicCardService::cardLocale(['card_locale' => 'en']));
-                self::assertSame('id', PublicCardService::cardLocale(['card_locale' => 'id']));
+                $this->assertSame('en', PublicCardService::cardLocale(['card_locale' => 'en']));
+                $this->assertSame('id', PublicCardService::cardLocale(['card_locale' => 'id']));
                 $card = $this->service()->forUsername('ada', new DateTimeImmutable('2026-10-10 05:00:00 UTC'));
-                self::assertSame('id', $card['data']['cardLocale']);
+                $this->assertSame('id', $card['data']['cardLocale']);
                 $share = $this->service('pro')->shareFor('ada', new DateTimeImmutable('2026-10-10 05:00:00 UTC'));
-                self::assertSame('id', $share['data']['cardLocale']);
+                $this->assertSame('id', $share['data']['cardLocale']);
             }
         } finally {
             $language->setLocale($before);
@@ -89,24 +96,24 @@ final class PublicCardServiceTest extends TestCase
 
     public function testSharePageOnlyForActiveProAndQrHoldsTheCanonicalUrl(): void
     {
-        $now = new DateTimeImmutable('2026-10-10 05:00:00', new DateTimeZone('UTC'));
+        $now   = new DateTimeImmutable('2026-10-10 05:00:00', new DateTimeZone('UTC'));
         $share = $this->service('pro')->shareFor('ada', $now);
-        self::assertSame(PublicCardService::SHOW, $share['state']);
-        self::assertSame(base_url('ada'), $share['data']['cardUrl']);
-        self::assertSame(App\Libraries\QrCode::encode(base_url('ada'))->rows(), $share['data']['qr']->rows());
-        self::assertArrayNotHasKey('email', $share['data'], 'The share page carries no contact data.');
+        $this->assertSame(PublicCardService::SHOW, $share['state']);
+        $this->assertSame(base_url('ada'), $share['data']['cardUrl']);
+        $this->assertSame(QrCode::encode(base_url('ada'))->rows(), $share['data']['qr']->rows());
+        $this->assertArrayNotHasKey('email', $share['data'], 'The share page carries no contact data.');
 
         // Account 7 ("ada") is an active Basic card in these fakes: no share page, no profile data.
-        self::assertSame(['state' => PublicCardService::NOT_FOUND], $this->service()->shareFor('ada', new DateTimeImmutable('2026-10-10 05:00:00', new DateTimeZone('UTC'))));
+        $this->assertSame(['state' => PublicCardService::NOT_FOUND], $this->service()->shareFor('ada', new DateTimeImmutable('2026-10-10 05:00:00', new DateTimeZone('UTC'))));
         // Old username redirects to the canonical share URL, carrying only the new username.
-        self::assertSame(['state' => PublicCardService::MOVED, 'username' => 'ada'], $this->service()->shareFor('ada-lama', new DateTimeImmutable('2026-10-10 05:00:00', new DateTimeZone('UTC'))));
+        $this->assertSame(['state' => PublicCardService::MOVED, 'username' => 'ada'], $this->service()->shareFor('ada-lama', new DateTimeImmutable('2026-10-10 05:00:00', new DateTimeZone('UTC'))));
     }
 
     private function service(string $plan = 'basic'): PublicCardService
     {
         $periods = [7 => [['2026-01-01 00:00:00', '2027-01-01 00:00:00']], 10 => [['2026-01-01 00:00:00', '2026-02-01 00:00:00']], 11 => [['2026-01-01 00:00:00', '2027-01-01 00:00:00']]];
 
-        $aliases = new class extends CardAliasRepository {
+        $aliases = new class () extends CardAliasRepository {
             public function __construct()
             {
             }
@@ -116,7 +123,7 @@ final class PublicCardServiceTest extends TestCase
                 return ['ada-lama' => 7, 'hilang' => 99][$alias] ?? null;
             }
         };
-        $accounts = new class extends AccountRepository {
+        $accounts = new class () extends AccountRepository {
             public function __construct()
             {
             }
@@ -127,7 +134,7 @@ final class PublicCardServiceTest extends TestCase
             }
         };
 
-        $templates = new class extends TemplateRepository {
+        $templates = new class () extends TemplateRepository {
             public function __construct()
             {
             }
@@ -153,9 +160,9 @@ final class PublicCardServiceTest extends TestCase
 class CardProfiles extends ProfileRepository
 {
     private array $accounts = [
-        'ada' => ['id_user' => 7, 'username' => 'ada', 'access_level' => 'User'],
-        'sus' => ['id_user' => 9, 'username' => 'sus', 'access_level' => 'User', 'account_status' => 'suspended'],
-        'expired' => ['id_user' => 10, 'username' => 'expired', 'access_level' => 'User'],
+        'ada'       => ['id_user' => 7, 'username' => 'ada', 'access_level' => 'User'],
+        'sus'       => ['id_user' => 9, 'username' => 'sus', 'access_level' => 'User', 'account_status' => 'suspended'],
+        'expired'   => ['id_user' => 10, 'username' => 'expired', 'access_level' => 'User'],
         'noprofile' => ['id_user' => 11, 'username' => 'noprofile', 'access_level' => 'User'],
     ];
 

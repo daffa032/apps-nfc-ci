@@ -10,6 +10,9 @@ use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../_support/Fakes/PeriodListRepository.php';
 
+/**
+ * @internal
+ */
 final class DashboardServiceTest extends TestCase
 {
     public static function setUpBeforeClass(): void
@@ -21,66 +24,66 @@ final class DashboardServiceTest extends TestCase
     {
         $summary = $this->summary(['access_level' => 'User', 'expired_date' => '2026-10-20'], ['nama' => 'Ada Lovelace', 'company_name' => 'Lab', 'profile_image' => 'a.webp']);
 
-        self::assertTrue($summary['isActive']);
-        self::assertFalse($summary['isStaff']);
-        self::assertSame('Aktif sampai 20 Oktober 2026', $summary['expiryLabel']);
-        self::assertSame('10 hari', $summary['remainingDays']);
-        self::assertSame('Ada', $summary['firstName']);
-        self::assertSame('AL', $summary['initials']);
-        self::assertSame('a.webp', $summary['profileImage']);
-        self::assertStringEndsWith('/ada', $summary['publicUrl']);
+        $this->assertTrue($summary['isActive']);
+        $this->assertFalse($summary['isStaff']);
+        $this->assertSame('Aktif sampai 20 Oktober 2026', $summary['expiryLabel']);
+        $this->assertSame('10 hari', $summary['remainingDays']);
+        $this->assertSame('Ada', $summary['firstName']);
+        $this->assertSame('AL', $summary['initials']);
+        $this->assertSame('a.webp', $summary['profileImage']);
+        $this->assertStringEndsWith('/ada', $summary['publicUrl']);
     }
 
     public function testLastDayIsActiveAndNextDayIsExpired(): void
     {
-        self::assertTrue($this->summary(['access_level' => 'User', 'expired_date' => '2026-10-10'], null)['isActive']);
+        $this->assertTrue($this->summary(['access_level' => 'User', 'expired_date' => '2026-10-10'], null)['isActive']);
 
         $expired = $this->summary(['access_level' => 'User', 'expired_date' => '2026-10-09'], null);
-        self::assertFalse($expired['isActive']);
-        self::assertFalse($expired['neverActivated']);
-        self::assertSame('Berakhir pada 9 Oktober 2026', $expired['expiryLabel']);
+        $this->assertFalse($expired['isActive']);
+        $this->assertFalse($expired['neverActivated']);
+        $this->assertSame('Berakhir pada 9 Oktober 2026', $expired['expiryLabel']);
     }
 
     public function testInactiveAccountAndMissingProfile(): void
     {
         $summary = $this->summary(['access_level' => 'User', 'expired_date' => '0000-00-00'], null);
 
-        self::assertFalse($summary['isActive']);
-        self::assertTrue($summary['neverActivated']);
-        self::assertFalse($summary['hasProfile']);
-        self::assertSame('Belum diaktifkan', $summary['expiryLabel']);
-        self::assertSame('ada', $summary['displayName']);
-        self::assertNull($summary['profileImage']);
+        $this->assertFalse($summary['isActive']);
+        $this->assertTrue($summary['neverActivated']);
+        $this->assertFalse($summary['hasProfile']);
+        $this->assertSame('Belum diaktifkan', $summary['expiryLabel']);
+        $this->assertSame('ada', $summary['displayName']);
+        $this->assertNull($summary['profileImage']);
     }
 
     public function testStaffIsActiveRegardlessOfExpiry(): void
     {
         $summary = $this->summary(['access_level' => 'Super Admin', 'expired_date' => '2020-01-01'], null);
 
-        self::assertTrue($summary['isStaff']);
-        self::assertTrue($summary['isActive']);
+        $this->assertTrue($summary['isStaff']);
+        $this->assertTrue($summary['isActive']);
     }
 
     public function testInitialsIgnoreMarkupAndSymbols(): void
     {
         $initials = fn (string $name): string => $this->summary(['access_level' => 'User', 'expired_date' => '2026-10-20'], ['nama' => $name])['initials'];
 
-        self::assertSame('AS', $initials('Alice <b>Smith</b>'));
-        self::assertSame('ÉZ', $initials('élodie zola'));
-        self::assertSame('B', $initials('  ** Budi  '));
-        self::assertSame('?', $initials('!!!'));
+        $this->assertSame('AS', $initials('Alice <b>Smith</b>'));
+        $this->assertSame('ÉZ', $initials('élodie zola'));
+        $this->assertSame('B', $initials('  ** Budi  '));
+        $this->assertSame('?', $initials('!!!'));
     }
 
     public function testUnsafeImageNameIsDropped(): void
     {
-        self::assertNull($this->summary(['access_level' => 'User', 'expired_date' => '2026-10-20'], ['nama' => 'Ada', 'profile_image' => '../x.php'])['profileImage']);
+        $this->assertNull($this->summary(['access_level' => 'User', 'expired_date' => '2026-10-20'], ['nama' => 'Ada', 'profile_image' => '../x.php'])['profileImage']);
     }
 
     public function testMissingAccountReturnsNull(): void
     {
         $service = new DashboardService(new DashboardAccountRepository(null), new DashboardProfileRepository(null), new SubscriptionAccessService(new PeriodListRepository([])));
-        self::assertNull($service->summaryFor(7, $this->now()));
-        self::assertNull($service->summaryFor(0, $this->now()));
+        $this->assertNull($service->summaryFor(7, $this->now()));
+        $this->assertNull($service->summaryFor(0, $this->now()));
     }
 
     /**
@@ -90,15 +93,15 @@ final class DashboardServiceTest extends TestCase
     private function summary(array $account, ?array $profile): array
     {
         $periods = [];
-        $date = $account['expired_date'] ?? '';
+        $date    = $account['expired_date'] ?? '';
         if (preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $date) && $date !== '0000-00-00') {
-            $end = (new DateTimeImmutable($date, new DateTimeZone('Asia/Jakarta')))->modify('+1 day')->setTimezone(new DateTimeZone('UTC'));
+            $end        = (new DateTimeImmutable($date, new DateTimeZone('Asia/Jakarta')))->modify('+1 day')->setTimezone(new DateTimeZone('UTC'));
             $periods[7] = [['2026-01-01 00:00:00', $end->format('Y-m-d H:i:s')]];
         }
         $service = new DashboardService(
             new DashboardAccountRepository(['id_user' => 7, 'username' => 'ada'] + $account),
             new DashboardProfileRepository($profile),
-            new SubscriptionAccessService(new PeriodListRepository($periods))
+            new SubscriptionAccessService(new PeriodListRepository($periods)),
         );
 
         return $service->summaryFor(7, $this->now());

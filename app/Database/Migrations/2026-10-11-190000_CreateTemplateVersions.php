@@ -16,13 +16,13 @@ class CreateTemplateVersions extends Migration
     public function up()
     {
         $this->forge->addField([
-            'id' => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'id'          => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
             'template_id' => ['type' => 'INT'],
-            'version' => ['type' => 'SMALLINT', 'unsigned' => true],
-            'html' => ['type' => 'MEDIUMTEXT'],
-            'checksum' => ['type' => 'CHAR', 'constraint' => 64],
-            'created_by' => ['type' => 'INT', 'null' => true],
-            'created_at' => ['type' => 'DATETIME'],
+            'version'     => ['type' => 'SMALLINT', 'unsigned' => true],
+            'html'        => ['type' => 'MEDIUMTEXT'],
+            'checksum'    => ['type' => 'CHAR', 'constraint' => 64],
+            'created_by'  => ['type' => 'INT', 'null' => true],
+            'created_at'  => ['type' => 'DATETIME'],
         ]);
         $this->forge->addPrimaryKey('id');
         $this->forge->addUniqueKey(['template_id', 'version']);

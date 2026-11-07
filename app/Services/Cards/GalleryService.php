@@ -35,18 +35,21 @@ final class GalleryService
         }
 
         $stored = [];
+
         try {
             $rows = [];
+
             foreach ($files as $index => $file) {
-                $name = $this->storage->store($file, self::FOLDER);
+                $name     = $this->storage->store($file, self::FOLDER);
                 $stored[] = $name;
-                $rows[] = ['images' => $name, 'caption' => (string) ($captions[$index] ?? '')];
+                $rows[]   = ['images' => $name, 'caption' => (string) ($captions[$index] ?? '')];
             }
             $this->profiles->addGalleryImages($profileId, $rows);
         } catch (Throwable $exception) {
             foreach ($stored as $name) {
                 $this->storage->delete(self::FOLDER, $name);
             }
+
             throw $exception;
         }
     }
@@ -54,11 +57,11 @@ final class GalleryService
     public function delete(int $userId, int $imageId): void
     {
         $profileId = $this->ownedProfileId($userId);
-        $image = $imageId > 0 ? $this->profiles->findGalleryImage($profileId, $imageId) : null;
-        if (!$image) {
+        $image     = $imageId > 0 ? $this->profiles->findGalleryImage($profileId, $imageId) : null;
+        if (! $image) {
             throw new DomainException(lang('Profile.photoMissing'));
         }
-        if (!$this->profiles->deleteGalleryImage($profileId, $imageId)) {
+        if (! $this->profiles->deleteGalleryImage($profileId, $imageId)) {
             throw new RuntimeException(lang('Profile.photoDeleteFailed'));
         }
 
@@ -74,14 +77,14 @@ final class GalleryService
     public function updateCaption(int $userId, int $imageId, string $caption): void
     {
         $profileId = $this->ownedProfileId($userId);
-        $caption = trim($caption);
+        $caption   = trim($caption);
         if (mb_strlen($caption) > 255) {
             throw new DomainException(lang('Profile.captionTooLong'));
         }
-        if ($imageId < 1 || !$this->profiles->findGalleryImage($profileId, $imageId)) {
+        if ($imageId < 1 || ! $this->profiles->findGalleryImage($profileId, $imageId)) {
             throw new DomainException(lang('Profile.photoMissing'));
         }
-        if (!$this->profiles->updateGalleryCaption($profileId, $imageId, $caption)) {
+        if (! $this->profiles->updateGalleryCaption($profileId, $imageId, $caption)) {
             throw new RuntimeException(lang('Profile.captionFailed'));
         }
     }
@@ -91,11 +94,11 @@ final class GalleryService
      */
     public function setColumns(int $userId, int $columns): void
     {
-        if (!in_array($columns, CardPresentation::GALLERY_COLUMNS, true)) {
+        if (! in_array($columns, CardPresentation::GALLERY_COLUMNS, true)) {
             throw new DomainException(lang('Profile.layoutInvalid'));
         }
         $this->ownedProfileId($userId);
-        if (!$this->profiles->saveGalleryColumnsForUser($userId, $columns)) {
+        if (! $this->profiles->saveGalleryColumnsForUser($userId, $columns)) {
             throw new RuntimeException(lang('Profile.layoutFailed'));
         }
     }
@@ -103,7 +106,7 @@ final class GalleryService
     private function ownedProfileId(int $userId): int
     {
         $profile = $userId > 0 ? $this->profiles->findForUser($userId) : null;
-        if (!$profile) {
+        if (! $profile) {
             throw new DomainException(lang('Profile.profileMissing'));
         }
 

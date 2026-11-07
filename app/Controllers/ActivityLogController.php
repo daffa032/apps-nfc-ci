@@ -22,7 +22,7 @@ class ActivityLogController extends BaseController
     public function index(): string
     {
         $input = (array) $this->request->getGet();
-        $logs = (new AuditLogService())->search($input, (int) ($input['page'] ?? 1));
+        $logs  = (new AuditLogService())->search($input, (int) ($input['page'] ?? 1));
         // Reading the log is itself recorded, without the search terms.
         $this->audit('audit.viewed', 'success', 'audit');
 
@@ -30,7 +30,7 @@ class ActivityLogController extends BaseController
 
         return view('dashboard/pages/activity_logs/activity_logs', $this->dashboardShellData() + $logs + [
             // The constants are the allowlist; labels follow the interface language.
-            'actions' => array_combine(array_keys(AuditLogService::ACTIONS), array_map(static fn (string $code): string => lang('Audit.action_' . str_replace('.', '_', $code)), array_keys(AuditLogService::ACTIONS))),
+            'actions'  => array_combine(array_keys(AuditLogService::ACTIONS), array_map(static fn (string $code): string => lang('Audit.action_' . str_replace('.', '_', $code)), array_keys(AuditLogService::ACTIONS))),
             'outcomes' => array_combine(array_keys(AuditLogService::OUTCOMES), array_map(static fn (string $code): string => lang('Audit.outcome_' . $code), array_keys(AuditLogService::OUTCOMES))),
             'feedback' => $this->pendingFeedback(),
         ]);

@@ -15,19 +15,19 @@ class DigitalCardController extends BaseController
 {
     use RendersCardPages;
 
-    public function digitalCardProfile(string $username): string|RedirectResponse
+    public function digitalCardProfile(string $username): RedirectResponse|string
     {
-        $now = new DateTimeImmutable('now');
+        $now  = new DateTimeImmutable('now');
         $card = (new PublicCardService())->forUsername($username, $now);
 
         // Notices never show profile data and must not be cached (PRD EX-01).
         return match ($card['state']) {
             PublicCardService::SHOW => $this->show($card, $now),
             // Old username after a rename: permanent redirect, the target page decides what to show.
-            PublicCardService::MOVED => redirect()->to(base_url(rawurlencode($card['username'])), 301),
+            PublicCardService::MOVED     => redirect()->to(base_url(rawurlencode($card['username'])), 301),
             PublicCardService::SUSPENDED => $this->notice(410, 'digital_card/suspended'),
-            PublicCardService::INACTIVE => $this->notice(403, 'digital_card/inactive'),
-            default => throw PageNotFoundException::forPageNotFound(),
+            PublicCardService::INACTIVE  => $this->notice(403, 'digital_card/inactive'),
+            default                      => throw PageNotFoundException::forPageNotFound(),
         };
     }
 
@@ -35,16 +35,16 @@ class DigitalCardController extends BaseController
      * Pro share page: large QR of the canonical card URL, copy/share, save image (PRD QR-02/03).
      * Not counted as a card view. Basic, suspended and expired cards get no QR or profile data.
      */
-    public function share(string $username): string|RedirectResponse
+    public function share(string $username): RedirectResponse|string
     {
         $result = (new PublicCardService())->shareFor($username, new DateTimeImmutable('now'));
 
         return match ($result['state']) {
-            PublicCardService::SHOW => $this->sharePage($result['data']),
-            PublicCardService::MOVED => redirect()->to(base_url(rawurlencode($result['username']) . '/share'), 301),
+            PublicCardService::SHOW      => $this->sharePage($result['data']),
+            PublicCardService::MOVED     => redirect()->to(base_url(rawurlencode($result['username']) . '/share'), 301),
             PublicCardService::SUSPENDED => $this->notice(410, 'digital_card/suspended'),
-            PublicCardService::INACTIVE => $this->notice(403, 'digital_card/inactive'),
-            default => throw PageNotFoundException::forPageNotFound(),
+            PublicCardService::INACTIVE  => $this->notice(403, 'digital_card/inactive'),
+            default                      => throw PageNotFoundException::forPageNotFound(),
         };
     }
 
@@ -57,11 +57,11 @@ class DigitalCardController extends BaseController
 
     private function show(array $card, DateTimeImmutable $now): string
     {
-        $user = $card['data']['user'];
+        $user      = $card['data']['user'];
         $analytics = new CardAnalyticsService();
         $analytics->recordView($user, [
-            'method' => $this->request->getMethod(),
-            'ip' => $this->request->getIPAddress(),
+            'method'     => $this->request->getMethod(),
+            'ip'         => $this->request->getIPAddress(),
             'user_agent' => (string) $this->request->getUserAgent(),
         ] + $this->viewer(), $now);
 
@@ -72,7 +72,7 @@ class DigitalCardController extends BaseController
 
         return $this->renderCardPage($card['view'], $card['data'] + [
             'shareQrUrl' => $shareQrUrl,
-            'eventUrl' => $token === null ? null : base_url('cards/' . rawurlencode((string) $user['username']) . '/events'),
+            'eventUrl'   => $token === null ? null : base_url('cards/' . rawurlencode((string) $user['username']) . '/events'),
             'eventToken' => $token,
         ]);
     }
@@ -89,7 +89,7 @@ class DigitalCardController extends BaseController
             return ['viewer_id' => null, 'viewer_role' => null];
         }
         $session = session();
-        $id = (int) $session->get('id_user');
+        $id      = (int) $session->get('id_user');
 
         return ['viewer_id' => $id > 0 ? $id : null, 'viewer_role' => $id > 0 ? (string) $session->get('access_level') : null];
     }

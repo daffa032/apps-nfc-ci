@@ -23,6 +23,7 @@ class WidenSocialLinkColumns extends Migration
     public function down()
     {
         $table = $this->db->prefixTable('sosial_media');
+
         foreach (self::CHANNELS as $channel) {
             $this->db->query("UPDATE {$table} SET {$channel} = LEFT({$channel}, 64) WHERE {$channel} IS NOT NULL");
         }
@@ -32,6 +33,7 @@ class WidenSocialLinkColumns extends Migration
     private function resize(int $length): void
     {
         $fields = [];
+
         foreach (self::CHANNELS as $channel) {
             $fields[$channel] = ['name' => $channel, 'type' => 'VARCHAR', 'constraint' => $length, 'null' => true];
         }

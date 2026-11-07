@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use CodeIgniter\Database\BaseConnection;
+use CodeIgniter\Database\MigrationRunner;
 use CodeIgniter\Test\CIUnitTestCase;
 use Config\Database;
+use mysqli;
+use mysqli_sql_exception;
+use ReflectionProperty;
 use RuntimeException;
 
 /**
@@ -24,27 +28,35 @@ abstract class RepositoryTestCase extends CIUnitTestCase
 {
     private static bool $built = false;
 
-    /** @var BaseConnection connection to the test database (untyped: CIUnitTestCase declares it) */
+    /**
+     * @var BaseConnection connection to the test database (untyped: CIUnitTestCase declares it)
+     */
     protected $db;
 
     protected function setUp(): void
     {
         parent::setUp();
         $name = getenv('NFC_TEST_DB') ?: 'nfc_repo_test';
-        if (!str_contains($name, 'test')) {
+        if (! str_contains($name, 'test')) {
             throw new RuntimeException('Refusing to run repository tests on a database without "test" in its name.');
         }
 
         $config = [
-            'DSN' => '', 'hostname' => getenv('NFC_TEST_DB_HOST') ?: 'localhost',
+            'DSN'      => '', 'hostname' => getenv('NFC_TEST_DB_HOST') ?: 'localhost',
             'username' => getenv('NFC_TEST_DB_USER') ?: 'root', 'password' => getenv('NFC_TEST_DB_PASS') ?: '',
             'database' => $name, 'DBDriver' => 'MySQLi', 'DBPrefix' => '', 'pConnect' => false, 'DBDebug' => true,
-            'charset' => 'utf8mb4', 'DBCollat' => 'utf8mb4_general_ci', 'strictOn' => true, 'port' => 3306,
+            'charset'  => 'utf8mb4', 'DBCollat' => 'utf8mb4_general_ci', 'strictOn' => true, 'port' => 3306,
         ];
         $isSocket = str_starts_with($config['hostname'], '/');
 
-        if (!self::$built) {
-            $server = @new \mysqli($isSocket ? null : $config['hostname'], $config['username'], $config['password'], '', 3306, $isSocket ? $config['hostname'] : null);
+        if (! self::$built) {
+            // mysqli_report defaults to throwing since PHP 8.1, so a refused connection never
+            // reaches connect_errno; catch it so an absent MySQL skips instead of failing.
+            try {
+                $server = @new mysqli($isSocket ? null : $config['hostname'], $config['username'], $config['password'], '', 3306, $isSocket ? $config['hostname'] : null);
+            } catch (mysqli_sql_exception $e) {
+                $this->markTestSkipped('MySQL not reachable for repository tests: ' . $e->getMessage());
+            }
             if ($server->connect_errno) {
                 $this->markTestSkipped('MySQL not reachable for repository tests: ' . $server->connect_error);
             }
@@ -52,6 +64,7 @@ abstract class RepositoryTestCase extends CIUnitTestCase
             $server->query("CREATE DATABASE `{$name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
             $server->select_db($name);
             $server->multi_query((string) file_get_contents(__DIR__ . '/Database/Schema/legacy.sql'));
+
             while ($server->more_results() && $server->next_result()) {
             }
             $server->close();
@@ -59,16 +72,16 @@ abstract class RepositoryTestCase extends CIUnitTestCase
 
         // Every repository and model in this process uses this connection, whichever group they ask
         // for. Shared instances left by other test classes (e.g. the SQLite example) are dropped.
-        $dbConfig = config(Database::class);
+        $dbConfig          = config(Database::class);
         $dbConfig->default = array_merge($dbConfig->default, $config);
-        $dbConfig->tests = $dbConfig->default;
-        (new \ReflectionProperty(Database::class, 'instances'))->setValue(null, []);
+        $dbConfig->tests   = $dbConfig->default;
+        (new ReflectionProperty(Database::class, 'instances'))->setValue(null, []);
         $this->db = Database::connect();
 
-        if (!self::$built) {
-            $migrations = new \CodeIgniter\Database\MigrationRunner(config('Migrations'), $this->db);
+        if (! self::$built) {
+            $migrations = new MigrationRunner(config('Migrations'), $this->db);
             $migrations->setNamespace('App');
-            if (!$migrations->latest('default')) {
+            if (! $migrations->latest('default')) {
                 throw new RuntimeException('Migrations failed on the repository test database.');
             }
             self::$built = true;
@@ -76,11 +89,12 @@ abstract class RepositoryTestCase extends CIUnitTestCase
 
         // CI4 keeps transStatus false after a failed query inside a transaction until the connection
         // closes; tests share one connection, so start each test with a clean flag.
-        (new \ReflectionProperty($this->db, 'transStatus'))->setValue($this->db, true);
+        (new ReflectionProperty($this->db, 'transStatus'))->setValue($this->db, true);
 
         $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
+
         foreach ($this->db->listTables() as $table) {
-            if (!in_array($table, ['migrations', 'plans', 'templates'], true)) {
+            if (! in_array($table, ['migrations', 'plans', 'templates'], true)) {
                 $this->db->query("TRUNCATE TABLE `{$table}`");
             }
         }
@@ -98,8 +112,8 @@ abstract class RepositoryTestCase extends CIUnitTestCase
     protected function makeAccount(string $username, string $role = 'User'): array
     {
         $this->db->table('table_user')->insert([
-            'username' => $username, 'password' => password_hash('Rahasia123!', PASSWORD_DEFAULT),
-            'email' => $username . '@example.test', 'registration_date' => '2026-01-01',
+            'username'     => $username, 'password' => password_hash('Rahasia123!', PASSWORD_DEFAULT),
+            'email'        => $username . '@example.test', 'registration_date' => '2026-01-01',
             'expired_date' => '2027-01-01', 'access_level' => $role,
         ]);
         $userId = (int) $this->db->insertID();

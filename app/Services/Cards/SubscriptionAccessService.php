@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Cards;
 
 use App\Repositories\SubscriptionRepository;
+use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 
@@ -82,6 +83,6 @@ final class SubscriptionAccessService
 
     public static function utc(DateTimeInterface $time): string
     {
-        return \DateTimeImmutable::createFromInterface($time)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        return DateTimeImmutable::createFromInterface($time)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
     }
 }

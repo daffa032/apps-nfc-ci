@@ -36,7 +36,7 @@ final class CheckoutService
         private ?MidtransClient $gateway = null,
         private ?Midtrans $config = null,
         private ?ApplyPaymentService $payments = null,
-        private ?CancelPaymentService $cancels = null
+        private ?CancelPaymentService $cancels = null,
     ) {
         $this->orders ??= new PaymentOrderRepository();
         $this->plans ??= new PlanRepository();
@@ -53,10 +53,11 @@ final class CheckoutService
     public function offers(): array
     {
         $offers = [];
+
         foreach ($this->plans->all() as $plan) {
             if ((int) $plan['enabled'] === 1 && $plan['price_idr'] !== null && (int) $plan['price_idr'] > 0 && (int) $plan['duration_months'] > 0) {
                 $offers[] = [
-                    'code' => (string) $plan['code'], 'label' => (string) $plan['label'], 'price_idr' => (int) $plan['price_idr'],
+                    'code'            => (string) $plan['code'], 'label' => (string) $plan['label'], 'price_idr' => (int) $plan['price_idr'],
                     'duration_months' => (int) $plan['duration_months'], 'version' => (int) $plan['version'],
                 ];
             }
@@ -74,13 +75,13 @@ final class CheckoutService
             throw new DomainException(lang('Billing.checkoutExpired'));
         }
         $account = $this->accounts->find($userId);
-        if (!$account || ($account['access_level'] ?? '') !== 'User') {
+        if (! $account || ($account['access_level'] ?? '') !== 'User') {
             throw new DomainException(lang('Billing.checkoutNotAllowed'));
         }
         if (AccountStatus::isSuspended($account)) {
             throw new DomainException(lang('Billing.checkoutSuspended'));
         }
-        if (!$this->config->isConfigured()) {
+        if (! $this->config->isConfigured()) {
             throw new DomainException(lang('Billing.gatewayOff'));
         }
 
@@ -91,6 +92,7 @@ final class CheckoutService
         }
 
         $offer = null;
+
         foreach ($this->offers() as $candidate) {
             if ($candidate['code'] === $planCode) {
                 $offer = $candidate;
@@ -101,7 +103,7 @@ final class CheckoutService
         }
 
         $nowUtc = DateTimeImmutable::createFromInterface($now)->setTimezone(new DateTimeZone('UTC'));
-        $open = $this->orders->openOrderFor($userId, $nowUtc->format('Y-m-d H:i:s'));
+        $open   = $this->orders->openOrderFor($userId, $nowUtc->format('Y-m-d H:i:s'));
         if ($open && ($open['redirect_url'] ?? null) === null) {
             // An earlier attempt never reached Midtrans. Ask Midtrans about that order ID first
             // (never two live transactions); if it has none, the old order is closed and a new one made.
@@ -114,33 +116,34 @@ final class CheckoutService
 
         $orderCode = $this->config->orderPrefix . '-' . $nowUtc->format('ymd') . '-' . strtoupper(bin2hex(random_bytes(5)));
         $expiresAt = $nowUtc->add(new DateInterval('PT' . max(15, $this->config->expiryMinutes) . 'M'));
-        $stamp = $nowUtc->format('Y-m-d H:i:s');
-        $orderId = $this->orders->insertOrder([
-            'order_code' => $orderCode, 'user_id' => $userId, 'plan_id' => $this->planId($offer['code']), 'plan_code' => $offer['code'],
+        $stamp     = $nowUtc->format('Y-m-d H:i:s');
+        $orderId   = $this->orders->insertOrder([
+            'order_code'   => $orderCode, 'user_id' => $userId, 'plan_id' => $this->planId($offer['code']), 'plan_code' => $offer['code'],
             'plan_version' => $offer['version'], 'duration_months' => $offer['duration_months'], 'amount_idr' => $offer['price_idr'],
-            'currency' => 'IDR', 'status' => 'creating', 'request_key' => $requestKey, 'expires_at' => $expiresAt->format('Y-m-d H:i:s'),
-            'created_at' => $stamp, 'updated_at' => $stamp,
+            'currency'     => 'IDR', 'status' => 'creating', 'request_key' => $requestKey, 'expires_at' => $expiresAt->format('Y-m-d H:i:s'),
+            'created_at'   => $stamp, 'updated_at' => $stamp,
         ]);
 
         // Outside any database lock: the gateway may be slow. A connection error (DNS, refused) is
         // retried once; Midtrans rejects a duplicate order_id, so a retry can never create two.
         $request = [
-                'transaction_details' => ['order_id' => $orderCode, 'gross_amount' => $offer['price_idr']],
-                'item_details' => [[
-                    'id' => $offer['code'] . '-' . $offer['duration_months'],
-                    'price' => $offer['price_idr'],
-                    'quantity' => 1,
-                    'name' => mb_substr('Paket ' . $offer['label'] . ' ' . $offer['duration_months'] . ' bulan', 0, 50),
-                ]],
-                // Only the username: no email, phone or name is sent to the gateway by default.
-                'customer_details' => ['first_name' => mb_substr((string) $account['username'], 0, 50)],
-                'expiry' => [
-                    'start_time' => $nowUtc->setTimezone(new DateTimeZone('Asia/Jakarta'))->format('Y-m-d H:i:s O'),
-                    'unit' => 'minutes',
-                    'duration' => max(15, $this->config->expiryMinutes),
-                ],
-                'callbacks' => ['finish' => base_url('dashboard/billing?order=' . rawurlencode($orderCode))],
+            'transaction_details' => ['order_id' => $orderCode, 'gross_amount' => $offer['price_idr']],
+            'item_details'        => [[
+                'id'       => $offer['code'] . '-' . $offer['duration_months'],
+                'price'    => $offer['price_idr'],
+                'quantity' => 1,
+                'name'     => mb_substr('Paket ' . $offer['label'] . ' ' . $offer['duration_months'] . ' bulan', 0, 50),
+            ]],
+            // Only the username: no email, phone or name is sent to the gateway by default.
+            'customer_details' => ['first_name' => mb_substr((string) $account['username'], 0, 50)],
+            'expiry'           => [
+                'start_time' => $nowUtc->setTimezone(new DateTimeZone('Asia/Jakarta'))->format('Y-m-d H:i:s O'),
+                'unit'       => 'minutes',
+                'duration'   => max(15, $this->config->expiryMinutes),
+            ],
+            'callbacks' => ['finish' => base_url('dashboard/billing?order=' . rawurlencode($orderCode))],
         ];
+
         try {
             try {
                 $snap = $this->gateway->createSnap($request);
@@ -157,6 +160,7 @@ final class CheckoutService
         } catch (Throwable $exception) {
             $this->orders->update($orderId, ['status' => PaymentStatus::FAILED, 'updated_at' => $stamp]);
             log_message('error', 'Snap create failed for {order}: {message}', ['order' => $orderCode, 'message' => $exception->getMessage()]);
+
             throw new DomainException(lang('Billing.checkoutFailed'));
         }
 
@@ -175,11 +179,13 @@ final class CheckoutService
     private function closeOpenOrders(int $userId, string $nowUtc, DateTimeInterface $now): void
     {
         $cancels = $this->cancels ??= new CancelPaymentService($this->orders, $this->gateway, $this->payments);
+
         foreach ($this->orders->waitingForUser($userId, $nowUtc) as $order) {
             try {
                 $result = $cancels->cancel($userId, (string) $order['order_code'], $now);
             } catch (Throwable $exception) {
                 log_message('warning', 'Could not close {order} before a new checkout: {message}', ['order' => $order['order_code'], 'message' => $exception->getMessage()]);
+
                 throw new DomainException(lang('Billing.checkoutPreviousOpen', [$order['order_code']]));
             }
             if ($result === CancelPaymentService::ALREADY_PAID) {
@@ -222,6 +228,7 @@ final class CheckoutService
                 return (int) $plan['id'];
             }
         }
+
         throw new DomainException(lang('Billing.planUnavailable'));
     }
 }

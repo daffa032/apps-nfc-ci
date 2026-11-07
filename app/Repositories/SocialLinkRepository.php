@@ -18,7 +18,7 @@ class SocialLinkRepository
     public function saveForUser(int $userId, string $channel, ?string $url): bool
     {
         $profile = $this->profiles->where('id_user', $userId)->first();
-        if (!$profile) {
+        if (! $profile) {
             return false;
         }
 

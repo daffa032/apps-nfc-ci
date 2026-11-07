@@ -6,6 +6,9 @@ use App\Services\Uploads\PublicImageStorage;
 use CodeIgniter\HTTP\Files\UploadedFile;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class PublicImageStorageTest extends TestCase
 {
     private array $created = [];
@@ -22,31 +25,31 @@ final class PublicImageStorageTest extends TestCase
     public function testValidImageIsReencodedAsScaledWebp(): void
     {
         foreach (['png' => 'imagepng', 'jpg' => 'imagejpeg', 'webp' => 'imagewebp'] as $ext => $encode) {
-            $name = (new PublicImageStorage())->store($this->upload($ext, $encode, 2400, 1200), 'profile_images');
-            $stored = ROOTPATH . 'public/uploads/profile_images/' . $name;
+            $name            = (new PublicImageStorage())->store($this->upload($ext, $encode, 2400, 1200), 'profile_images');
+            $stored          = ROOTPATH . 'public/uploads/profile_images/' . $name;
             $this->created[] = $stored;
 
-            self::assertMatchesRegularExpression('/\A[a-f0-9]{32}\.webp\z/', $name);
+            $this->assertMatchesRegularExpression('/\A[a-f0-9]{32}\.webp\z/', $name);
             $info = getimagesize($stored);
-            self::assertSame(IMAGETYPE_WEBP, $info[2], $ext);
-            self::assertSame([800, 400], [$info[0], $info[1]], $ext . ' scaled to the 800px profile edge');
+            $this->assertSame(IMAGETYPE_WEBP, $info[2], $ext);
+            $this->assertSame([800, 400], [$info[0], $info[1]], $ext . ' scaled to the 800px profile edge');
         }
     }
 
     public function testFakeImageIsRejectedAndNothingIsStored(): void
     {
         $before = glob(ROOTPATH . 'public/uploads/multiple_images/*') ?: [];
-        $path = tempnam(sys_get_temp_dir(), 'up');
+        $path   = tempnam(sys_get_temp_dir(), 'up');
         file_put_contents($path, "<?php echo 'x';");
         $this->created[] = $path;
 
         try {
             (new PublicImageStorage())->store(new UploadedFile($path, 'photo.png', 'image/png', filesize($path), UPLOAD_ERR_OK), 'multiple_images');
-            self::fail('A PHP file named .png must be rejected.');
+            $this->fail('A PHP file named .png must be rejected.');
         } catch (InvalidArgumentException $exception) {
-            self::assertSame('Unggah gambar JPEG, PNG, atau WebP maksimal 5 MB.', $exception->getMessage());
+            $this->assertSame('Unggah gambar JPEG, PNG, atau WebP maksimal 5 MB.', $exception->getMessage());
         }
-        self::assertSame($before, glob(ROOTPATH . 'public/uploads/multiple_images/*') ?: []);
+        $this->assertSame($before, glob(ROOTPATH . 'public/uploads/multiple_images/*') ?: []);
     }
 
     public function testUnknownFolderIsRejected(): void

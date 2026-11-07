@@ -12,7 +12,9 @@ final class SocialLinkService
 {
     private const CHANNELS = ['instagram', 'facebook', 'twitter', 'tiktok', 'website'];
 
-    /** Matches the sosial_media column size (migration 2026-10-11-180000) and the form maxlength. */
+    /**
+     * Matches the sosial_media column size (migration 2026-10-11-180000) and the form maxlength.
+     */
     public const MAX_URL_LENGTH = 500;
 
     public function __construct(private ?SocialLinkRepository $links = null)
@@ -30,7 +32,7 @@ final class SocialLinkService
         if ($validated === null) {
             throw new DomainException(lang('Profile.linkInvalid'));
         }
-        if (!$this->links->saveForUser($userId, $channel, $validated)) {
+        if (! $this->links->saveForUser($userId, $channel, $validated)) {
             throw new RuntimeException(lang('Profile.linkSaveFailed'));
         }
     }
@@ -38,14 +40,14 @@ final class SocialLinkService
     public function delete(int $userId, string $channel): void
     {
         $this->assertChannel($channel);
-        if (!$this->links->saveForUser($userId, $channel, null)) {
+        if (! $this->links->saveForUser($userId, $channel, null)) {
             throw new RuntimeException(lang('Profile.linkDeleteFailed'));
         }
     }
 
     private function assertChannel(string $channel): void
     {
-        if (!in_array($channel, self::CHANNELS, true)) {
+        if (! in_array($channel, self::CHANNELS, true)) {
             throw new DomainException(lang('Profile.channelInvalid'));
         }
     }

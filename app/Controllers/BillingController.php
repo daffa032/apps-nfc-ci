@@ -33,22 +33,22 @@ class BillingController extends BaseController
 
     protected $helpers = ['asset', 'feedback', 'date'];
 
-    public function index(): string|RedirectResponse
+    public function index(): RedirectResponse|string
     {
         $summary = (new DashboardService())->summaryFor($this->currentUserId(), new DateTimeImmutable('now'));
         if ($summary === null) {
             return redirect()->to('/login');
         }
 
-        $config = config('Billing');
+        $config   = config('Billing');
         $whatsapp = preg_replace('/\D+/', '', $config->whatsapp) ?? '';
-        $email = filter_var($config->email, FILTER_VALIDATE_EMAIL) ? $config->email : '';
-        $message = lang('Billing.message', [$this->currentUsername()]);
-        $orders = new PaymentOrderRepository();
+        $email    = filter_var($config->email, FILTER_VALIDATE_EMAIL) ? $config->email : '';
+        $message  = lang('Billing.message', [$this->currentUsername()]);
+        $orders   = new PaymentOrderRepository();
 
         // Back from the gateway (?order=...): show what the server knows; never trust the URL.
         $returned = null;
-        $code = (string) $this->request->getGet('order');
+        $code     = (string) $this->request->getGet('order');
         $notYours = false;
         if ($code !== '' && preg_match('/\A[A-Za-z0-9-]{1,50}\z/', $code) === 1) {
             $returned = $orders->findOwnedOrder($code, $this->currentUserId());
@@ -60,18 +60,18 @@ class BillingController extends BaseController
         $this->response->setHeader('Cache-Control', 'private, no-store');
 
         return view('dashboard/pages/billing/billing', $this->dashboardShellData() + $summary + [
-            'whatsappUrl' => $whatsapp !== '' ? 'https://wa.me/' . $whatsapp . '?text=' . rawurlencode($message) : null,
-            'emailUrl' => $email !== '' ? 'mailto:' . $email . '?subject=' . rawurlencode(lang('Billing.subject')) . '&body=' . rawurlencode($message) : null,
+            'whatsappUrl'   => $whatsapp !== '' ? 'https://wa.me/' . $whatsapp . '?text=' . rawurlencode($message) : null,
+            'emailUrl'      => $email !== '' ? 'mailto:' . $email . '?subject=' . rawurlencode(lang('Billing.subject')) . '&body=' . rawurlencode($message) : null,
             'transferLines' => array_values(array_filter(array_map('trim', preg_split('/\R/', $config->transferInstructions) ?: []), 'strlen')),
-            'offers' => $this->currentRole() === 'User' ? (new CheckoutService())->offers() : [],
-            'gatewayOn' => config('Midtrans')->isConfigured(),
+            'offers'        => $this->currentRole() === 'User' ? (new CheckoutService())->offers() : [],
+            'gatewayOn'     => config('Midtrans')->isConfigured(),
             // History shows paid invoices only; open ones get their own box with "continue paying".
-            'orders' => $orders->paidForUser($this->currentUserId(), 10),
+            'orders'        => $orders->paidForUser($this->currentUserId(), 10),
             'waitingOrders' => $orders->waitingForUser($this->currentUserId(), gmdate('Y-m-d H:i:s')),
             'returnedOrder' => $returned,
             'orderNotYours' => $notYours,
-            'requestKey' => bin2hex(random_bytes(16)),
-            'feedback' => $this->pendingFeedback(),
+            'requestKey'    => bin2hex(random_bytes(16)),
+            'feedback'      => $this->pendingFeedback(),
         ]);
     }
 
@@ -85,13 +85,15 @@ class BillingController extends BaseController
                 $this->currentUserId(),
                 (string) $this->request->getPost('plan_code'),
                 (string) $this->request->getPost('request_key'),
-                new DateTimeImmutable('now')
+                new DateTimeImmutable('now'),
             );
-        } catch (FieldException|DomainException $exception) {
+        } catch (DomainException|FieldException $exception) {
             $this->audit('payment.checkout', 'denied', 'account', $this->currentUserId(), [], 'checkout_refused');
+
             return $this->redirectFailure(self::PAGE, $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Checkout failed: {exception}', ['exception' => $exception]);
+
             return $this->redirectFailure(self::PAGE, $this->withReference(lang('Billing.checkoutFailed')));
         }
 
@@ -112,15 +114,17 @@ class BillingController extends BaseController
      */
     public function cancel(string $orderCode): RedirectResponse
     {
-        if (!service('throttler')->check('pay_cancel_' . $this->currentUserId(), 6, MINUTE)) {
+        if (! service('throttler')->check('pay_cancel_' . $this->currentUserId(), 6, MINUTE)) {
             return $this->redirectFailure(self::PAGE, lang('Billing.checkTooOften'));
         }
+
         try {
             $result = (new CancelPaymentService())->cancel($this->currentUserId(), $orderCode, new DateTimeImmutable('now'));
         } catch (DomainException $exception) {
             return $this->redirectFailure(self::PAGE, $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('warning', 'Cancel failed for {order}: {message}', ['order' => $orderCode, 'message' => $exception->getMessage()]);
+
             return $this->redirectFailure(self::PAGE, $this->withReference(lang('Billing.cancelFailed')));
         }
         $this->audit('payment.cancelled', 'success', 'payment_order', $orderCode, [], $result);
@@ -140,14 +144,14 @@ class BillingController extends BaseController
         $order = preg_match('/\A[A-Za-z0-9-]{1,50}\z/', $orderCode) === 1
             ? (new PaymentOrderRepository())->findOwnedOrder($orderCode, $this->currentUserId())
             : null;
-        if ($order === null || !in_array($order['status'], ['paid', 'refunded'], true)) {
+        if ($order === null || ! in_array($order['status'], ['paid', 'refunded'], true)) {
             throw PageNotFoundException::forPageNotFound();
         }
         $this->response->setHeader('Cache-Control', 'private, no-store');
 
         return view('dashboard/pages/billing/receipt', $this->dashboardShellData() + [
-            'order' => $order,
-            'period' => $order['subscription_id'] ? (new SubscriptionRepository())->find((int) $order['subscription_id']) : null,
+            'order'    => $order,
+            'period'   => $order['subscription_id'] ? (new SubscriptionRepository())->find((int) $order['subscription_id']) : null,
             'username' => $this->currentUsername(),
         ]);
     }
@@ -161,13 +165,15 @@ class BillingController extends BaseController
         if ($order === null) {
             return $this->redirectFailure(self::PAGE, lang('Billing.orderMissing'));
         }
-        if (!service('throttler')->check('pay_check_' . $this->currentUserId(), 6, MINUTE)) {
+        if (! service('throttler')->check('pay_check_' . $this->currentUserId(), 6, MINUTE)) {
             return $this->redirectFailure(self::PAGE . '?order=' . rawurlencode($orderCode), lang('Billing.checkTooOften'));
         }
+
         try {
             (new ApplyPaymentService())->refresh($order, new DateTimeImmutable('now'));
         } catch (Throwable $exception) {
             log_message('warning', 'Status check failed for {order}: {message}', ['order' => $orderCode, 'message' => $exception->getMessage()]);
+
             return $this->redirectFailure(self::PAGE . '?order=' . rawurlencode($orderCode), $this->withReference(lang('Billing.checkFailed')));
         }
 

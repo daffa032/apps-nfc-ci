@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\Cards;
 
+use App\Libraries\QrCode;
 use App\Repositories\AccountRepository;
 use App\Repositories\CardAliasRepository;
 use App\Repositories\ProfileRepository;
 use App\Repositories\SocialLinkRepository;
 use App\Repositories\TemplateRepository;
 use App\Services\Users\AccountStatus;
+use DateTimeImmutable;
 use DateTimeInterface;
 
 /**
@@ -18,12 +20,11 @@ use DateTimeInterface;
  */
 final class PublicCardService
 {
-    public const SHOW = 'show';
+    public const SHOW      = 'show';
     public const SUSPENDED = 'suspended';
-    public const INACTIVE = 'inactive';
+    public const INACTIVE  = 'inactive';
     public const NOT_FOUND = 'not_found';
-    public const MOVED = 'moved';
-
+    public const MOVED     = 'moved';
     private const CHANNELS = ['instagram', 'facebook', 'twitter', 'tiktok', 'website'];
 
     public function __construct(
@@ -33,7 +34,7 @@ final class PublicCardService
         private ?CardAliasRepository $aliases = null,
         private ?AccountRepository $accounts = null,
         private ?TemplateRepository $templates = null,
-        private ?BrandAssetService $brand = null
+        private ?BrandAssetService $brand = null,
     ) {
         $this->profiles ??= new ProfileRepository();
         $this->links ??= new SocialLinkRepository();
@@ -53,7 +54,7 @@ final class PublicCardService
     public function forUsername(string $username, DateTimeInterface $now): array
     {
         $user = $this->profiles->findAccountByUsername($username);
-        if (!$user) {
+        if (! $user) {
             $aliasOf = $this->aliases->userIdForAlias($username);
             $current = $aliasOf === null ? null : $this->accounts->find($aliasOf);
 
@@ -62,12 +63,12 @@ final class PublicCardService
         if (AccountStatus::isSuspended($user)) {
             return ['state' => self::SUSPENDED];
         }
-        if (!$this->access->isCardPublic($user, $now)) {
+        if (! $this->access->isCardPublic($user, $now)) {
             return ['state' => self::INACTIVE];
         }
 
         $profile = $this->profiles->findForUser((int) $user['id_user']);
-        $card = $profile ? $this->present($user, $profile, (string) ($profile['templates'] ?? '')) : null;
+        $card    = $profile ? $this->present($user, $profile, (string) ($profile['templates'] ?? '')) : null;
 
         return $card === null ? ['state' => self::NOT_FOUND] : ['state' => self::SHOW] + $card;
     }
@@ -105,13 +106,13 @@ final class PublicCardService
 
         return ['state' => self::SHOW, 'data' => [
             'cardLocale' => $card['data']['cardLocale'],
-            'username' => (string) $user['username'],
-            'name' => trim((string) ($p['nama'] ?? '')),
-            'jobTitle' => (string) ($p['job_title'] ?? ''),
-            'company' => trim((string) ($p['company_name'] ?? '')),
-            'photo' => $p['profile_image'],
-            'cardUrl' => $card['data']['shareUrl'],
-            'qr' => \App\Libraries\QrCode::encode($card['data']['shareUrl']),
+            'username'   => (string) $user['username'],
+            'name'       => trim((string) ($p['nama'] ?? '')),
+            'jobTitle'   => (string) ($p['job_title'] ?? ''),
+            'company'    => trim((string) ($p['company_name'] ?? '')),
+            'photo'      => $p['profile_image'],
+            'cardUrl'    => $card['data']['shareUrl'],
+            'qr'         => QrCode::encode($card['data']['shareUrl']),
         ]];
     }
 
@@ -128,7 +129,7 @@ final class PublicCardService
         if ($view === null) {
             return null;
         }
-        $segments = [];
+        $segments  = [];
         $proDesign = null;
         $proSource = TemplateCatalog::proSourcePath($templateFile);
         if ($proSource !== null) {
@@ -137,7 +138,7 @@ final class PublicCardService
             if ($html === '') {
                 return null;
             }
-            $segments = (new TemplateHtmlSanitizer())->segments($html);
+            $segments  = (new TemplateHtmlSanitizer())->segments($html);
             $proDesign = substr((string) TemplateCatalog::layoutFor($templateFile), 4);
         } elseif (TemplateCatalog::isCustom($templateFile)) {
             // Re-checked on every render, so a stored version can never bypass the sanitizer.
@@ -150,23 +151,25 @@ final class PublicCardService
             $proDesign = TemplateHtmlSanitizer::proDesign((new TemplateHtmlSanitizer())->normalize($html));
         }
 
-        $profile['phone_number'] = CardPresentation::phone($profile['no_hp'] ?? null);
-        $profile['no_whatsapp'] = CardPresentation::phone(($profile['no_whatsapp'] ?? null) ?: ($profile['no_hp'] ?? null));
-        $profile['email'] = filter_var($profile['email'] ?? '', FILTER_VALIDATE_EMAIL) ? $profile['email'] : '';
+        $profile['phone_number']    = CardPresentation::phone($profile['no_hp'] ?? null);
+        $profile['no_whatsapp']     = CardPresentation::phone(($profile['no_whatsapp'] ?? null) ?: ($profile['no_hp'] ?? null));
+        $profile['email']           = filter_var($profile['email'] ?? '', FILTER_VALIDATE_EMAIL) ? $profile['email'] : '';
         $profile['google_map_link'] = CardPresentation::webUrl($profile['google_map_link'] ?? null);
-        $profile['profile_image'] = CardPresentation::imageName($profile['profile_image'] ?? null);
-        $profile['job_title'] = trim((string) ($profile['job_title'] ?? ''));
+        $profile['profile_image']   = CardPresentation::imageName($profile['profile_image'] ?? null);
+        $profile['job_title']       = trim((string) ($profile['job_title'] ?? ''));
 
         $images = [];
+
         foreach ($this->profiles->galleryForProfile((int) $profile['id_data']) as $image) {
             $image['images'] = CardPresentation::imageName($image['images'] ?? null);
             // A blank caption renders no caption box at all, so whitespace counts as empty.
             $image['caption'] = trim((string) ($image['caption'] ?? ''));
-            $images[] = $image;
+            $images[]         = $image;
         }
 
         $stored = $this->profiles->socialLinksForProfile((int) $profile['id_data']) ?? [];
         $social = [];
+
         foreach (self::CHANNELS as $channel) {
             $social[$channel] = CardPresentation::webUrl($stored[$channel] ?? null);
         }
@@ -178,19 +181,19 @@ final class PublicCardService
         return ['view' => $view, 'data' => [
             'layout' => $proDesign !== null ? 'pro-' . $proDesign : TemplateCatalog::layoutFor($templateFile),
             // Public card language is independent of the dashboard/visitor locale.
-            'cardLocale' => self::cardLocale($profile),
-            'user' => $user,
-            'dataPersonal' => $profile,
-            'images' => $images,
+            'cardLocale'       => self::cardLocale($profile),
+            'user'             => $user,
+            'dataPersonal'     => $profile,
+            'images'           => $images,
             'socialMediaLinks' => $social,
-            'galleryColumns' => CardPresentation::galleryColumns($profile),
-            'vcard' => CardPresentation::vcard($profile, $social),
+            'galleryColumns'   => CardPresentation::galleryColumns($profile),
+            'vcard'            => CardPresentation::vcard($profile, $social),
             // Canonical public URL, never the preview or an alias (PRD SH-02).
-            'shareUrl' => base_url(rawurlencode((string) $user['username'])),
-            'segments' => $segments,
+            'shareUrl'  => base_url(rawurlencode((string) $user['username'])),
+            'segments'  => $segments,
             'proDesign' => $proDesign,
             // Brand logo / header background for this design, only while the account is Pro (BR-01).
-            'brand' => $this->brand->forCard($user, $profile, $templateFile, new \DateTimeImmutable('now')),
+            'brand' => $this->brand->forCard($user, $profile, $templateFile, new DateTimeImmutable('now')),
         ]];
     }
 }

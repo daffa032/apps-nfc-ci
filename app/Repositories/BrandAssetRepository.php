@@ -27,10 +27,10 @@ class BrandAssetRepository
             ->where('profile_id', $profileId)
             ->where('template_file', $templateFile)
             ->get()->getRowArray();
-        if (!$row) {
+        if (! $row) {
             return null;
         }
-        $row['brand_logo_visible'] = (int) $row['brand_logo_visible'] === 1;
+        $row['brand_logo_visible']        = (int) $row['brand_logo_visible'] === 1;
         $row['header_background_visible'] = (int) $row['header_background_visible'] === 1;
 
         return $row;
@@ -40,11 +40,12 @@ class BrandAssetRepository
      * Writes the given fields for one template: brand_logo / header_background (null clears) and
      * their *_visible switches (bool).
      *
-     * @param array<string, string|bool|null> $fields
+     * @param array<string, bool|string|null> $fields
      */
     public function save(int $profileId, string $templateFile, array $fields, string $nowUtc): void
     {
         $fields = array_intersect_key($fields, ['brand_logo' => true, 'header_background' => true, 'brand_logo_visible' => true, 'header_background_visible' => true]);
+
         foreach (['brand_logo_visible', 'header_background_visible'] as $switch) {
             if (array_key_exists($switch, $fields)) {
                 $fields[$switch] = $fields[$switch] ? 1 : 0;
@@ -54,11 +55,11 @@ class BrandAssetRepository
             return;
         }
         $columns = array_merge(['profile_id', 'template_file', 'updated_at'], array_keys($fields));
-        $values = array_merge([$profileId, $templateFile, $nowUtc], array_values($fields));
+        $values  = array_merge([$profileId, $templateFile, $nowUtc], array_values($fields));
         $updates = implode(', ', array_map(static fn (string $c): string => "{$c} = VALUES({$c})", array_merge(['updated_at'], array_keys($fields))));
         $this->db->query(
             'INSERT INTO ' . $this->db->prefixTable('card_brand_assets') . ' (' . implode(', ', $columns) . ') VALUES (' . implode(', ', array_fill(0, count($values), '?')) . ') ON DUPLICATE KEY UPDATE ' . $updates,
-            $values
+            $values,
         );
     }
 }

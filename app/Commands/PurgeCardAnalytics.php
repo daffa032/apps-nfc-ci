@@ -15,8 +15,8 @@ use DateTimeImmutable;
  */
 class PurgeCardAnalytics extends BaseCommand
 {
-    protected $group = 'Analytics';
-    protected $name = 'analytics:purge';
+    protected $group       = 'Analytics';
+    protected $name        = 'analytics:purge';
     protected $description = 'Hapus hash pengunjung dan agregat statistik yang melewati masa simpan.';
 
     public function run(array $params)

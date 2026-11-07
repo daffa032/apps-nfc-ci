@@ -19,12 +19,12 @@ class AddJobTitleAndBrandAssets extends Migration
         ]);
 
         $this->forge->addField([
-            'id' => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
-            'profile_id' => ['type' => 'INT', 'null' => false],
-            'template_file' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
-            'brand_logo' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'id'                => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'profile_id'        => ['type' => 'INT', 'null' => false],
+            'template_file'     => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => false],
+            'brand_logo'        => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
             'header_background' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
-            'updated_at' => ['type' => 'DATETIME', 'null' => false],
+            'updated_at'        => ['type' => 'DATETIME', 'null' => false],
         ]);
         $this->forge->addPrimaryKey('id');
         $this->forge->addUniqueKey(['profile_id', 'template_file']);

@@ -27,7 +27,7 @@ class MidtransClient
     public function createSnap(array $payload): array
     {
         [$status, $body] = $this->request('POST', $this->config->snapUrl(), $payload);
-        if ($status !== 201 || !is_string($body['token'] ?? null) || !is_string($body['redirect_url'] ?? null)) {
+        if ($status !== 201 || ! is_string($body['token'] ?? null) || ! is_string($body['redirect_url'] ?? null)) {
             throw new RuntimeException('Snap request failed (HTTP ' . $status . ').');
         }
 
@@ -43,11 +43,11 @@ class MidtransClient
     public function status(string $orderCode): ?array
     {
         [$status, $body] = $this->request('GET', $this->config->apiBaseUrl() . '/v2/' . rawurlencode($orderCode) . '/status');
-        $code = (string) ($body['status_code'] ?? '');
+        $code            = (string) ($body['status_code'] ?? '');
         if ($code === '404') {
             return null;
         }
-        if ($status !== 200 || !isset($body['transaction_status'])) {
+        if ($status !== 200 || ! isset($body['transaction_status'])) {
             throw new RuntimeException('Status request failed (HTTP ' . $status . ', code ' . $code . ').');
         }
 
@@ -62,10 +62,11 @@ class MidtransClient
     public function cancel(string $orderCode): string
     {
         [$status, $body] = $this->request('POST', $this->config->apiBaseUrl() . '/v2/' . rawurlencode($orderCode) . '/cancel');
-        $code = (string) ($body['status_code'] ?? '');
+        $code            = (string) ($body['status_code'] ?? '');
         if (in_array($code, ['200', '404', '412'], true)) {
             return $code;
         }
+
         throw new RuntimeException('Cancel request failed (HTTP ' . $status . ', code ' . $code . ').');
     }
 
@@ -74,22 +75,22 @@ class MidtransClient
      */
     protected function request(string $method, string $url, ?array $payload = null): array
     {
-        if (!$this->config->isConfigured()) {
+        if (! $this->config->isConfigured()) {
             throw new RuntimeException('Midtrans is not configured.');
         }
         $curl = curl_init($url);
         curl_setopt_array($curl, [
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_USERPWD => $this->config->serverKey . ':',
-            CURLOPT_HTTPHEADER => ['Accept: application/json', 'Content-Type: application/json'],
+            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_USERPWD        => $this->config->serverKey . ':',
+            CURLOPT_HTTPHEADER     => ['Accept: application/json', 'Content-Type: application/json'],
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+            CURLOPT_PROTOCOLS      => CURLPROTO_HTTPS,
             CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT        => 30,
         ] + ($payload === null ? [] : [CURLOPT_POSTFIELDS => json_encode($payload, JSON_THROW_ON_ERROR)]));
-        $raw = curl_exec($curl);
+        $raw    = curl_exec($curl);
         $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-        $errno = curl_errno($curl);
+        $errno  = curl_errno($curl);
         curl_close($curl);
         if ($raw === false || $status === 0) {
             throw new GatewayUnknownException('Gateway not reachable (curl ' . $errno . ').');
@@ -106,7 +107,7 @@ class MidtransClient
     public function validSignature(array $notification): bool
     {
         foreach (['order_id', 'status_code', 'gross_amount', 'signature_key'] as $field) {
-            if (!is_string($notification[$field] ?? null) || $notification[$field] === '') {
+            if (! is_string($notification[$field] ?? null) || $notification[$field] === '') {
                 return false;
             }
         }

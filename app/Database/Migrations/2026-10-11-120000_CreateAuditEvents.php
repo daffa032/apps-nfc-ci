@@ -16,17 +16,17 @@ class CreateAuditEvents extends Migration
     public function up()
     {
         $this->forge->addField([
-            'id' => ['type' => 'BIGINT', 'unsigned' => true, 'auto_increment' => true],
-            'request_id' => ['type' => 'CHAR', 'constraint' => 16],
-            'actor_id' => ['type' => 'INT', 'null' => true],
-            'actor_type' => ['type' => 'VARCHAR', 'constraint' => 16],
-            'action' => ['type' => 'VARCHAR', 'constraint' => 48],
-            'target_type' => ['type' => 'VARCHAR', 'constraint' => 24, 'null' => true],
-            'target_id' => ['type' => 'VARCHAR', 'constraint' => 32, 'null' => true],
-            'outcome' => ['type' => 'VARCHAR', 'constraint' => 8],
-            'reason' => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
+            'id'             => ['type' => 'BIGINT', 'unsigned' => true, 'auto_increment' => true],
+            'request_id'     => ['type' => 'CHAR', 'constraint' => 16],
+            'actor_id'       => ['type' => 'INT', 'null' => true],
+            'actor_type'     => ['type' => 'VARCHAR', 'constraint' => 16],
+            'action'         => ['type' => 'VARCHAR', 'constraint' => 48],
+            'target_type'    => ['type' => 'VARCHAR', 'constraint' => 24, 'null' => true],
+            'target_id'      => ['type' => 'VARCHAR', 'constraint' => 32, 'null' => true],
+            'outcome'        => ['type' => 'VARCHAR', 'constraint' => 8],
+            'reason'         => ['type' => 'VARCHAR', 'constraint' => 64, 'null' => true],
             'changed_fields' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
-            'occurred_at' => ['type' => 'DATETIME'],
+            'occurred_at'    => ['type' => 'DATETIME'],
         ]);
         $this->forge->addPrimaryKey('id');
         $this->forge->addKey('occurred_at');

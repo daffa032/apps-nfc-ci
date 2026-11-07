@@ -18,7 +18,7 @@ class ProfileRepository
         private ?UserPersonalModel $profiles = null,
         private ?SocialMediaModel $social = null,
         private ?BaseConnection $db = null,
-        private ?ImageModel $images = null
+        private ?ImageModel $images = null,
     ) {
         $this->profiles ??= new UserPersonalModel();
         $this->social ??= new SocialMediaModel();
@@ -84,9 +84,10 @@ class ProfileRepository
     public function addGalleryImages(int $profileId, array $rows): void
     {
         $this->db->transBegin();
+
         try {
             foreach ($rows as $row) {
-                if (!$this->images->insert(['id_data' => $profileId] + $row)) {
+                if (! $this->images->insert(['id_data' => $profileId] + $row)) {
                     throw new RuntimeException('Foto gagal disimpan.');
                 }
             }
@@ -96,6 +97,7 @@ class ProfileRepository
             $this->db->transCommit();
         } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }
@@ -114,21 +116,24 @@ class ProfileRepository
     {
         $profile = $this->findForUser($userId);
         if ($profile) {
-            if (!$this->profiles->where('id_user', $userId)->update($profile['id_data'], $data)) {
+            if (! $this->profiles->where('id_user', $userId)->update($profile['id_data'], $data)) {
                 throw new RuntimeException('Profil gagal disimpan.');
             }
+
             return;
         }
 
         $this->db->transBegin();
+
         try {
             $profileId = $this->profiles->insert($data + ['id_user' => $userId], true);
-            if (!$profileId || !$this->social->insert(['id_data' => $profileId]) || $this->db->transStatus() === false) {
+            if (! $profileId || ! $this->social->insert(['id_data' => $profileId]) || $this->db->transStatus() === false) {
                 throw new RuntimeException('Profil gagal dibuat.');
             }
             $this->db->transCommit();
         } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }

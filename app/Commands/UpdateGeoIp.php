@@ -7,7 +7,10 @@ namespace App\Commands;
 use App\Libraries\MaxMindReader;
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
+use FilesystemIterator;
 use PharData;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use RuntimeException;
 use Throwable;
 
@@ -18,11 +21,11 @@ use Throwable;
  */
 class UpdateGeoIp extends BaseCommand
 {
-    protected $group = 'Locale';
-    protected $name = 'geoip:update';
-    protected $description = 'Unduh dan pasang GeoLite2 Country terbaru untuk deteksi bahasa awal.';
-
     private const URL = 'https://download.maxmind.com/geoip/databases/GeoLite2-Country/download?suffix=';
+
+    protected $group       = 'Locale';
+    protected $name        = 'geoip:update';
+    protected $description = 'Unduh dan pasang GeoLite2 Country terbaru untuk deteksi bahasa awal.';
 
     public function run(array $params)
     {
@@ -34,10 +37,11 @@ class UpdateGeoIp extends BaseCommand
         }
 
         $target = $config->geoipDatabase;
-        $dir = dirname($target);
-        $work = $dir . '/.update-' . bin2hex(random_bytes(6));
+        $dir    = dirname($target);
+        $work   = $dir . '/.update-' . bin2hex(random_bytes(6));
+
         try {
-            if (!is_dir($dir) && !mkdir($dir, 0750, true) && !is_dir($dir)) {
+            if (! is_dir($dir) && ! mkdir($dir, 0750, true) && ! is_dir($dir)) {
                 throw new RuntimeException('Folder GeoIP tidak dapat dibuat.');
             }
             mkdir($work, 0700);
@@ -45,13 +49,14 @@ class UpdateGeoIp extends BaseCommand
             $this->download(self::URL . 'tar.gz', $archive, $config->geoipAccountId, $config->geoipLicenseKey);
             $checksum = $this->download(self::URL . 'tar.gz.sha256', null, $config->geoipAccountId, $config->geoipLicenseKey);
             $expected = strtolower(strtok(trim($checksum), " \t") ?: '');
-            if (preg_match('/\A[a-f0-9]{64}\z/', $expected) !== 1 || !hash_equals($expected, hash_file('sha256', $archive))) {
+            if (preg_match('/\A[a-f0-9]{64}\z/', $expected) !== 1 || ! hash_equals($expected, hash_file('sha256', $archive))) {
                 throw new RuntimeException('Checksum SHA-256 tidak cocok.');
             }
 
             // Only the .mmdb is taken from the archive, by its own name; no other path is written.
             $mmdb = null;
-            foreach (new \RecursiveIteratorIterator(new PharData($archive)) as $entry) {
+
+            foreach (new RecursiveIteratorIterator(new PharData($archive)) as $entry) {
                 if ($entry->getFilename() === 'GeoLite2-Country.mmdb') {
                     $mmdb = $work . '/new.mmdb';
                     if (file_put_contents($mmdb, (string) file_get_contents($entry->getPathname())) === false) {
@@ -70,7 +75,7 @@ class UpdateGeoIp extends BaseCommand
                 throw new RuntimeException('Database baru tidak dapat dibaca.');
             }
             chmod($mmdb, 0640);
-            if (!rename($mmdb, $target)) {
+            if (! rename($mmdb, $target)) {
                 throw new RuntimeException('Database tidak dapat dipasang.');
             }
             CLI::write('GeoLite2 Country terpasang (' . number_format((int) filesize($target)) . ' byte).', 'green');
@@ -90,21 +95,21 @@ class UpdateGeoIp extends BaseCommand
      */
     private function download(string $url, ?string $file, string $account, string $key): string
     {
-        $curl = curl_init($url);
+        $curl   = curl_init($url);
         $handle = $file === null ? null : fopen($file, 'wb');
         curl_setopt_array($curl, [
-            CURLOPT_USERPWD => $account . ':' . $key,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_MAXREDIRS => 5,
-            CURLOPT_PROTOCOLS => CURLPROTO_HTTPS,
+            CURLOPT_USERPWD         => $account . ':' . $key,
+            CURLOPT_FOLLOWLOCATION  => true,
+            CURLOPT_MAXREDIRS       => 5,
+            CURLOPT_PROTOCOLS       => CURLPROTO_HTTPS,
             CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTPS,
-            CURLOPT_CONNECTTIMEOUT => 20,
-            CURLOPT_TIMEOUT => 300,
-            CURLOPT_FAILONERROR => true,
+            CURLOPT_CONNECTTIMEOUT  => 20,
+            CURLOPT_TIMEOUT         => 300,
+            CURLOPT_FAILONERROR     => true,
         ] + ($handle === null ? [CURLOPT_RETURNTRANSFER => true] : [CURLOPT_FILE => $handle]));
-        $body = curl_exec($curl);
+        $body   = curl_exec($curl);
         $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-        $error = curl_error($curl);
+        $error  = curl_error($curl);
         curl_close($curl);
         if ($handle !== null) {
             fclose($handle);
@@ -119,10 +124,11 @@ class UpdateGeoIp extends BaseCommand
 
     private function remove(string $path): void
     {
-        if (!is_dir($path)) {
+        if (! is_dir($path)) {
             return;
         }
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST) as $item) {
+
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST) as $item) {
             $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
         }
         rmdir($path);

@@ -38,7 +38,7 @@ final class LocaleResolver
 
         $country = strtoupper(trim((string) $country));
         // XX/T1 are Cloudflare's "unknown" and Tor markers, not countries.
-        if (preg_match('/\A[A-Z]{2}\z/', $country) === 1 && !in_array($country, ['XX', 'T1'], true)) {
+        if (preg_match('/\A[A-Z]{2}\z/', $country) === 1 && ! in_array($country, ['XX', 'T1'], true)) {
             return $country === 'ID' ? 'id' : 'en';
         }
 
@@ -47,12 +47,14 @@ final class LocaleResolver
 
     private function fromAcceptLanguage(string $header): ?string
     {
-        $best = null;
+        $best       = null;
         $bestWeight = 0.0;
+
         foreach (explode(',', $header) as $part) {
             $pieces = explode(';', trim($part));
-            $tag = strtolower(trim($pieces[0]));
+            $tag    = strtolower(trim($pieces[0]));
             $weight = 1.0;
+
             foreach (array_slice($pieces, 1) as $param) {
                 if (preg_match('/\A\s*q=([01](?:\.\d{1,3})?)\s*\z/', $param, $m) === 1) {
                     $weight = (float) $m[1];
@@ -61,7 +63,7 @@ final class LocaleResolver
             // "in" is the old code for Indonesian that some browsers still send.
             $language = explode('-', $tag)[0] === 'in' ? 'id' : explode('-', $tag)[0];
             if ($weight > $bestWeight && $this->supports($language)) {
-                $best = $language;
+                $best       = $language;
                 $bestWeight = $weight;
             }
         }

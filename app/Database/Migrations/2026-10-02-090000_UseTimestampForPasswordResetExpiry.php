@@ -50,6 +50,7 @@ class UseTimestampForPasswordResetExpiry extends Migration
     private function withZeroDatesAllowed(callable $work): void
     {
         $this->db->query("SET @nfc_prev_mode = @@SESSION.sql_mode, SESSION sql_mode = REPLACE(REPLACE(@@SESSION.sql_mode, 'NO_ZERO_DATE', ''), 'NO_ZERO_IN_DATE', '')");
+
         try {
             $work();
         } finally {

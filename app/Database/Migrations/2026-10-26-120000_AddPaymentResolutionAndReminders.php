@@ -19,19 +19,19 @@ class AddPaymentResolutionAndReminders extends Migration
     public function up()
     {
         $this->forge->addColumn('payment_orders', [
-            'reviewed_at' => ['type' => 'DATETIME', 'null' => true, 'after' => 'needs_review'],
-            'reviewed_by' => ['type' => 'INT', 'null' => true, 'after' => 'reviewed_at'],
-            'review_action' => ['type' => 'VARCHAR', 'constraint' => 20, 'null' => true, 'after' => 'reviewed_by'],
-            'review_note' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true, 'after' => 'review_action'],
-            'check_failures' => ['type' => 'SMALLINT', 'unsigned' => true, 'null' => false, 'default' => 0, 'after' => 'last_checked_at'],
+            'reviewed_at'     => ['type' => 'DATETIME', 'null' => true, 'after' => 'needs_review'],
+            'reviewed_by'     => ['type' => 'INT', 'null' => true, 'after' => 'reviewed_at'],
+            'review_action'   => ['type' => 'VARCHAR', 'constraint' => 20, 'null' => true, 'after' => 'reviewed_by'],
+            'review_note'     => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true, 'after' => 'review_action'],
+            'check_failures'  => ['type' => 'SMALLINT', 'unsigned' => true, 'null' => false, 'default' => 0, 'after' => 'last_checked_at'],
             'receipt_sent_at' => ['type' => 'DATETIME', 'null' => true, 'after' => 'check_failures'],
         ]);
 
         $this->forge->addField([
-            'id' => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
+            'id'              => ['type' => 'INT', 'unsigned' => true, 'auto_increment' => true],
             'subscription_id' => ['type' => 'INT', 'unsigned' => true],
-            'kind' => ['type' => 'VARCHAR', 'constraint' => 8],
-            'sent_at' => ['type' => 'DATETIME'],
+            'kind'            => ['type' => 'VARCHAR', 'constraint' => 8],
+            'sent_at'         => ['type' => 'DATETIME'],
         ]);
         $this->forge->addPrimaryKey('id');
         $this->forge->addUniqueKey(['subscription_id', 'kind']);

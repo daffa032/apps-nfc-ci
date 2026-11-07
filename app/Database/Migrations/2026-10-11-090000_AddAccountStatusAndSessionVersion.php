@@ -19,16 +19,16 @@ class AddAccountStatusAndSessionVersion extends Migration
     {
         $this->forge->addColumn('table_user', [
             'account_status' => [
-                'type' => 'VARCHAR',
+                'type'       => 'VARCHAR',
                 'constraint' => 16,
-                'null' => false,
-                'default' => 'enabled',
+                'null'       => false,
+                'default'    => 'enabled',
             ],
             'session_version' => [
-                'type' => 'INT',
+                'type'     => 'INT',
                 'unsigned' => true,
-                'null' => false,
-                'default' => 1,
+                'null'     => false,
+                'default'  => 1,
             ],
         ]);
     }

@@ -48,7 +48,7 @@ class CardAliasRepository
         $this->db->table('card_aliases')->where('user_id', $userId)->where('alias', $newUsername)->delete();
         $this->db->query(
             "INSERT IGNORE INTO {$this->db->prefixTable('card_aliases')} (alias, user_id, created_at) VALUES (?, ?, ?)",
-            [$oldUsername, $userId, (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s')]
+            [$oldUsername, $userId, (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m-d H:i:s')],
         );
     }
 }

@@ -25,10 +25,10 @@ final class LoginService
     public function attempt(string $username, string $password): array
     {
         $user = $username !== '' ? $this->users->getUserByUsername($username) : null;
-        if (!$user) {
+        if (! $user) {
             throw new DomainException(lang('Auth.errUsername'));
         }
-        if (!password_verify($password, (string) $user['password'])) {
+        if (! password_verify($password, (string) $user['password'])) {
             throw new DomainException(lang('Auth.errPassword'));
         }
         // Checked only after the password, so this message is never shown to someone guessing.
@@ -39,11 +39,11 @@ final class LoginService
         // An expired User may still sign in to reach billing and settings (PRD EX-01);
         // the `subscription` filter keeps card features closed until the card is active again.
         return [
-            'id_user' => (int) $user['id_user'],
-            'username' => (string) $user['username'],
-            'access_level' => (string) $user['access_level'],
+            'id_user'         => (int) $user['id_user'],
+            'username'        => (string) $user['username'],
+            'access_level'    => (string) $user['access_level'],
             'session_version' => AccountStatus::sessionVersion($user),
-            'logged_in' => true,
+            'logged_in'       => true,
         ];
     }
 }

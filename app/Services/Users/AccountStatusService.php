@@ -41,7 +41,7 @@ final class AccountStatusService
         }
 
         $target = $this->accounts->find($targetId);
-        if (!$target) {
+        if (! $target) {
             throw new DomainException(lang('Accounts.accountMissing'));
         }
         if ((AccountStatus::isSuspended($target) ? AccountStatus::SUSPENDED : AccountStatus::ENABLED) === $status) {

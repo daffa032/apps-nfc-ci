@@ -5,12 +5,19 @@ declare(strict_types=1);
 use App\Libraries\GatewayUnknownException;
 use App\Libraries\MidtransClient;
 use App\Repositories\AccountRepository;
+use App\Repositories\AuditLogRepository;
 use App\Repositories\PaymentOrderRepository;
 use App\Repositories\PlanRepository;
+use App\Repositories\SubscriptionRepository;
+use App\Services\Audit\AuditLogService;
+use App\Services\Payments\ApplyPaymentService;
 use App\Services\Payments\CheckoutService;
 use Config\Midtrans;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class CheckoutServiceTest extends TestCase
 {
     private const NOW = '2026-10-13 05:00:00';
@@ -18,62 +25,62 @@ final class CheckoutServiceTest extends TestCase
     public function testCreatesOneOrderWithServerPriceAndSendsOnlyUsername(): void
     {
         [$service, $orders, $gateway] = $this->service();
-        $result = $service->checkout(21, 'pro', str_repeat('a', 32), $this->now());
+        $result                       = $service->checkout(21, 'pro', str_repeat('a', 32), $this->now());
 
-        self::assertSame('pending', $result['status']);
-        self::assertSame('https://app.sandbox.midtrans.com/snap/v4/redirection/x', $result['redirect_url']);
-        self::assertSame(199000, $orders->rows[0]['amount_idr']);
-        self::assertSame(['first_name' => 'daffa'], $gateway->sent[0]['customer_details']);
-        self::assertSame(199000, $gateway->sent[0]['transaction_details']['gross_amount']);
+        $this->assertSame('pending', $result['status']);
+        $this->assertSame('https://app.sandbox.midtrans.com/snap/v4/redirection/x', $result['redirect_url']);
+        $this->assertSame(199000, $orders->rows[0]['amount_idr']);
+        $this->assertSame(['first_name' => 'daffa'], $gateway->sent[0]['customer_details']);
+        $this->assertSame(199000, $gateway->sent[0]['transaction_details']['gross_amount']);
 
         // Same request key again (double click): the same order, no second Snap call.
-        self::assertSame($result['order_code'], $service->checkout(21, 'pro', str_repeat('a', 32), $this->now())['order_code']);
-        self::assertCount(1, $gateway->sent);
+        $this->assertSame($result['order_code'], $service->checkout(21, 'pro', str_repeat('a', 32), $this->now())['order_code']);
+        $this->assertCount(1, $gateway->sent);
     }
 
     public function testUnreachableGatewayIsRetriedOnceThenMarkedBeingChecked(): void
     {
         [$service, $orders, $gateway] = $this->service(failSnap: 2);
-        $result = $service->checkout(21, 'basic', str_repeat('b', 32), $this->now());
+        $result                       = $service->checkout(21, 'basic', str_repeat('b', 32), $this->now());
 
-        self::assertSame('checking', $result['status']);
-        self::assertCount(2, $gateway->sent, 'One retry after a connection error.');
-        self::assertSame('checking', $orders->rows[0]['status']);
+        $this->assertSame('checking', $result['status']);
+        $this->assertCount(2, $gateway->sent, 'One retry after a connection error.');
+        $this->assertSame('checking', $orders->rows[0]['status']);
     }
 
     public function testOneTransientErrorStillOpensThePaymentPage(): void
     {
         [$service, $orders] = $this->service(failSnap: 1);
-        self::assertSame('pending', $service->checkout(21, 'basic', str_repeat('c', 32), $this->now())['status']);
-        self::assertSame('pending', $orders->rows[0]['status']);
+        $this->assertSame('pending', $service->checkout(21, 'basic', str_repeat('c', 32), $this->now())['status']);
+        $this->assertSame('pending', $orders->rows[0]['status']);
     }
 
     public function testAnOrderThatNeverReachedMidtransIsClosedAndANewOneIsCreated(): void
     {
         [$service, $orders, $gateway] = $this->service(failSnap: 2);
-        $first = $service->checkout(21, 'basic', str_repeat('d', 32), $this->now());
-        self::assertSame('checking', $first['status']);
+        $first                        = $service->checkout(21, 'basic', str_repeat('d', 32), $this->now());
+        $this->assertSame('checking', $first['status']);
 
         // Gateway is back; Midtrans has no transaction for the first order ID.
         $gateway->failSnap = 0;
-        $second = $service->checkout(21, 'basic', str_repeat('e', 32), $this->now());
+        $second            = $service->checkout(21, 'basic', str_repeat('e', 32), $this->now());
 
-        self::assertNotSame($first['order_code'], $second['order_code']);
-        self::assertSame('pending', $second['status']);
-        self::assertSame('failed', $orders->rows[0]['status'], 'The stuck order is closed, not left "being checked".');
-        self::assertSame([$first['order_code']], $gateway->statusAsked);
+        $this->assertNotSame($first['order_code'], $second['order_code']);
+        $this->assertSame('pending', $second['status']);
+        $this->assertSame('failed', $orders->rows[0]['status'], 'The stuck order is closed, not left "being checked".');
+        $this->assertSame([$first['order_code']], $gateway->statusAsked);
     }
 
     public function testSwitchingPlanCancelsTheOpenInvoiceFirst(): void
     {
         [$service, $orders, $gateway] = $this->service();
-        $basic = $service->checkout(21, 'basic', str_repeat('1', 32), $this->now());
-        $pro = $service->checkout(21, 'pro', str_repeat('2', 32), $this->now());
+        $basic                        = $service->checkout(21, 'basic', str_repeat('1', 32), $this->now());
+        $pro                          = $service->checkout(21, 'pro', str_repeat('2', 32), $this->now());
 
-        self::assertNotSame($basic['order_code'], $pro['order_code']);
-        self::assertSame([$basic['order_code']], $gateway->cancelled, 'The Basic invoice is cancelled at Midtrans before the Pro one is made.');
-        self::assertSame('cancelled', $orders->rows[0]['status']);
-        self::assertSame('pending', $orders->rows[1]['status']);
+        $this->assertNotSame($basic['order_code'], $pro['order_code']);
+        $this->assertSame([$basic['order_code']], $gateway->cancelled, 'The Basic invoice is cancelled at Midtrans before the Pro one is made.');
+        $this->assertSame('cancelled', $orders->rows[0]['status']);
+        $this->assertSame('pending', $orders->rows[1]['status']);
     }
 
     public function testNewInvoiceIsRefusedWhileTheOldOneCannotBeClosed(): void
@@ -81,25 +88,27 @@ final class CheckoutServiceTest extends TestCase
         [$service, $orders, $gateway] = $this->service();
         $service->checkout(21, 'basic', str_repeat('3', 32), $this->now());
         $gateway->cancelAnswer = 'error';
+
         try {
             $service->checkout(21, 'pro', str_repeat('4', 32), $this->now());
-            self::fail('A second payable invoice must not be created.');
+            $this->fail('A second payable invoice must not be created.');
         } catch (DomainException $exception) {
-            self::assertStringContainsString($orders->rows[0]['order_code'], $exception->getMessage());
+            $this->assertStringContainsString($orders->rows[0]['order_code'], $exception->getMessage());
         }
-        self::assertCount(1, $orders->rows);
-        self::assertSame('pending', $orders->rows[0]['status']);
+        $this->assertCount(1, $orders->rows);
+        $this->assertSame('pending', $orders->rows[0]['status']);
     }
 
     public function testUnknownPlanAndBadRequestKeyAreRefused(): void
     {
         [$service] = $this->service();
+
         foreach ([['gold', str_repeat('f', 32)], ['pro', 'short']] as [$plan, $key]) {
             try {
                 $service->checkout(21, $plan, $key, $this->now());
-                self::fail("$plan/$key must be refused");
+                $this->fail("{$plan}/{$key} must be refused");
             } catch (DomainException $exception) {
-                self::assertNotSame('', $exception->getMessage());
+                $this->assertNotSame('', $exception->getMessage());
             }
         }
     }
@@ -114,7 +123,7 @@ final class CheckoutServiceTest extends TestCase
      */
     private function service(int $failSnap = 0): array
     {
-        $orders = new class extends PaymentOrderRepository {
+        $orders = new class () extends PaymentOrderRepository {
             public array $rows = [];
 
             public function __construct()
@@ -186,7 +195,7 @@ final class CheckoutServiceTest extends TestCase
                 $this->rows[$orderId - 1] = $fields + $this->rows[$orderId - 1];
             }
         };
-        $plans = new class extends PlanRepository {
+        $plans = new class () extends PlanRepository {
             public function __construct()
             {
             }
@@ -199,7 +208,7 @@ final class CheckoutServiceTest extends TestCase
                 ];
             }
         };
-        $accounts = new class extends AccountRepository {
+        $accounts = new class () extends AccountRepository {
             public function __construct()
             {
             }
@@ -209,13 +218,16 @@ final class CheckoutServiceTest extends TestCase
                 return $id === 21 ? ['id_user' => 21, 'username' => 'daffa', 'access_level' => 'User', 'account_status' => 'enabled'] : null;
             }
         };
-        $config = new Midtrans();
+        $config            = new Midtrans();
         $config->serverKey = 'test-key';
-        $gateway = new class ($config, $failSnap) extends MidtransClient {
-            public array $sent = [];
+        $gateway           = new class ($config, $failSnap) extends MidtransClient {
+            public array $sent        = [];
             public array $statusAsked = [];
-            public array $cancelled = [];
-            /** Gateway answer to a cancel: '200', '412', or 'error' to simulate an outage. */
+            public array $cancelled   = [];
+
+            /**
+             * Gateway answer to a cancel: '200', '412', or 'error' to simulate an outage.
+             */
             public string $cancelAnswer = '200';
 
             public function __construct(Midtrans $config, public int $failSnap)
@@ -228,6 +240,7 @@ final class CheckoutServiceTest extends TestCase
                 $this->sent[] = $payload;
                 if ($this->failSnap > 0) {
                     $this->failSnap--;
+
                     throw new GatewayUnknownException('Gateway not reachable (curl 6).');
                 }
 
@@ -252,20 +265,20 @@ final class CheckoutServiceTest extends TestCase
             }
         };
 
-        $payments = new \App\Services\Payments\ApplyPaymentService(
+        $payments = new ApplyPaymentService(
             $orders,
-            new class extends \App\Repositories\SubscriptionRepository {
+            new class () extends SubscriptionRepository {
                 public function __construct()
                 {
                 }
             },
             $accounts,
-            new \App\Services\Audit\AuditLogService(new class extends \App\Repositories\AuditLogRepository {
+            new AuditLogService(new class () extends AuditLogRepository {
                 public function __construct()
                 {
                 }
             }),
-            $gateway
+            $gateway,
         );
 
         return [new CheckoutService($orders, $plans, $accounts, $gateway, $config, $payments), $orders, $gateway];

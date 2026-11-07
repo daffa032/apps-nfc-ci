@@ -2,6 +2,10 @@
 
 namespace Config;
 
+use App\Filters\AccessFilter;
+use App\Filters\Auth;
+use App\Filters\LocaleFilter;
+use App\Filters\SubscriptionFilter;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
 use CodeIgniter\Filters\CSRF;
@@ -25,20 +29,19 @@ class Filters extends BaseFilters
      * or [filter_name => [classname1, classname2, ...]]
      */
     public array $aliases = [
-        
-        'csrf'          => \CodeIgniter\Filters\CSRF::class,
-        'toolbar'       => \CodeIgniter\Filters\DebugToolbar::class,
-        'honeypot'      => \CodeIgniter\Filters\Honeypot::class,
+        'csrf'          => CSRF::class,
+        'toolbar'       => DebugToolbar::class,
+        'honeypot'      => Honeypot::class,
         'invalidchars'  => InvalidChars::class,
         'secureheaders' => SecureHeaders::class,
         'cors'          => Cors::class,
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
-        'auth'          => \App\Filters\Auth::class,
-        'access'        => \App\Filters\AccessFilter::class,
-        'subscription'  => \App\Filters\SubscriptionFilter::class,
-        'locale'        => \App\Filters\LocaleFilter::class,
+        'auth'          => Auth::class,
+        'access'        => AccessFilter::class,
+        'subscription'  => SubscriptionFilter::class,
+        'locale'        => LocaleFilter::class,
     ];
 
     /**
@@ -103,9 +106,7 @@ class Filters extends BaseFilters
      *
      * @var array<string, list<string>>
      */
-    public array $methods = [
-        
-    ];
+    public array $methods = [];
 
     /**
      * List of filter aliases that should run on any
@@ -116,6 +117,5 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [
-    ];
+    public array $filters = [];
 }

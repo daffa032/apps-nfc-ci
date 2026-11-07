@@ -39,8 +39,8 @@ class UserController extends BaseController
     public function listUsers(): string
     {
         return $this->render('dashboard/pages/user_table/user_table', [
-            'users' => $this->service()->list(),
-            'nowUtc' => gmdate('Y-m-d H:i:s'),
+            'users'         => $this->service()->list(),
+            'nowUtc'        => gmdate('Y-m-d H:i:s'),
             'currentUserId' => $this->currentUserId(),
         ]);
     }
@@ -50,6 +50,7 @@ class UserController extends BaseController
         try {
             $this->service()->create((array) $this->request->getPost());
             $this->audit('user.created', 'success', 'user', null, ['username', 'email']);
+
             return $this->redirectSuccess(self::USER_TABLE, lang('Accounts.userAdded'));
         } catch (DomainException $exception) {
             return $exception instanceof FieldException
@@ -58,11 +59,12 @@ class UserController extends BaseController
         } catch (Throwable $exception) {
             log_message('error', 'Unable to create user: {exception}', ['exception' => $exception]);
             $this->audit('user.created', 'failed', 'user', null, [], 'server_error');
+
             return $this->redirectFailureWithoutSecrets('/dashboard/add_user', $this->withReference(lang('Accounts.userAddFailed')));
         }
     }
 
-    public function editUser(int $id): string|RedirectResponse
+    public function editUser(int $id): RedirectResponse|string
     {
         try {
             $user = $this->service()->find($id);
@@ -78,6 +80,7 @@ class UserController extends BaseController
         try {
             $this->service()->update($id, (array) $this->request->getPost());
             $this->audit('user.updated', 'success', 'user', $id, $this->submittedAccountFields());
+
             return $this->redirectSuccess(self::USER_TABLE, lang('Accounts.userUpdated'));
         } catch (DomainException $exception) {
             return $exception instanceof FieldException
@@ -86,6 +89,7 @@ class UserController extends BaseController
         } catch (Throwable $exception) {
             log_message('error', 'Unable to update user: {exception}', ['exception' => $exception]);
             $this->audit('user.updated', 'failed', 'user', $id, [], 'server_error');
+
             return $this->redirectFailureWithoutSecrets('/dashboard/user_table/edit_user/' . $id, $this->withReference(lang('Accounts.userUpdateFailed')));
         }
     }
@@ -95,12 +99,14 @@ class UserController extends BaseController
         try {
             // Deletion is permanent (LOG-13 decision), so it only happens if the audit row is kept.
             $this->auditedMutation('user.deleted', 'user', $id, fn () => $this->service()->delete($id));
+
             return $this->redirectSuccess(self::USER_TABLE, lang('Accounts.userDeleted'));
         } catch (DomainException $exception) {
             return $this->redirectFailure(self::USER_TABLE, $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Unable to delete user: {exception}', ['exception' => $exception]);
             $this->audit('user.deleted', 'failed', 'user', $id, [], 'server_error');
+
             return $this->redirectFailure(self::USER_TABLE, $this->withReference(lang('Accounts.userDeleteFailed')));
         }
     }
@@ -126,6 +132,7 @@ class UserController extends BaseController
         $action = $duration === null ? 'subscription.revoked' : 'subscription.granted';
         if ($this->currentRole() !== 'Super Admin') {
             $this->audit($action, 'denied', 'user', $id ?: null, [], 'not_super_admin');
+
             return $this->redirectFailure('/dashboard', lang('Accounts.accessDenied'));
         }
 
@@ -137,12 +144,14 @@ class UserController extends BaseController
             $reason = trim((string) $this->request->getPost('reason'));
             // Reason text stays in subscription_grants; the audit row keeps the duration code only.
             $this->auditedMutation($action, 'user', $id, fn () => $this->service()->changeAccess($id, $duration, $this->currentUserId(), null, $reason), [], $duration);
+
             return $this->redirectSuccess(self::USER_TABLE, lang('Accounts.validityUpdated'));
         } catch (DomainException $exception) {
             return $this->redirectFailure(self::USER_TABLE, $exception->getMessage());
         } catch (Throwable $exception) {
             log_message('error', 'Unable to change user access: {exception}', ['exception' => $exception]);
             $this->audit($action, 'failed', 'user', $id, [], 'server_error');
+
             return $this->redirectFailure(self::USER_TABLE, $this->withReference(lang('Accounts.validityFailed')));
         }
     }

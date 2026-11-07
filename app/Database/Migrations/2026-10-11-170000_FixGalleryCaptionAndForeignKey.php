@@ -25,7 +25,7 @@ class FixGalleryCaptionAndForeignKey extends Migration
             'caption' => ['name' => 'caption', 'type' => 'VARCHAR', 'constraint' => 255, 'null' => false, 'default' => ''],
         ]);
 
-        $images = $this->db->prefixTable('table_multiple_images');
+        $images   = $this->db->prefixTable('table_multiple_images');
         $profiles = $this->db->prefixTable('table_data_personal');
         $this->db->query("DELETE m FROM {$images} m LEFT JOIN {$profiles} d ON d.id_data = m.id_data WHERE d.id_data IS NULL");
         $this->db->query("ALTER TABLE {$images} ADD INDEX idx_multiple_images_profile (id_data), ADD CONSTRAINT fk_multiple_images_profile FOREIGN KEY (id_data) REFERENCES {$profiles} (id_data) ON DELETE CASCADE ON UPDATE CASCADE");

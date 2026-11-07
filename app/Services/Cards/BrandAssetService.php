@@ -8,11 +8,13 @@ use App\Exceptions\FieldException;
 use App\Repositories\AccountRepository;
 use App\Repositories\BrandAssetRepository;
 use App\Repositories\ProfileRepository;
+use App\Repositories\TemplateRepository;
 use App\Services\Uploads\PublicImageStorage;
 use CodeIgniter\HTTP\Files\UploadedFile;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use InvalidArgumentException;
 use Throwable;
 
 /**
@@ -31,14 +33,14 @@ final class BrandAssetService
         private ?PublicImageStorage $storage = null,
         private ?SubscriptionAccessService $access = null,
         private ?AccountRepository $accounts = null,
-        private ?\App\Repositories\TemplateRepository $templates = null
+        private ?TemplateRepository $templates = null,
     ) {
         $this->profiles ??= new ProfileRepository();
         $this->assets ??= new BrandAssetRepository();
         $this->storage ??= new PublicImageStorage();
         $this->access ??= new SubscriptionAccessService();
         $this->accounts ??= new AccountRepository();
-        $this->templates ??= new \App\Repositories\TemplateRepository();
+        $this->templates ??= new TemplateRepository();
     }
 
     /**
@@ -57,12 +59,13 @@ final class BrandAssetService
         if ($slots === [] || $this->access->planCode($account, $now) !== 'pro') {
             return $empty;
         }
-        $row = $this->assets->find((int) $profile['id_data'], $templateFile) ?? [];
+        $row    = $this->assets->find((int) $profile['id_data'], $templateFile) ?? [];
         $assets = $empty;
+
         foreach ($slots as $slot) {
             $assets[$slot] = ($row[$slot . '_visible'] ?? true) ? CardPresentation::imageName($row[$slot] ?? null) : null;
         }
-        $assets['logo_hidden'] = in_array('brand_logo', $slots, true) && !($row['brand_logo_visible'] ?? true) && CardPresentation::imageName($row['brand_logo'] ?? null) !== null;
+        $assets['logo_hidden'] = in_array('brand_logo', $slots, true) && ! ($row['brand_logo_visible'] ?? true) && CardPresentation::imageName($row['brand_logo'] ?? null) !== null;
 
         return $assets;
     }
@@ -75,7 +78,7 @@ final class BrandAssetService
      */
     private function slotsFor(string $templateFile): array
     {
-        if (!TemplateCatalog::isCustom($templateFile)) {
+        if (! TemplateCatalog::isCustom($templateFile)) {
             return TemplateCatalog::brandSlots($templateFile);
         }
         $html = $this->templates->currentHtml((int) substr($templateFile, strlen(TemplateCatalog::CUSTOM_PREFIX))) ?? '';
@@ -91,6 +94,7 @@ final class BrandAssetService
     {
         if (TemplateCatalog::isCustom($templateFile)) {
             $html = $this->templates->currentHtml((int) substr($templateFile, strlen(TemplateCatalog::CUSTOM_PREFIX))) ?? '';
+
             try {
                 return $html === '' ? null : TemplateHtmlSanitizer::proDesign((new TemplateHtmlSanitizer())->normalize($html));
             } catch (FieldException) {
@@ -109,12 +113,13 @@ final class BrandAssetService
      */
     public function pageFor(int $userId, DateTimeInterface $now): array
     {
-        $account = $this->accounts->find($userId);
-        $profile = $this->profiles->findForUser($userId);
+        $account  = $this->accounts->find($userId);
+        $profile  = $this->profiles->findForUser($userId);
         $template = (string) ($profile['templates'] ?? '');
-        $row = $profile ? ($this->assets->find((int) $profile['id_data'], $template) ?? []) : [];
+        $row      = $profile ? ($this->assets->find((int) $profile['id_data'], $template) ?? []) : [];
 
         $templateName = '';
+
         foreach ($this->templates->all() as $catalogRow) {
             if (($catalogRow['nama_file'] ?? null) === $template) {
                 $templateName = (string) $catalogRow['nama_template'];
@@ -122,14 +127,14 @@ final class BrandAssetService
         }
 
         return [
-            'slots' => $this->slotsFor($template),
-            'templateName' => $templateName,
-            'isPro' => $account !== null && $this->access->planCode($account, $now) === 'pro',
-            'logoFrame' => TemplateCatalog::logoFrame($this->designFor($template)),
-            'brand_logo' => CardPresentation::imageName($row['brand_logo'] ?? null),
+            'slots'             => $this->slotsFor($template),
+            'templateName'      => $templateName,
+            'isPro'             => $account !== null && $this->access->planCode($account, $now) === 'pro',
+            'logoFrame'         => TemplateCatalog::logoFrame($this->designFor($template)),
+            'brand_logo'        => CardPresentation::imageName($row['brand_logo'] ?? null),
             'header_background' => CardPresentation::imageName($row['header_background'] ?? null),
-            'visible' => [
-                'brand_logo' => (bool) ($row['brand_logo_visible'] ?? true),
+            'visible'           => [
+                'brand_logo'        => (bool) ($row['brand_logo_visible'] ?? true),
                 'header_background' => (bool) ($row['header_background_visible'] ?? true),
             ],
         ];
@@ -141,8 +146,8 @@ final class BrandAssetService
      * Hiding an asset keeps its file, so it can be shown again without a new upload.
      *
      * @param array<string, ?UploadedFile> $files   keyed by slot
-     * @param list<string>                  $remove  slots to clear
-     * @param array<string, bool>           $visible slot => shown on the card (slots left out keep their switch)
+     * @param list<string>                 $remove  slots to clear
+     * @param array<string, bool>          $visible slot => shown on the card (slots left out keep their switch)
      *
      * @return list<string> slots that changed
      */
@@ -154,12 +159,13 @@ final class BrandAssetService
             throw new FieldException('brand_logo', lang('Profile.accountMissing'));
         }
         $template = (string) ($profile['templates'] ?? '');
-        $slots = $this->slotsFor($template);
+        $slots    = $this->slotsFor($template);
 
         $profileId = (int) $profile['id_data'];
-        $old = $this->assets->find($profileId, $template) ?? [];
+        $old       = $this->assets->find($profileId, $template) ?? [];
         // Only a switch that actually flips counts as a change.
         $switches = [];
+
         foreach ($visible as $slot => $show) {
             if ((bool) ($old[$slot . '_visible'] ?? true) !== $show) {
                 $switches[$slot] = $show;
@@ -169,13 +175,14 @@ final class BrandAssetService
         $requested = array_values(array_unique(array_merge(
             array_keys(array_filter($files, static fn (?UploadedFile $f): bool => $f !== null && $f->getError() !== UPLOAD_ERR_NO_FILE)),
             $remove,
-            array_keys($switches)
+            array_keys($switches),
         )));
         if ($requested === []) {
             return [];
         }
+
         foreach ($requested as $slot) {
-            if (!in_array($slot, $slots, true)) {
+            if (! in_array($slot, $slots, true)) {
                 throw new FieldException($slot, lang('Profile.brandSlotMissing'));
             }
         }
@@ -184,14 +191,15 @@ final class BrandAssetService
         }
 
         $changes = [];
-        $stored = [];
+        $stored  = [];
+
         try {
             foreach ($slots as $slot) {
                 $file = $files[$slot] ?? null;
                 if ($file !== null && $file->getError() !== UPLOAD_ERR_NO_FILE) {
                     try {
                         $stored[$slot] = $changes[$slot] = $this->storage->store($file, self::FOLDER);
-                    } catch (\InvalidArgumentException $exception) {
+                    } catch (InvalidArgumentException $exception) {
                         throw new FieldException($slot, $exception->getMessage());
                     }
                 } elseif (in_array($slot, $remove, true)) {
@@ -199,6 +207,7 @@ final class BrandAssetService
                 }
             }
             $fields = $changes;
+
             foreach ($switches as $slot => $show) {
                 $fields[$slot . '_visible'] = $show;
             }
@@ -207,6 +216,7 @@ final class BrandAssetService
             foreach ($stored as $name) {
                 $this->storage->delete(self::FOLDER, $name);
             }
+
             throw $exception;
         }
 

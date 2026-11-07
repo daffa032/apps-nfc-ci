@@ -22,7 +22,7 @@ final class TemplateSelectionService
         private ?TemplateRepository $templates = null,
         private ?ProfileRepository $profiles = null,
         private ?AccountRepository $accounts = null,
-        private ?SubscriptionAccessService $access = null
+        private ?SubscriptionAccessService $access = null,
     ) {
         $this->templates ??= new TemplateRepository();
         $this->profiles ??= new ProfileRepository();
@@ -38,21 +38,22 @@ final class TemplateSelectionService
     public function pageFor(int $userId): ?array
     {
         $profile = $userId > 0 ? $this->profiles->findForUser($userId) : null;
-        if (!$profile) {
+        if (! $profile) {
             return null;
         }
 
-        $selected = $profile['templates'] ?? null;
-        $planCode = $this->planCodeFor($userId);
+        $selected  = $profile['templates'] ?? null;
+        $planCode  = $this->planCodeFor($userId);
         $templates = [];
+
         foreach (TemplateCatalog::availableRows($this->templates->all()) as $template) {
             $isSelected = $template['nama_file'] === $selected;
-            if (!$isSelected && !self::isActive($template)) {
+            if (! $isSelected && ! self::isActive($template)) {
                 continue;
             }
             $template['images_template'] = CardPresentation::imageName($template['images_template'] ?? null);
-            $template['allowed'] = $isSelected || self::planAllows($planCode, $template);
-            $templates[] = $template;
+            $template['allowed']         = $isSelected || self::planAllows($planCode, $template);
+            $templates[]                 = $template;
         }
         // Stable: only the selected template moves; the rest keep catalog order.
         usort($templates, static fn (array $a, array $b): int => (int) ($b['nama_file'] === $selected) <=> (int) ($a['nama_file'] === $selected));
@@ -63,19 +64,19 @@ final class TemplateSelectionService
     public function select(int $userId, int $templateId): void
     {
         $template = $templateId > 0 ? $this->templates->find($templateId) : null;
-        if (!$template || TemplateCatalog::viewFor($template['nama_file'] ?? null) === null || !self::isActive($template)) {
+        if (! $template || TemplateCatalog::viewFor($template['nama_file'] ?? null) === null || ! self::isActive($template)) {
             throw new DomainException(lang('Templates.invalid'));
         }
 
         $profile = $userId > 0 ? $this->profiles->findForUser($userId) : null;
-        if (!$profile) {
+        if (! $profile) {
             throw new MissingProfileException(lang('Templates.needProfile'));
         }
-        if (!self::planAllows($this->planCodeFor($userId), $template)) {
+        if (! self::planAllows($this->planCodeFor($userId), $template)) {
             throw new PlanRequiredException(lang('Templates.proOnly'));
         }
 
-        if (!$this->profiles->saveTemplateForUser($userId, (string) $template['nama_file'])) {
+        if (! $this->profiles->saveTemplateForUser($userId, (string) $template['nama_file'])) {
             throw new RuntimeException(lang('Templates.selectFailed'));
         }
     }
@@ -89,8 +90,9 @@ final class TemplateSelectionService
      */
     public function previewFor(int $userId, int $templateId, PublicCardService $cards): ?array
     {
-        $page = $this->pageFor($userId);
+        $page     = $this->pageFor($userId);
         $template = null;
+
         foreach ($page['templates'] ?? [] as $row) {
             if ((int) $row['id_template'] === $templateId) {
                 $template = $row;
@@ -98,7 +100,7 @@ final class TemplateSelectionService
         }
         $account = $template ? $this->accounts->find($userId) : null;
         $profile = $account ? $this->profiles->findForUser($userId) : null;
-        $card = $profile ? $cards->present($account, $profile, (string) $template['nama_file']) : null;
+        $card    = $profile ? $cards->present($account, $profile, (string) $template['nama_file']) : null;
 
         return $card === null ? null : $card + ['template' => $template];
     }

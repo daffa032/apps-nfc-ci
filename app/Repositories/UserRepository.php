@@ -9,6 +9,7 @@ use App\Models\UserModel;
 use App\Models\UserPersonalModel;
 use CodeIgniter\Database\BaseConnection;
 use RuntimeException;
+use Throwable;
 
 class UserRepository
 {
@@ -17,7 +18,7 @@ class UserRepository
         private ?UserPersonalModel $profiles = null,
         private ?SocialMediaModel $socialMedia = null,
         private ?BaseConnection $db = null,
-        private ?CardAliasRepository $aliases = null
+        private ?CardAliasRepository $aliases = null,
     ) {
         $this->users ??= new UserModel();
         $this->profiles ??= new UserPersonalModel();
@@ -76,21 +77,22 @@ class UserRepository
             // expired_date '0000-00-00' (never active) is a zero date that strict sql_mode rejects;
             // relax it for this one insert only, as SubscriptionRepository does for its sync.
             $this->db->query("SET @nfc_prev_mode = @@SESSION.sql_mode, SESSION sql_mode = REPLACE(REPLACE(@@SESSION.sql_mode, 'NO_ZERO_DATE', ''), 'NO_ZERO_IN_DATE', '')");
+
             try {
                 $id = $this->users->insert($data, true);
             } finally {
                 $this->db->query('SET SESSION sql_mode = @nfc_prev_mode');
             }
-            if (!$id) {
+            if (! $id) {
                 throw new RuntimeException('User gagal disimpan.');
             }
 
             $profileId = $this->profiles->insert([
-                'id_user' => $id,
-                'nama' => '',
+                'id_user'      => $id,
+                'nama'         => '',
                 'company_name' => '',
             ], true);
-            if (!$profileId || !$this->socialMedia->insert(['id_data' => $profileId])) {
+            if (! $profileId || ! $this->socialMedia->insert(['id_data' => $profileId])) {
                 throw new RuntimeException('Profil user gagal disimpan.');
             }
 
@@ -101,8 +103,9 @@ class UserRepository
             $this->db->transCommit();
 
             return (int) $id;
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }
@@ -113,12 +116,13 @@ class UserRepository
     public function updateCustomer(int $id, array $data, ?string $previousUsername = null): bool
     {
         $this->db->transBegin();
+
         try {
             $updated = $this->users->revokingSessionsIf($data)->where('access_level', 'User')->update($id, $data);
             if ($updated && $previousUsername !== null && isset($data['username']) && $data['username'] !== $previousUsername) {
                 $this->aliases->rememberRename($id, $previousUsername, $data['username']);
             }
-            if (!$updated || $this->db->transStatus() === false) {
+            if (! $updated || $this->db->transStatus() === false) {
                 $this->db->transRollback();
 
                 return false;
@@ -126,8 +130,9 @@ class UserRepository
             $this->db->transCommit();
 
             return true;
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             $this->db->transRollback();
+
             throw $exception;
         }
     }

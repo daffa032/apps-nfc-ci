@@ -18,21 +18,21 @@ class Dashboard extends BaseController
 
     protected $helpers = ['asset', 'feedback', 'date'];
 
-    public function index(): string|RedirectResponse
+    public function index(): RedirectResponse|string
     {
         $summary = (new DashboardService())->summaryFor($this->currentUserId(), new DateTimeImmutable('now'));
         if ($summary === null) {
             return redirect()->to('/login');
         }
 
-        $now = new DateTimeImmutable('now');
+        $now       = new DateTimeImmutable('now');
         $analytics = new CardAnalyticsService();
-        $account = ['id_user' => $this->currentUserId(), 'access_level' => $this->currentRole()];
+        $account   = ['id_user' => $this->currentUserId(), 'access_level' => $this->currentRole()];
         // Same aggregate as the Statistik page (PRD AN-02); Basic and expired accounts see no numbers.
         $stats = $summary['isActive'] && $analytics->isPro($account, $now) ? $analytics->month($this->currentUserId(), null, $now) : null;
 
         return view('dashboard/pages/main/dashboard', $this->dashboardShellData() + $summary + [
-            'stats' => $stats,
+            'stats'    => $stats,
             'feedback' => $this->pendingFeedback(),
         ]);
     }

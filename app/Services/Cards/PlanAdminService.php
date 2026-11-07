@@ -6,7 +6,6 @@ namespace App\Services\Cards;
 
 use App\Exceptions\FieldException;
 use App\Repositories\PlanRepository;
-use DomainException;
 
 /**
  * Master Harga Paket (PRD MA-01). Prices are whole rupiah; durations are whole months. A disabled
@@ -38,7 +37,7 @@ final class PlanAdminService
         $priceIdr = $digits === '' ? null : (int) $digits;
 
         $months = $duration === '' ? null : (int) $duration;
-        if ($months !== null && !in_array($months, self::DURATIONS, true)) {
+        if ($months !== null && ! in_array($months, self::DURATIONS, true)) {
             throw new FieldException('duration_months', lang('Master.errDuration'));
         }
         if ($enabled && ($priceIdr === null || $months === null)) {

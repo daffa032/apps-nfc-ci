@@ -16,8 +16,8 @@ class CreateCardAliases extends Migration
     public function up()
     {
         $this->forge->addField([
-            'alias' => ['type' => 'VARCHAR', 'constraint' => 255],
-            'user_id' => ['type' => 'INT'],
+            'alias'      => ['type' => 'VARCHAR', 'constraint' => 255],
+            'user_id'    => ['type' => 'INT'],
             'created_at' => ['type' => 'DATETIME'],
         ]);
         $this->forge->addPrimaryKey('alias');

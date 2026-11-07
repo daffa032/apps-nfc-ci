@@ -15,7 +15,7 @@ use Throwable;
 class CountryLookup
 {
     private ?MaxMindReader $reader = null;
-    private bool $opened = false;
+    private bool $opened           = false;
 
     public function __construct(private string $databasePath)
     {
@@ -27,8 +27,9 @@ class CountryLookup
         if ($this->databasePath === '' || filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
             return null;
         }
+
         try {
-            if (!$this->opened) {
+            if (! $this->opened) {
                 $this->opened = true;
                 $this->reader = is_file($this->databasePath) ? new MaxMindReader($this->databasePath) : null;
             }

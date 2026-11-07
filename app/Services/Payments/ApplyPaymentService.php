@@ -9,12 +9,13 @@ use App\Repositories\AccountRepository;
 use App\Repositories\PaymentOrderRepository;
 use App\Repositories\SubscriptionRepository;
 use App\Services\Audit\AuditLogService;
-use App\Services\Cards\SubscriptionAccessService;
 use App\Services\Cards\SubscriptionGrantService;
 use App\Services\Users\AccountStatus;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
+use DomainException;
+use Throwable;
 
 /**
  * Applies what the gateway reports to a local order (PRD BI-02, TECHNICAL "Midtrans"). The only
@@ -32,20 +33,20 @@ use DateTimeZone;
  */
 final class ApplyPaymentService
 {
-    public const OUTCOME_APPLIED = 'applied';
-    public const OUTCOME_UPDATED = 'updated';
-    public const OUTCOME_DUPLICATE = 'duplicate';
-    public const OUTCOME_IGNORED = 'ignored';
-    public const OUTCOME_REVIEW = 'review';
+    public const OUTCOME_APPLIED       = 'applied';
+    public const OUTCOME_UPDATED       = 'updated';
+    public const OUTCOME_DUPLICATE     = 'duplicate';
+    public const OUTCOME_IGNORED       = 'ignored';
+    public const OUTCOME_REVIEW        = 'review';
     public const OUTCOME_UNKNOWN_ORDER = 'unknown_order';
-    public const OUTCOME_REFUNDED = 'refunded';
+    public const OUTCOME_REFUNDED      = 'refunded';
 
     public function __construct(
         private ?PaymentOrderRepository $orders = null,
         private ?SubscriptionRepository $subscriptions = null,
         private ?AccountRepository $accounts = null,
         private ?AuditLogService $audit = null,
-        private ?MidtransClient $gateway = null
+        private ?MidtransClient $gateway = null,
     ) {
         $this->orders ??= new PaymentOrderRepository();
         $this->subscriptions ??= new SubscriptionRepository($this->orders->db());
@@ -60,17 +61,17 @@ final class ApplyPaymentService
      */
     public function apply(array $report, string $source, DateTimeInterface $now): string
     {
-        $orderCode = (string) ($report['order_id'] ?? '');
+        $orderCode         = (string) ($report['order_id'] ?? '');
         $transactionStatus = (string) ($report['transaction_status'] ?? '');
-        $fraud = isset($report['fraud_status']) ? (string) $report['fraud_status'] : null;
-        $nowUtc = DateTimeImmutable::createFromInterface($now)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
-        $event = [
-            'order_code' => mb_substr($orderCode, 0, 50), 'source' => $source, 'transaction_status' => mb_substr($transactionStatus, 0, 32),
-            'fraud_status' => $fraud === null ? null : mb_substr($fraud, 0, 32), 'status_code' => mb_substr((string) ($report['status_code'] ?? ''), 0, 8),
-            'gross_amount' => mb_substr((string) ($report['gross_amount'] ?? ''), 0, 32), 'payment_type' => mb_substr((string) ($report['payment_type'] ?? ''), 0, 32) ?: null,
+        $fraud             = isset($report['fraud_status']) ? (string) $report['fraud_status'] : null;
+        $nowUtc            = DateTimeImmutable::createFromInterface($now)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+        $event             = [
+            'order_code'             => mb_substr($orderCode, 0, 50), 'source' => $source, 'transaction_status' => mb_substr($transactionStatus, 0, 32),
+            'fraud_status'           => $fraud === null ? null : mb_substr($fraud, 0, 32), 'status_code' => mb_substr((string) ($report['status_code'] ?? ''), 0, 8),
+            'gross_amount'           => mb_substr((string) ($report['gross_amount'] ?? ''), 0, 32), 'payment_type' => mb_substr((string) ($report['payment_type'] ?? ''), 0, 32) ?: null,
             'gateway_transaction_id' => mb_substr((string) ($report['transaction_id'] ?? ''), 0, 64) ?: null,
-            'fingerprint' => hash('sha256', implode('|', [$orderCode, $transactionStatus, $fraud ?? '', $report['status_code'] ?? '', $report['transaction_id'] ?? '', $report['settlement_time'] ?? $report['transaction_time'] ?? ''])),
-            'received_at' => $nowUtc,
+            'fingerprint'            => hash('sha256', implode('|', [$orderCode, $transactionStatus, $fraud ?? '', $report['status_code'] ?? '', $report['transaction_id'] ?? '', $report['settlement_time'] ?? $report['transaction_time'] ?? ''])),
+            'received_at'            => $nowUtc,
         ];
 
         $order = $this->orders->findByCode($orderCode);
@@ -83,16 +84,16 @@ final class ApplyPaymentService
 
         $outcome = self::OUTCOME_IGNORED;
         $this->orders->withLockedOrder((int) $order['id'], function (array $locked) use ($event, $report, $transactionStatus, $fraud, $nowUtc, &$outcome): array {
-            $next = PaymentStatus::fromGateway($transactionStatus, $fraud);
+            $next          = PaymentStatus::fromGateway($transactionStatus, $fraud);
             $amountMatches = $this->amountMatches((string) ($report['gross_amount'] ?? ''), (int) $locked['amount_idr'])
                 && strtoupper((string) ($report['currency'] ?? 'IDR')) === 'IDR';
 
             $fields = [];
-            if (!$amountMatches) {
+            if (! $amountMatches) {
                 $outcome = self::OUTCOME_REVIEW;
-                $fields = ['needs_review' => 1, 'gateway_status' => $event['transaction_status']];
+                $fields  = ['needs_review' => 1, 'gateway_status' => $event['transaction_status']];
             } elseif (PaymentStatus::canMove((string) $locked['status'], $next)) {
-                $fields = ['status' => $next, 'gateway_status' => $event['transaction_status'], 'payment_type' => $event['payment_type'],
+                $fields = ['status'          => $next, 'gateway_status' => $event['transaction_status'], 'payment_type' => $event['payment_type'],
                     'gateway_transaction_id' => $event['gateway_transaction_id'] ?? $locked['gateway_transaction_id']];
                 $outcome = self::OUTCOME_UPDATED;
                 if ($next === PaymentStatus::PAID) {
@@ -111,7 +112,7 @@ final class ApplyPaymentService
             }
 
             $stored = $this->orders->recordEvent($event + ['order_id' => (int) $locked['id'], 'outcome' => $outcome]);
-            if (!$stored && $outcome !== self::OUTCOME_APPLIED) {
+            if (! $stored && $outcome !== self::OUTCOME_APPLIED) {
                 $outcome = self::OUTCOME_DUPLICATE;
             }
 
@@ -129,44 +130,44 @@ final class ApplyPaymentService
      * - revoke:  after a partial refund/chargeback, the order's period is revoked (history kept).
      * - dismiss: nothing changes except the flag (e.g. wrong amount handled outside the app).
      *
-     * @throws \DomainException with a message for the admin
+     * @throws DomainException with a message for the admin
      */
     public function resolve(string $orderCode, string $action, string $note, int $actorId, DateTimeInterface $now): void
     {
         $note = trim($note);
-        if (!in_array($action, ['grant', 'revoke', 'dismiss'], true)) {
-            throw new \DomainException(lang('Billing.resolveBadAction'));
+        if (! in_array($action, ['grant', 'revoke', 'dismiss'], true)) {
+            throw new DomainException(lang('Billing.resolveBadAction'));
         }
         if (mb_strlen($note) < 5 || mb_strlen($note) > 255) {
-            throw new \DomainException(lang('Billing.resolveNoteRequired'));
+            throw new DomainException(lang('Billing.resolveNoteRequired'));
         }
         $order = $this->orders->findByCode($orderCode);
         if ($order === null) {
-            throw new \DomainException(lang('Billing.orderMissing'));
+            throw new DomainException(lang('Billing.orderMissing'));
         }
         $nowUtc = DateTimeImmutable::createFromInterface($now)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
 
         $this->orders->withLockedOrder((int) $order['id'], function (array $locked) use ($action, $note, $actorId, $nowUtc): array {
             if ((int) $locked['needs_review'] !== 1) {
-                throw new \DomainException(lang('Billing.resolveNotFlagged'));
+                throw new DomainException(lang('Billing.resolveNotFlagged'));
             }
             $fields = ['needs_review' => 0, 'reviewed_at' => $nowUtc, 'reviewed_by' => $actorId, 'review_action' => $action, 'review_note' => mb_substr($note, 0, 255)];
 
             if ($action === 'grant') {
                 if ($locked['status'] !== PaymentStatus::PAID || $locked['applied_at'] !== null || $locked['subscription_id'] !== null) {
-                    throw new \DomainException(lang('Billing.resolveGrantNotPaid'));
+                    throw new DomainException(lang('Billing.resolveGrantNotPaid'));
                 }
-                if (!$this->paidAmountVerified($locked)) {
-                    throw new \DomainException(lang('Billing.resolveGrantAmount'));
+                if (! $this->paidAmountVerified($locked)) {
+                    throw new DomainException(lang('Billing.resolveGrantAmount'));
                 }
                 $account = $this->accounts->find((int) $locked['user_id']);
-                if (!$account || AccountStatus::isSuspended($account) || ($account['access_level'] ?? '') !== 'User') {
-                    throw new \DomainException(lang('Billing.resolveGrantAccount'));
+                if (! $account || AccountStatus::isSuspended($account) || ($account['access_level'] ?? '') !== 'User') {
+                    throw new DomainException(lang('Billing.resolveGrantAccount'));
                 }
                 $this->appendPaidPeriod($locked, $nowUtc, $fields, $actorId, 'review_grant');
             } elseif ($action === 'revoke') {
                 if ($locked['subscription_id'] === null) {
-                    throw new \DomainException(lang('Billing.resolveRevokeNone'));
+                    throw new DomainException(lang('Billing.resolveRevokeNone'));
                 }
                 $this->subscriptions->revokePeriod((int) $locked['subscription_id'], (int) $locked['user_id'], $nowUtc);
             }
@@ -199,13 +200,15 @@ final class ApplyPaymentService
     public function refresh(array $order, DateTimeInterface $now): string
     {
         $nowUtc = DateTimeImmutable::createFromInterface($now)->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
+
         try {
             $status = $this->gateway->status((string) $order['order_code']);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             // Counted so reconcile backs off this order instead of retrying it first on every run.
             $this->orders->update((int) $order['id'], [
                 'last_checked_at' => $nowUtc, 'check_failures' => (int) ($order['check_failures'] ?? 0) + 1, 'updated_at' => $nowUtc,
             ]);
+
             throw $exception;
         }
         if ((int) ($order['check_failures'] ?? 0) > 0) {
@@ -213,7 +216,7 @@ final class ApplyPaymentService
         }
         if ($status === null) {
             $fields = ['last_checked_at' => $nowUtc];
-            $open = in_array($order['status'], ['creating', 'pending', 'checking'], true);
+            $open   = in_array($order['status'], ['creating', 'pending', 'checking'], true);
             if ($open && ($order['snap_token'] ?? null) === null && ($order['redirect_url'] ?? null) === null) {
                 // Snap was never created (gateway unreachable at checkout) and Midtrans has no
                 // transaction with this order ID: nothing can be paid on it, so close it as failed and
@@ -254,7 +257,7 @@ final class ApplyPaymentService
     private function grant(array $order, string $nowUtc, array &$fields): string
     {
         $account = $this->accounts->find((int) $order['user_id']);
-        if (!$account || AccountStatus::isSuspended($account) || ($account['access_level'] ?? '') !== 'User') {
+        if (! $account || AccountStatus::isSuspended($account) || ($account['access_level'] ?? '') !== 'User') {
             // Paid, but the card stays closed until an admin reviews it (TECHNICAL). This also covers
             // an account that became staff after checkout: no period can be added to it, and failing
             // here would make Midtrans retry the notification forever.
@@ -278,9 +281,9 @@ final class ApplyPaymentService
             (int) $order['plan_id'],
             'payment',
             static fn (?string $latestEnd): array => SubscriptionGrantService::period($latestEnd, $nowUtc, $months),
-            ['actor_id' => $actorId, 'kind' => 'payment', 'duration_months' => $months, 'note' => 'order ' . $order['order_code']]
+            ['actor_id' => $actorId, 'kind' => 'payment', 'duration_months' => $months, 'note' => 'order ' . $order['order_code']],
         );
-        $fields['applied_at'] = $nowUtc;
+        $fields['applied_at']      = $nowUtc;
         $fields['subscription_id'] = (int) $period['id'];
         // Required audit in the same transaction: if it fails, the period is rolled back too.
         $this->audit->appendRequired('payment.applied', 'success', $actorId, 'payment_order', (string) $order['order_code'], ['subscription'], $reason === 'webhook' ? null : $reason, $actorId === null ? 'webhook' : 'user');

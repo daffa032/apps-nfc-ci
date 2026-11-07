@@ -2,24 +2,29 @@
 
 declare(strict_types=1);
 
+use App\Libraries\QrCode;
 use App\Services\Cards\TemplateSamples;
 use App\Traits\RendersCardPages;
+use CodeIgniter\HTTP\IncomingRequest;
 use Config\Services;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ */
 final class CardLanguageRenderTest extends TestCase
 {
     public function testPublicAndPreviewMarkupUsesCardLanguageAndRestoresDashboardLanguage(): void
     {
-        $request = Services::incomingrequest(null, false);
+        $request  = Services::incomingrequest(null, false);
         $language = Services::language();
-        $before = $language->getLocale();
+        $before   = $language->getLocale();
         $request->setLocale('en');
         $language->setLocale('en');
         $renderer = new class ($request) {
             use RendersCardPages;
 
-            public function __construct(protected CodeIgniter\HTTP\IncomingRequest $request)
+            public function __construct(protected IncomingRequest $request)
             {
             }
 
@@ -34,8 +39,8 @@ final class CardLanguageRenderTest extends TestCase
             {
                 return $this->renderCardPage('digital_card/share', [
                     'cardLocale' => $locale, 'username' => 'sample', 'name' => 'Nama Contoh',
-                    'jobTitle' => '', 'company' => '', 'photo' => null,
-                    'cardUrl' => base_url('sample'), 'qr' => App\Libraries\QrCode::encode(base_url('sample')),
+                    'jobTitle'   => '', 'company' => '', 'photo' => null,
+                    'cardUrl'    => base_url('sample'), 'qr' => QrCode::encode(base_url('sample')),
                 ]);
             }
         };
@@ -43,16 +48,16 @@ final class CardLanguageRenderTest extends TestCase
         try {
             foreach ([[null, 'id'], ['id', 'id'], ['en', 'en']] as [$choice, $expected]) {
                 $html = $renderer->card($choice);
-                self::assertStringContainsString('<html lang="' . $expected . '">', $html);
-                self::assertStringContainsString(lang('Card.saveContact', [], $expected), $html);
-                self::assertStringNotContainsString('class="nfc-lang', $html);
-                self::assertSame('en', $request->getLocale());
-                self::assertSame('en', $language->getLocale());
+                $this->assertStringContainsString('<html lang="' . $expected . '">', $html);
+                $this->assertStringContainsString(lang('Card.saveContact', [], $expected), $html);
+                $this->assertStringNotContainsString('class="nfc-lang', $html);
+                $this->assertSame('en', $request->getLocale());
+                $this->assertSame('en', $language->getLocale());
             }
             $share = $renderer->share('id');
-            self::assertStringContainsString('<html lang="id">', $share);
-            self::assertStringNotContainsString('class="nfc-lang', $share);
-            self::assertSame('en', $language->getLocale());
+            $this->assertStringContainsString('<html lang="id">', $share);
+            $this->assertStringNotContainsString('class="nfc-lang', $share);
+            $this->assertSame('en', $language->getLocale());
         } finally {
             $language->setLocale($before);
         }
