@@ -1,0 +1,74 @@
+/*
+ * Floating actions on public cards (partials/cards/floating-actions.php): "Save contact" pill and,
+ * on Pro cards, the round QR button beside it, in one row at the bottom-right, clear of the safe area.
+ * Loaded after share.css so the QR button follows the row instead of its own fixed position.
+ */
+.nc-fab-bar {
+    position: fixed;
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.nc-fab-save {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    height: 56px;
+    padding: 4px 4px 4px 18px;
+    color: #fff;
+    background: #4b5563;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.15;
+    cursor: pointer;
+}
+
+.nc-fab-save-icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    color: #4b5563;
+    background: #fff;
+    border-radius: 50%;
+    font-size: 1.2rem;
+}
+
+.nc-fab-save:focus-visible,
+.nc-fab-bar .nc-qr-fab:focus-visible {
+    outline: 3px solid #86b7fe;
+    outline-offset: 3px;
+}
+
+.nc-fab-bar .nc-qr-fab {
+    position: static;
+    flex: none;
+}
+
+/* Room at the end of the page so the row never covers the last buttons. */
+body:has(.nc-fab-bar) {
+    padding-bottom: 96px;
+}
+
+@media (max-width: 360px) {
+    .nc-fab-save {
+        padding-left: 4px;
+    }
+
+    .nc-fab-save-text {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+}

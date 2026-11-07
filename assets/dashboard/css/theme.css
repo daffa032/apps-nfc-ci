@@ -1,0 +1,1144 @@
+/* Coffra-style skin for layouts/dashboard (docs/ui-ux-2026/MOTION.md).
+   Loaded after app.css. Maps Bootstrap 5 / SB Admin onto the --nfc- tokens so light and dark
+   themes both work, and adds the component polish and motion. Layout, spacing and markup are
+   left to styles.css/app.css: this file only changes colour, type, radius, shadow and motion. */
+
+/* ---------- Bootstrap variables ---------- */
+:root {
+    --bs-body-font-family: var(--nfc-font);
+    --bs-body-color: var(--nfc-color-text);
+    --bs-body-bg: var(--nfc-bg);
+    --bs-border-color: var(--nfc-color-border);
+    --bs-border-color-translucent: var(--nfc-color-border);
+    --bs-primary: var(--nfc-color-primary);
+    --bs-primary-rgb: var(--nfc-color-primary-rgb);
+    --bs-danger-rgb: var(--nfc-color-danger-rgb);
+    --bs-link-color: var(--nfc-color-primary-text);
+    --bs-link-hover-color: var(--nfc-color-primary);
+    --bs-code-color: var(--nfc-color-primary-text);
+    --bs-heading-color: var(--nfc-color-text);
+}
+
+/* ---------- Page ---------- */
+html {
+    background: var(--nfc-bg);
+}
+
+body.sb-nav-fixed {
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--nfc-color-text);
+    background: transparent;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Soft colour fields behind everything, as in the reference. Fixed and non-interactive. */
+body.sb-nav-fixed::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(60% 55% at 8% 0%, var(--nfc-field-1), transparent 70%),
+        radial-gradient(50% 50% at 96% 12%, var(--nfc-field-2), transparent 70%),
+        radial-gradient(38% 42% at 78% 104%, var(--nfc-field-3), transparent 70%),
+        radial-gradient(45% 50% at 20% 100%, var(--nfc-field-1), transparent 72%),
+        var(--nfc-bg);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--nfc-color-text);
+    letter-spacing: -0.01em;
+}
+
+.dash-home h1 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+a {
+    transition: color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.text-muted {
+    color: var(--nfc-color-text-muted) !important;
+}
+
+.text-success {
+    color: var(--nfc-color-success) !important;
+}
+
+::selection {
+    background: var(--nfc-color-primary-soft);
+}
+
+:focus-visible {
+    outline: 2px solid var(--nfc-color-primary);
+    outline-offset: 2px;
+}
+
+/* ---------- Shell: header, sidebar, footer ---------- */
+.sb-topnav.navbar {
+    color: var(--nfc-color-text);
+    background: var(--nfc-color-header);
+    -webkit-backdrop-filter: var(--nfc-glass-blur);
+    backdrop-filter: var(--nfc-glass-blur);
+    box-shadow: inset 0 -1px 0 var(--nfc-side-line);
+}
+
+.sb-topnav.navbar-dark {
+    --bs-navbar-color: var(--nfc-color-text-2);
+    --bs-navbar-hover-color: var(--nfc-color-text);
+    --bs-navbar-active-color: var(--nfc-color-text);
+    --bs-navbar-brand-color: var(--nfc-color-text);
+    --bs-navbar-brand-hover-color: var(--nfc-color-text);
+}
+
+.sb-topnav .navbar-brand {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.sb-topnav .dash-brand-subtitle {
+    color: var(--nfc-color-text-muted);
+    font-weight: 600;
+}
+
+.sb-topnav.navbar-dark #sidebarToggle,
+.dash-theme-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: var(--nfc-color-text-2);
+    background: transparent;
+    border: 0;
+    border-radius: 11px;
+    transition: background-color var(--nfc-dur-fast) var(--nfc-ease-out), color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.sb-topnav.navbar-dark #sidebarToggle:hover,
+.dash-theme-toggle:hover {
+    color: var(--nfc-color-text);
+    background: var(--nfc-side-hover);
+}
+
+.dash-theme-toggle {
+    margin-right: 6px;
+}
+
+.dash-theme-toggle .fa-sun,
+:root[data-theme="dark"] .dash-theme-toggle .fa-moon {
+    display: none;
+}
+
+:root[data-theme="dark"] .dash-theme-toggle .fa-sun {
+    display: inline-block;
+}
+
+.sb-topnav .nav-link.dropdown-toggle {
+    border-radius: 11px;
+    transition: background-color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.sb-topnav .nav-link.dropdown-toggle:hover {
+    background: var(--nfc-side-hover);
+}
+
+.sb-sidenav-dark {
+    color: var(--nfc-side-muted);
+    -webkit-backdrop-filter: var(--nfc-glass-blur);
+    backdrop-filter: var(--nfc-glass-blur);
+    box-shadow: inset -1px 0 0 var(--nfc-side-line);
+}
+
+.sb-sidenav .sb-sidenav-menu .nav .sb-sidenav-menu-heading {
+    letter-spacing: 0.08em;
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link {
+    position: relative;
+    margin: 1px 10px;
+    padding-right: 12px;
+    padding-left: 12px;
+    font-weight: 600;
+    border-radius: 11px;
+    transition: color var(--nfc-dur-fast) var(--nfc-ease-out), background-color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link .sb-nav-link-icon,
+.sb-sidenav-dark .sb-sidenav-menu .nav-link .sb-sidenav-collapse-arrow {
+    transition: color var(--nfc-dur-fast) var(--nfc-ease-out), transform var(--nfc-dur-base) var(--nfc-ease-out);
+}
+
+/* Active marker: 3px accent bar that grows in, as in the reference panel links. */
+.sb-sidenav-dark .sb-sidenav-menu .nav-link[aria-current="page"]::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 0;
+    width: 3px;
+    background: var(--nfc-color-primary);
+    border-radius: 3px;
+    animation: nfc-grow-y var(--nfc-dur-slow) var(--nfc-ease-out);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link:hover .sb-nav-link-icon {
+    color: var(--nfc-side-ink);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu-nested .nav-link {
+    margin-left: 0;
+}
+
+.sb-sidenav-dark .sb-sidenav-footer {
+    color: var(--nfc-side-muted);
+    box-shadow: inset 0 1px 0 var(--nfc-side-line);
+}
+
+.dash-footer {
+    -webkit-backdrop-filter: var(--nfc-glass-blur);
+    backdrop-filter: var(--nfc-glass-blur);
+}
+
+/* Mobile menu overlay uses the theme scrim instead of flat black. */
+.sb-sidenav-toggled #layoutSidenav #layoutSidenav_content::before {
+    background: var(--nfc-scrim);
+    opacity: 1;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+    --bs-btn-font-weight: 600;
+    --bs-btn-border-radius: var(--nfc-radius-control);
+    --bs-btn-focus-box-shadow: var(--nfc-focus-ring);
+    transition: color var(--nfc-dur-fast) var(--nfc-ease-out),
+        background-color var(--nfc-dur-fast) var(--nfc-ease-out),
+        border-color var(--nfc-dur-fast) var(--nfc-ease-out),
+        box-shadow var(--nfc-dur-base) var(--nfc-ease-out),
+        transform 0.12s var(--nfc-ease-out);
+}
+
+.btn:active:not(:disabled):not(.disabled) {
+    transform: scale(0.98);
+}
+
+.btn-sm {
+    --bs-btn-border-radius: 10px;
+}
+
+.btn-primary {
+    --bs-btn-color: var(--nfc-color-primary-ink);
+    --bs-btn-bg: var(--nfc-color-primary);
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-color: var(--nfc-color-primary-ink);
+    --bs-btn-hover-bg: var(--nfc-color-primary-hi);
+    --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-color: var(--nfc-color-primary-ink);
+    --bs-btn-active-bg: var(--nfc-color-primary);
+    --bs-btn-active-border-color: transparent;
+    --bs-btn-disabled-color: var(--nfc-color-primary-ink);
+    --bs-btn-disabled-bg: var(--nfc-color-primary);
+    --bs-btn-disabled-border-color: transparent;
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 8px 18px -8px var(--nfc-color-primary);
+}
+
+.btn-primary:hover {
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 10px 22px -8px var(--nfc-color-primary);
+}
+
+.btn-primary:disabled,
+.btn-primary.disabled {
+    box-shadow: none;
+}
+
+.btn-outline-secondary,
+.btn-outline-primary,
+.btn-outline-danger,
+.btn-outline-success {
+    --bs-btn-bg: var(--nfc-color-surface);
+    --bs-btn-border-color: var(--nfc-color-border-strong);
+    --bs-btn-hover-border-color: var(--nfc-color-border-strong);
+    --bs-btn-active-border-color: var(--nfc-color-border-strong);
+    --bs-btn-disabled-bg: transparent;
+    --bs-btn-disabled-border-color: var(--nfc-color-border);
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: var(--nfc-color-text);
+    --bs-btn-hover-color: var(--nfc-color-text);
+    --bs-btn-hover-bg: var(--nfc-color-surface-muted);
+    --bs-btn-active-color: var(--nfc-color-text);
+    --bs-btn-active-bg: var(--nfc-color-surface-muted);
+    --bs-btn-disabled-color: var(--nfc-color-text-muted);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--nfc-color-primary-text);
+    --bs-btn-hover-color: var(--nfc-color-primary-text);
+    --bs-btn-hover-bg: var(--nfc-color-primary-soft);
+    --bs-btn-active-color: var(--nfc-color-primary-text);
+    --bs-btn-active-bg: var(--nfc-color-primary-soft);
+    --bs-btn-disabled-color: var(--nfc-color-primary-text);
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--nfc-color-danger);
+    --bs-btn-hover-color: var(--nfc-color-danger);
+    --bs-btn-hover-bg: var(--nfc-color-danger-soft);
+    --bs-btn-active-color: var(--nfc-color-danger);
+    --bs-btn-active-bg: var(--nfc-color-danger-soft);
+    --bs-btn-disabled-color: var(--nfc-color-danger);
+}
+
+.btn-outline-success {
+    --bs-btn-color: var(--nfc-color-success);
+    --bs-btn-hover-color: var(--nfc-color-success);
+    --bs-btn-hover-bg: var(--nfc-color-success-soft);
+    --bs-btn-active-color: var(--nfc-color-success);
+    --bs-btn-active-bg: var(--nfc-color-success-soft);
+    --bs-btn-disabled-color: var(--nfc-color-success);
+}
+
+.btn-link {
+    --bs-btn-color: var(--nfc-color-primary-text);
+    --bs-btn-hover-color: var(--nfc-color-primary);
+}
+
+.btn-close {
+    border-radius: 10px;
+    opacity: 0.6;
+    transition: opacity var(--nfc-dur-fast) var(--nfc-ease-out), background-color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.btn-close:hover {
+    opacity: 1;
+    background-color: var(--nfc-color-surface-muted);
+}
+
+.btn-close:focus {
+    box-shadow: var(--nfc-focus-ring);
+}
+
+:root[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Templates catalogue keeps its own white action buttons on the tile (prototype). */
+.dash-theme-actions .btn {
+    border-color: var(--nfc-color-border-strong);
+}
+
+/* ---------- Form controls ---------- */
+.form-control,
+.form-select,
+.datatable-input,
+.datatable-selector {
+    color: var(--nfc-color-text);
+    background-color: var(--nfc-color-field);
+    border-color: var(--nfc-color-border-strong);
+    border-radius: var(--nfc-radius-control);
+    transition: border-color var(--nfc-dur-fast) var(--nfc-ease-out), box-shadow var(--nfc-dur-base) var(--nfc-ease-out), background-color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.form-control:hover:not(:disabled):not(:focus),
+.form-select:hover:not(:disabled):not(:focus) {
+    border-color: var(--nfc-color-text-muted);
+}
+
+.form-control:focus,
+.form-select:focus,
+.datatable-input:focus,
+.datatable-selector:focus {
+    color: var(--nfc-color-text);
+    background-color: var(--nfc-color-field);
+    border-color: var(--nfc-color-primary);
+    box-shadow: var(--nfc-focus-ring);
+}
+
+.form-control::placeholder {
+    color: var(--nfc-color-text-muted);
+    opacity: 0.85;
+}
+
+.form-control:disabled,
+.form-control[readonly],
+.form-select:disabled {
+    color: var(--nfc-color-text-muted);
+    background-color: var(--nfc-color-surface-muted);
+}
+
+.form-control-sm,
+.form-select-sm {
+    border-radius: 10px;
+}
+
+:root[data-theme="dark"] .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23c9cfc6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+.form-control[type="file"]::file-selector-button {
+    color: var(--nfc-color-text);
+    background: var(--nfc-color-surface-muted);
+}
+
+.form-control[type="file"]:hover:not(:disabled):not([readonly])::file-selector-button {
+    background: var(--nfc-color-primary-soft);
+}
+
+.form-check-input {
+    background-color: var(--nfc-color-field);
+    border-color: var(--nfc-color-border-strong);
+    transition: background-color var(--nfc-dur-fast) var(--nfc-ease-out), border-color var(--nfc-dur-fast) var(--nfc-ease-out), background-position var(--nfc-dur-base) var(--nfc-ease-out), box-shadow var(--nfc-dur-base) var(--nfc-ease-out);
+}
+
+.form-check-input:focus {
+    border-color: var(--nfc-color-primary);
+    box-shadow: var(--nfc-focus-ring);
+}
+
+.form-check-input:checked,
+.form-check-input[type="checkbox"]:indeterminate {
+    background-color: var(--nfc-color-primary);
+    border-color: var(--nfc-color-primary);
+}
+
+:root[data-theme="dark"] .form-check-input:checked[type="checkbox"] {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%230f2016' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+}
+
+.form-switch .form-check-input:focus:not(:checked) {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%234e7a60'/%3e%3c/svg%3e");
+}
+
+:root[data-theme="dark"] .form-switch .form-check-input:not(:checked) {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23a0a99f'/%3e%3c/svg%3e");
+}
+
+:root[data-theme="dark"] .form-switch .form-check-input:checked {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%230f2016'/%3e%3c/svg%3e");
+}
+
+.form-range::-webkit-slider-thumb {
+    background-color: var(--nfc-color-primary);
+}
+
+.form-range::-moz-range-thumb {
+    background-color: var(--nfc-color-primary);
+}
+
+.form-range::-webkit-slider-runnable-track {
+    background-color: var(--nfc-color-surface-muted);
+}
+
+.form-range::-moz-range-track {
+    background-color: var(--nfc-color-surface-muted);
+}
+
+.form-range:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 1px var(--nfc-bg), var(--nfc-focus-ring);
+}
+
+.input-group-text {
+    color: var(--nfc-color-text-2);
+    background-color: var(--nfc-color-surface-muted);
+    border-color: var(--nfc-color-border-strong);
+}
+
+.input-group > .form-control,
+.input-group > .btn {
+    border-radius: var(--nfc-radius-control);
+}
+
+.input-group > :not(:last-child) {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group > :not(:first-child) {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* Field errors (feedback.css) keep their meaning; colours follow the theme. */
+[aria-invalid="true"].form-control,
+[aria-invalid="true"].form-select {
+    border-color: var(--nfc-color-danger);
+}
+
+[aria-invalid="true"].form-control:focus,
+[aria-invalid="true"].form-select:focus {
+    box-shadow: 0 0 0 4px var(--nfc-color-danger-soft);
+}
+
+/* ---------- Surfaces ---------- */
+.dash-panel,
+.dash-notice,
+.dash-mini-id,
+.dash-theme-tile,
+.dash-slot-card,
+.dash-plan-offer,
+.dash-brand-slot,
+.dash-live-bar {
+    border-color: var(--nfc-color-border);
+    box-shadow: var(--nfc-shadow-sm);
+}
+
+.dash-panel,
+.dash-notice,
+.dash-slot-card,
+.dash-plan-offer {
+    border-radius: var(--nfc-radius-panel);
+}
+
+.dash-panel {
+    -webkit-backdrop-filter: var(--nfc-glass-blur);
+    backdrop-filter: var(--nfc-glass-blur);
+}
+
+.dash-hero {
+    background:
+        radial-gradient(70% 120% at 100% 0%, var(--nfc-color-primary-soft), transparent 70%),
+        var(--nfc-color-surface);
+}
+
+.dashboard-breadcrumb {
+    border-radius: var(--nfc-radius-control);
+}
+
+.dash-eyebrow {
+    color: var(--nfc-color-primary-text);
+}
+
+.dash-link-box code,
+.dash-transfer,
+.dash-code {
+    color: var(--nfc-color-text);
+    border-radius: var(--nfc-radius-control);
+}
+
+/* ---------- Pills, tags and badges ---------- */
+.dash-tag {
+    min-height: 24px;
+    padding: 2px 10px;
+    color: var(--nfc-color-primary-text);
+    border-radius: var(--nfc-radius-pill);
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+/* Status dot in front of plain-text tags; tags that already carry an icon keep only the icon. */
+.dash-tag:not(.nfc-badge-pro):not(:has(> i))::before {
+    content: "";
+    flex: none;
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+    border-radius: 50%;
+}
+
+.dash-tag-neutral {
+    color: var(--nfc-color-text-2);
+}
+
+.nfc-badge-pro,
+.dash-theme-tile.is-selected .nfc-badge-pro {
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), inset 0 0 0 1px rgb(59 34 0 / 0.12), 0 6px 14px -8px var(--nfc-pro-bg-end);
+}
+
+.dash-receipt-stamp {
+    border-radius: var(--nfc-radius-pill);
+}
+
+/* ---------- Tables (Bootstrap and Simple DataTables) ---------- */
+.table,
+.datatable-table {
+    --bs-table-color: var(--nfc-color-text);
+    --bs-table-border-color: var(--nfc-color-border);
+    --bs-table-striped-color: var(--nfc-color-text);
+    --bs-table-striped-bg: var(--nfc-color-surface-muted);
+    --bs-table-hover-color: var(--nfc-color-text);
+    --bs-table-hover-bg: var(--nfc-color-surface-hover);
+}
+
+.table > thead th,
+.datatable-table > thead > tr > th {
+    color: var(--nfc-color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border-bottom-color: var(--nfc-color-border);
+}
+
+.table > tbody > tr > *,
+.datatable-table > tbody > tr > * {
+    transition: background-color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+@media (hover: hover) {
+    .dash-table-wrap .table > tbody > tr:hover > *,
+    .datatable-table > tbody > tr:hover > * {
+        background-color: var(--nfc-color-surface-hover);
+    }
+}
+
+.dash-list-row {
+    transition: background-color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.datatable-wrapper .datatable-container,
+.datatable-wrapper.no-header .datatable-container,
+.datatable-wrapper.no-footer .datatable-container {
+    border-color: var(--nfc-color-border);
+}
+
+.datatable-sorter::before {
+    border-top-color: var(--nfc-color-text-muted);
+}
+
+.datatable-sorter::after {
+    border-bottom-color: var(--nfc-color-text-muted);
+}
+
+.datatable-pagination a {
+    color: var(--nfc-color-text-2);
+    border-radius: 10px;
+    transition: background-color var(--nfc-dur-fast) var(--nfc-ease-out), color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.datatable-pagination a:hover {
+    color: var(--nfc-color-text);
+    background-color: var(--nfc-color-surface-muted);
+}
+
+.datatable-pagination .datatable-active a,
+.datatable-pagination .datatable-active a:focus,
+.datatable-pagination .datatable-active a:hover,
+.datatable-pagination .active a,
+.datatable-pagination .active a:focus,
+.datatable-pagination .active a:hover {
+    color: var(--nfc-color-primary-ink);
+    background-color: var(--nfc-color-primary);
+}
+
+.datatable-info,
+.datatable-dropdown label {
+    color: var(--nfc-color-text-muted);
+}
+
+/* ---------- Dropdowns ---------- */
+.dropdown-menu {
+    --bs-dropdown-color: var(--nfc-color-text);
+    --bs-dropdown-bg: var(--nfc-color-surface-solid);
+    --bs-dropdown-border-color: var(--nfc-color-border);
+    --bs-dropdown-border-radius: 14px;
+    --bs-dropdown-box-shadow: var(--nfc-shadow-lg);
+    --bs-dropdown-link-color: var(--nfc-color-text);
+    --bs-dropdown-link-hover-color: var(--nfc-color-text);
+    --bs-dropdown-link-hover-bg: var(--nfc-color-surface-muted);
+    --bs-dropdown-link-active-color: var(--nfc-color-primary-ink);
+    --bs-dropdown-link-active-bg: var(--nfc-color-primary);
+    --bs-dropdown-padding-x: 6px;
+    --bs-dropdown-padding-y: 6px;
+    box-shadow: var(--bs-dropdown-box-shadow);
+}
+
+.dropdown-menu.show {
+    animation: nfc-drop-in 0.2s var(--nfc-ease-out);
+}
+
+.dropdown-item {
+    font-weight: 600;
+    border-radius: 9px;
+    transition: background-color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+/* Language switch (shared/css/lang-switch.css) inside the dashboard header. */
+.dash-topnav-lang .nfc-lang {
+    font-family: inherit;
+}
+
+.dash-topnav-lang .nfc-lang-toggle {
+    border-radius: var(--nfc-radius-pill);
+    transition: border-color var(--nfc-dur-fast) var(--nfc-ease-out), background-color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.dash-topnav-lang .nfc-lang-toggle:hover {
+    background: var(--nfc-side-hover);
+}
+
+.dash-topnav-lang .nfc-lang-menu {
+    background: var(--nfc-color-surface-solid);
+    border-color: var(--nfc-color-border);
+    border-radius: 14px;
+    box-shadow: var(--nfc-shadow-lg);
+    animation: nfc-drop-in 0.2s var(--nfc-ease-out);
+}
+
+.dash-topnav-lang .nfc-lang-menu a {
+    color: var(--nfc-color-text);
+    border-radius: 9px;
+}
+
+.dash-topnav-lang .nfc-lang-menu a:hover {
+    background: var(--nfc-color-surface-muted);
+}
+
+.dash-topnav-lang .nfc-lang-menu a[aria-current="true"] {
+    background: var(--nfc-color-primary-soft);
+}
+
+.dash-topnav-lang .nfc-lang-name {
+    color: var(--nfc-color-text-muted);
+}
+
+/* ---------- Dialogs and modals ---------- */
+.dash-dialog {
+    color: var(--nfc-color-text);
+    background: var(--nfc-color-surface-solid);
+    border-color: var(--nfc-color-border);
+    border-radius: var(--nfc-radius-dialog);
+}
+
+.dash-dialog[open] {
+    animation: nfc-pop-in var(--nfc-dur-slow) var(--nfc-ease-back);
+}
+
+.dash-dialog::backdrop {
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+}
+
+.dash-dialog[open]::backdrop {
+    animation: nfc-fade-in var(--nfc-dur-base) linear;
+}
+
+.modal {
+    --bs-modal-color: var(--nfc-color-text);
+    --bs-modal-bg: var(--nfc-color-surface-solid);
+    --bs-modal-border-color: var(--nfc-color-border);
+    --bs-modal-border-radius: var(--nfc-radius-dialog);
+    --bs-modal-inner-border-radius: calc(var(--nfc-radius-dialog) - 1px);
+    --bs-modal-header-border-color: var(--nfc-color-border);
+    --bs-modal-footer-border-color: var(--nfc-color-border);
+}
+
+.modal-content {
+    box-shadow: var(--nfc-shadow-lg);
+}
+
+.modal-backdrop {
+    --bs-backdrop-bg: #0e1212;
+    --bs-backdrop-opacity: 0.36;
+}
+
+/* Bootstrap moves the dialog 50px down; a short rise with a slight scale matches the reference. */
+.modal.fade .modal-dialog {
+    transform: translateY(-18px) scale(0.97);
+    transition: transform 0.35s var(--nfc-ease-out);
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* ---------- Toasts (shared/css/feedback.css) ---------- */
+.nfc-toast {
+    color: var(--nfc-color-text);
+    background: var(--nfc-color-surface-solid);
+    border-color: var(--nfc-color-border);
+    border-radius: 14px;
+    box-shadow: var(--nfc-shadow-lg);
+}
+
+.nfc-toast-success {
+    border-left-color: var(--nfc-color-success);
+}
+
+.nfc-toast-error {
+    border-left-color: var(--nfc-color-danger);
+}
+
+.nfc-toast-success .nfc-toast-icon {
+    color: var(--nfc-color-success);
+}
+
+.nfc-toast-error .nfc-toast-icon {
+    color: var(--nfc-color-danger);
+}
+
+.nfc-toast.fade {
+    transition: opacity var(--nfc-dur-base) linear, transform var(--nfc-dur-slow) var(--nfc-ease-out);
+}
+
+.nfc-toast.showing {
+    transform: translateX(16px);
+}
+
+.dash-field-error {
+    color: var(--nfc-color-danger);
+}
+
+/* ---------- Charts and progress ---------- */
+.dash-chart-bar {
+    border-radius: 6px 6px 2px 2px;
+    transform-origin: bottom;
+    animation: nfc-grow-y 1s var(--nfc-ease-out) backwards;
+}
+
+.dash-slot-bar {
+    border-radius: var(--nfc-radius-pill);
+}
+
+.dash-slot-bar::-webkit-progress-value {
+    border-radius: var(--nfc-radius-pill);
+    transition: width 0.6s var(--nfc-ease-out);
+}
+
+.dash-live-flash {
+    animation: nfc-flash-ring 1.6s var(--nfc-ease-out);
+}
+
+@keyframes nfc-flash-ring {
+    from {
+        box-shadow: 0 0 0 3px var(--nfc-color-primary-soft), 0 0 0 6px var(--nfc-color-primary-soft);
+    }
+
+    to {
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+/* ---------- Templates catalogue (NT-04 keeps the 1.05 scale) ---------- */
+.dash-theme-tile {
+    border-radius: var(--nfc-radius-panel);
+    transition: transform var(--nfc-dur-slow) var(--nfc-ease-out),
+        box-shadow var(--nfc-dur-slow) var(--nfc-ease-out),
+        border-color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.dash-theme-tile.is-selected {
+    box-shadow: 0 0 0 2px var(--nfc-color-selected), var(--nfc-shadow-md);
+}
+
+.dash-theme-tile.is-selected .text-muted {
+    color: var(--nfc-color-selected-ink) !important;
+    opacity: 0.85;
+}
+
+.dash-theme-tile.is-selected .dash-tag {
+    color: var(--nfc-color-primary-ink);
+    background: rgb(255 255 255 / 0.2);
+}
+
+:root[data-theme="dark"] .dash-theme-tile.is-selected .dash-tag {
+    background: rgb(15 32 22 / 0.18);
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes nfc-pop-in {
+    from {
+        opacity: 0;
+        transform: translateY(-18px) scale(0.97);
+    }
+}
+
+@keyframes nfc-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes nfc-drop-in {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+}
+
+@keyframes nfc-grow-y {
+    from {
+        transform: scaleY(0);
+    }
+}
+
+/* ---------- Reduced motion, print, fallbacks ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .btn,
+    .form-control,
+    .form-select,
+    .form-check-input,
+    .dropdown-menu.show,
+    .dash-topnav-lang .nfc-lang-menu,
+    .dash-dialog[open],
+    .dash-dialog[open]::backdrop,
+    .modal.fade .modal-dialog,
+    .nfc-toast.fade,
+    .dash-chart-bar,
+    .dash-live-flash,
+    .dash-theme-tile,
+    .sb-sidenav-dark .sb-sidenav-menu .nav-link,
+    .sb-sidenav-dark .sb-sidenav-menu .nav-link[aria-current="page"]::before {
+        animation: none;
+        transition: none;
+    }
+
+    .btn:active:not(:disabled):not(.disabled),
+    .nfc-toast.showing {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .sb-topnav.navbar,
+    .sb-sidenav-dark,
+    .dash-footer,
+    .dash-panel {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .sb-topnav.navbar,
+    .dash-footer {
+        background: var(--nfc-bg);
+    }
+
+    .sb-sidenav-dark,
+    .dash-panel {
+        background: var(--nfc-color-surface-solid);
+    }
+}
+
+@media print {
+    html,
+    body.sb-nav-fixed {
+        color: #1f2420;
+        background: #fff;
+    }
+
+    body.sb-nav-fixed::before {
+        display: none;
+    }
+}
+
+/* Theme switch (dashboard/js/theme.js): the circle reveal replaces the default cross-fade. */
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+/* ---------- Stage 2 motion (dashboard/js/motion.js adds and removes these classes) ---------- */
+.nfc-enter {
+    animation: nfc-rise 0.55s var(--nfc-ease-out) calc(var(--nfc-i, 0) * 40ms) backwards;
+}
+
+.nfc-shake {
+    animation: nfc-shake 0.42s var(--nfc-ease-out);
+}
+
+.nfc-flash {
+    animation: nfc-flash 1s var(--nfc-ease-out);
+}
+
+
+/* Stage 3: dialog exit, played by motion.js before the real close(). */
+.dash-dialog.nfc-closing {
+    pointer-events: none;
+    animation: nfc-pop-out 0.18s var(--nfc-ease-in) forwards;
+}
+
+.dash-dialog.nfc-closing::backdrop {
+    animation: nfc-fade-out 0.18s linear forwards;
+}
+
+@keyframes nfc-pop-out {
+    to {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.97);
+    }
+}
+
+@keyframes nfc-fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes nfc-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+@keyframes nfc-shake {
+    20% {
+        transform: translateX(-8px);
+    }
+
+    40% {
+        transform: translateX(7px);
+    }
+
+    60% {
+        transform: translateX(-5px);
+    }
+
+    80% {
+        transform: translateX(2px);
+    }
+}
+
+@keyframes nfc-flash {
+    from {
+        color: var(--nfc-color-primary);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nfc-enter,
+    .nfc-shake,
+    .nfc-flash,
+    .dash-dialog.nfc-closing,
+    .dash-dialog.nfc-closing::backdrop {
+        animation: none;
+    }
+}
+
+@media print {
+    .nfc-enter,
+    .nfc-shake,
+    .nfc-flash {
+        animation: none;
+    }
+}
+
+/* ---------- Sidebar pill (motion.js), page title letters, chart (Coffra accounts page) ---------- */
+#sidenavAccordion .sb-sidenav-menu {
+    position: relative;
+}
+
+.nfc-nav-pill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    width: var(--nfc-pill-w, 0);
+    height: var(--nfc-pill-h, 0);
+    pointer-events: none;
+    background: var(--nfc-side-active);
+    border-radius: 11px;
+    box-shadow: inset 0 0 0 1px var(--nfc-side-line);
+    transform: translate(var(--nfc-pill-x, 0), var(--nfc-pill-y, 0));
+}
+
+.nfc-nav-pill.is-moving {
+    transition: transform 0.55s var(--nfc-ease-in-out), width 0.45s var(--nfc-ease-in-out), height 0.36s var(--nfc-ease-out);
+}
+
+/* While the pill is drawn, the active link lets it show through; text and marker stay on top. */
+.has-nav-pill .nav-link[aria-current="page"] {
+    z-index: 1;
+    background: transparent;
+}
+
+.has-nav-pill .nav {
+    position: relative;
+    z-index: 1;
+}
+
+.nfc-title-in .nfc-word {
+    display: inline-block;
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+    overflow: hidden;
+    vertical-align: top;
+}
+
+.nfc-title-in .nfc-char {
+    display: inline-block;
+    animation: nfc-char-up 0.85s cubic-bezier(0.23, 1, 0.32, 1) calc(var(--nfc-i, 0) * 22ms) backwards;
+}
+
+@keyframes nfc-char-up {
+    from {
+        transform: translateY(115%) rotate(6deg);
+    }
+}
+
+/* Chart: dashed guide lines, value above each bar, softer bars with the accent on today/hover. */
+.dash-chart {
+    position: relative;
+    background-image: repeating-linear-gradient(to top, transparent 0 44px, var(--nfc-color-border) 44px 45px);
+    background-position: 0 -14px;
+    border-bottom-color: var(--nfc-color-border-strong);
+}
+
+.dash-chart-day {
+    position: relative;
+    padding-top: 4px;
+    border-radius: 10px;
+    transition: background-color var(--nfc-dur-fast) var(--nfc-ease-out);
+}
+
+.dash-chart-day [data-value] {
+    color: var(--nfc-color-text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    opacity: 0.75;
+    transition: color var(--nfc-dur-fast) var(--nfc-ease-out), opacity var(--nfc-dur-fast) var(--nfc-ease-out), transform var(--nfc-dur-base) var(--nfc-ease-out);
+}
+
+.dash-chart-bar {
+    width: 64%;
+    max-width: 30px;
+    background: color-mix(in oklab, var(--nfc-color-primary) 62%, var(--nfc-color-surface-solid));
+    border-radius: 7px 7px 3px 3px;
+    transition: background-color var(--nfc-dur-fast) var(--nfc-ease-out), transform var(--nfc-dur-base) var(--nfc-ease-out);
+    animation: nfc-grow-y 1s var(--nfc-ease-out) backwards;
+    animation-delay: calc(0.15s + var(--nfc-i, 0) * 40ms);
+}
+
+[data-chart] .dash-chart-bar {
+    animation-delay: calc(0.15s + var(--nfc-i, 0) * 40ms);
+}
+
+.dash-chart-day.is-today .dash-chart-bar {
+    background: var(--nfc-color-primary);
+}
+
+.dash-chart-label {
+    color: var(--nfc-color-text-muted);
+    font-weight: 600;
+}
+
+@media (hover: hover) {
+    .dash-chart-day:hover {
+        background: var(--nfc-color-surface-hover);
+    }
+
+    .dash-chart-day:hover .dash-chart-bar {
+        background: var(--nfc-color-primary);
+    }
+
+    .dash-chart-day:hover [data-value] {
+        color: var(--nfc-color-text);
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nfc-nav-pill.is-moving,
+    .nfc-title-in .nfc-char,
+    .dash-chart-bar {
+        animation: none;
+        transition: none;
+    }
+}

@@ -1,0 +1,131 @@
+/* Enlarged profile photo, gallery photo or brand logo on public cards (digital_card/photo-dialog.php, PRD CARD-01). */
+.nc-avatar-button {
+    display: inline-block;
+    padding: 0;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: 50%;
+    cursor: zoom-in;
+}
+
+.nc-avatar-button:focus-visible {
+    outline: 3px solid #0d6efd;
+    outline-offset: 3px;
+}
+
+.nc-avatar-button img {
+    display: block;
+}
+
+.nc-photo-dialog {
+    max-width: min(92vw, 640px);
+    max-height: 92vh;
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+    border: 0;
+}
+
+.nc-photo-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.nc-photo-dialog figure {
+    margin: 0;
+}
+
+.nc-photo-dialog figcaption {
+    margin-top: 10px;
+    color: #fff;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.nc-photo-dialog img {
+    display: block;
+    max-width: 100%;
+    max-height: 86vh;
+    margin: 0 auto;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.nc-photo-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: #212529;
+    background: #fff;
+    border: 0;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.nc-photo-close:focus-visible {
+    outline: 3px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+    .nc-photo-close {
+        top: 8px;
+        right: 8px;
+    }
+}
+
+/* Gallery photos and the brand logo open the same dialog. */
+.nc-gallery-button,
+button.nc-pro-brand-logo {
+    display: block;
+    width: 100%;
+    padding: 0;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: inherit;
+    cursor: zoom-in;
+}
+
+.nc-gallery-button {
+    border-radius: 8px;
+}
+
+.nc-gallery-button:focus-visible,
+button.nc-pro-brand-logo:focus-visible {
+    outline: 3px solid #0d6efd;
+    outline-offset: 3px;
+}
+
+@media (hover: hover) {
+    .nc-gallery-button img {
+        transition: transform 0.2s, filter 0.2s;
+    }
+
+    .nc-gallery-button:hover img {
+        filter: brightness(0.92);
+    }
+}
+
+/* A logo (often transparent) is shown on white with room around it. */
+.nc-photo-dialog[data-kind="logo"] img {
+    width: min(70vw, 360px);
+    padding: 24px;
+    background: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nc-gallery-button img {
+        transition: none;
+    }
+}

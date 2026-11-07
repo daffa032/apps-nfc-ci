@@ -1,0 +1,101 @@
+/* Action result toasts (partials/feedback/flash.php), bottom-right above the fixed footer. */
+.nfc-toast-region {
+    position: fixed;
+    right: var(--nfc-space-2, 16px);
+    bottom: calc(55px + var(--nfc-space-2, 16px));
+    z-index: 1090;
+    display: flex;
+    flex-direction: column;
+    gap: var(--nfc-space-1, 8px);
+    width: min(360px, calc(100vw - 2 * var(--nfc-space-2, 16px)));
+}
+
+.nfc-toast {
+    width: 100%;
+    border: 1px solid var(--nfc-color-border, #dee2e6);
+    border-left-width: 5px;
+    border-radius: var(--nfc-radius-sm, 0.375rem);
+    background: var(--nfc-color-surface, #fff);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.nfc-toast-success {
+    border-left-color: var(--nfc-color-success, #198754);
+}
+
+.nfc-toast-error {
+    border-left-color: var(--nfc-color-danger, #dc3545);
+}
+
+.nfc-toast-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+}
+
+.nfc-toast-icon {
+    margin-top: 2px;
+    font-size: 1.25rem;
+}
+
+.nfc-toast-success .nfc-toast-icon {
+    color: var(--nfc-color-success, #198754);
+}
+
+.nfc-toast-error .nfc-toast-icon {
+    color: var(--nfc-color-danger, #dc3545);
+}
+
+.nfc-toast-text {
+    flex: 1;
+    min-width: 0;
+    color: var(--nfc-color-text, #212529);
+}
+
+.nfc-toast-title {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.nfc-toast-message {
+    margin: 2px 0 0;
+    font-size: 0.875rem;
+    overflow-wrap: anywhere;
+}
+
+/* Bootstrap's .fade handles the opacity; this only adds a short slide-in. */
+.nfc-toast.fade {
+    transition: opacity 0.2s linear, transform 0.2s ease-out;
+}
+
+.nfc-toast.showing {
+    transform: translateY(12px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nfc-toast.fade {
+        transition: none;
+    }
+
+    .nfc-toast.showing {
+        transform: none;
+    }
+}
+
+/* Field errors (PRD FB-02): message under the input, linked by aria-describedby. */
+.dash-field-error {
+    margin: 6px 0 0;
+    color: var(--nfc-color-danger, #dc3545);
+    font-size: 0.875rem;
+}
+
+[aria-invalid="true"].form-control,
+[aria-invalid="true"].form-select {
+    border-color: var(--nfc-color-danger, #dc3545);
+}
+
+[aria-invalid="true"].form-control:focus,
+[aria-invalid="true"].form-select:focus {
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}

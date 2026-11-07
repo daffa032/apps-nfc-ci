@@ -1,0 +1,366 @@
+/*
+ * White and Black cards (digital_card/classic.php), the two original designs on the shared card
+ * structure. Matches the earlier look: a column of rounded panels, a centred photo and identity,
+ * round coloured contact icons, a centred contact list under a dashed rule, icon-only social
+ * buttons and captions over gallery photos. Loaded after layouts.css; body has nc-classic-white or
+ * nc-classic-dark. No CDN: icons come from the local Font Awesome bundle.
+ */
+.nc-classic-white,
+.nc-classic-dark {
+    --card-paper: #fff;
+    --card-head: #f8f9fa;
+    --card-ink: #212529;
+    --card-muted: #212529;
+    --classic-line: #dee2e6;
+    --classic-social: #d7e4ff;
+    padding: 0 15px 120px;
+    background: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.nc-classic-dark {
+    --card-paper: #333;
+    --card-head: #333;
+    --card-ink: #eee;
+    --card-muted: #eee;
+    --classic-line: grey;
+    background: #222;
+}
+
+/* The article is only a column; each panel is a card of its own, as before. */
+.nc-classic-white .nc-card,
+.nc-classic-dark .nc-card {
+    max-width: 400px;
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+
+.nc-classic-panel {
+    margin-top: 50px;
+    overflow: hidden;
+    color: var(--card-ink);
+    text-align: center;
+    background: var(--card-paper);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nc-classic-dark .nc-classic-panel {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nc-classic-panel:has(> .nc-slot-empty:only-child),
+.nc-classic-social:not(:has(.nc-social)),
+.nc-classic-gallery:not(:has(.nc-gallery)) {
+    display: none;
+}
+
+/* Identity: grey header band, large round photo. */
+.nc-classic-main .nc-head {
+    padding: 20px 0 8px;
+    background: var(--card-head);
+    border-bottom: 1px solid var(--classic-line);
+}
+
+.nc-classic-main .nc-avatar,
+.nc-classic-main .nc-avatar-button img {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 24px;
+    border: 4px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    object-fit: cover;
+}
+
+.nc-classic-dark .nc-classic-main .nc-avatar,
+.nc-classic-dark .nc-classic-main .nc-avatar-button img {
+    border-color: #353535;
+}
+
+.nc-classic-main .nc-avatar-button {
+    display: block;
+    margin: 0 auto;
+}
+
+.nc-classic-main .nc-avatar-button img {
+    display: block;
+}
+
+.nc-classic-main .nc-head h1 {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.nc-classic-main .nc-title {
+    margin: 0 0 2px;
+    font-weight: 600;
+}
+
+.nc-classic-main .nc-company {
+    margin: 0 0 8px;
+    padding: 0 4px;
+    color: var(--card-ink);
+}
+
+/* Contact section heading with a dashed rule under it (the old <hr class="dashed-hr">). */
+.nc-classic-heading {
+    margin: 20px 0 0;
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.nc-classic-heading::after {
+    content: "";
+    display: block;
+    margin: 20px 20px 0;
+    border-top: 1px dashed #999;
+}
+
+/* Round coloured contact icons: phone (blue), WhatsApp (green), email (grey). Labels stay for screen readers. */
+.nc-classic-main .nc-actions:first-of-type {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+    order: -1;
+    margin: 0;
+    padding: 0 0 20px;
+    background: var(--card-head);
+}
+
+.nc-classic-main .nc-actions:first-of-type .nc-btn {
+    position: relative;
+    width: 50px;
+    min-height: 0;
+    height: 50px;
+    padding: 0;
+    overflow: hidden;
+    color: #fff;
+    border: 0;
+    border-radius: 50%;
+    /* Labels remain accessible at size zero; do not leave a flex gap beside the icon. */
+    gap: 0;
+    font-size: 0;
+}
+
+.nc-classic-main .nc-actions:first-of-type .nc-btn i {
+    font-size: 16px;
+}
+
+.nc-classic-main .nc-actions:first-of-type a[href^="tel:"] {
+    order: 1;
+    background: #007bff;
+}
+
+.nc-classic-main .nc-actions:first-of-type a[href^="https://wa.me/"] {
+    order: 2;
+    background: #28a745;
+}
+
+.nc-classic-main .nc-actions:first-of-type a[href^="mailto:"] {
+    order: 3;
+    background: #6c757d;
+}
+
+/* The contact header area is one grey band: identity, then the round icons. */
+.nc-classic-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.nc-classic-main .nc-head {
+    order: -2;
+    border-bottom: 0;
+}
+
+.nc-classic-main .nc-actions:first-of-type {
+    border-bottom: 1px solid var(--classic-line);
+}
+
+/* Contact list: centred, bold label above the value. */
+.nc-classic-main .nc-detail {
+    padding: 0 20px;
+    border: 0;
+    font-size: 16px;
+}
+
+.nc-classic-main .nc-actions + .nc-detail {
+    padding-top: 30px;
+}
+
+.nc-classic-main .nc-detail strong {
+    margin: 0;
+    font-weight: 700;
+}
+
+.nc-classic-main .nc-detail strong::after {
+    content: ":";
+}
+
+.nc-classic-main .nc-detail span {
+    color: var(--card-ink);
+}
+
+.nc-classic-main .nc-actions-inline {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0 36px;
+}
+
+.nc-classic-main .nc-actions-inline .nc-btn {
+    width: auto;
+    gap: 4px;
+    min-height: 0;
+    padding: 10px 20px;
+    color: #fff;
+    background: grey;
+    border: 0;
+    border-radius: 25px;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.nc-classic-main > :last-child {
+    margin-bottom: 24px;
+}
+
+/* Social: compact round buttons; tooltips may extend above the rounded panel. */
+.nc-classic-social {
+    overflow: visible;
+    padding: 20px;
+}
+
+.nc-classic-social h2 {
+    display: none;
+}
+
+.nc-classic-social .nc-social {
+    justify-content: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.nc-classic-social .nc-btn {
+    position: relative;
+    width: 44px;
+    min-height: 44px;
+    height: 44px;
+    padding: 0;
+    color: #007bff;
+    background: var(--classic-social);
+    border: 0;
+    border-radius: 50%;
+    /* Labels remain accessible at size zero; do not leave a flex gap beside the icon. */
+    gap: 0;
+    font-size: 0;
+    transition: transform 0.15s ease-out;
+}
+
+.nc-classic-social .nc-btn i {
+    font-size: 20px;
+}
+
+.nc-classic-social .nc-btn::after {
+    content: attr(data-label);
+    position: absolute;
+    z-index: 2;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    width: max-content;
+    max-width: 140px;
+    padding: 4px 8px;
+    color: #fff;
+    background: #555;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-50%);
+    pointer-events: none;
+    transition: opacity 0.15s ease-out;
+}
+
+.nc-classic-social .nc-btn:hover::after,
+.nc-classic-social .nc-btn:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+.nc-classic-social .nc-btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Gallery: one or two per row, caption centred over the photo. */
+.nc-classic-gallery {
+    padding: 20px 15px;
+}
+
+.nc-classic-dark .nc-classic-gallery {
+    padding: 35px 35px 50px;
+}
+
+.nc-classic-gallery .nc-gallery {
+    gap: 10px;
+    margin: 0;
+}
+
+.nc-classic-gallery .nc-gallery figure {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.nc-classic-gallery .nc-gallery img {
+    aspect-ratio: auto;
+    height: auto;
+}
+
+.nc-classic-gallery .nc-gallery figcaption {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    font-size: 16px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+/* Share and the footer stay small and quiet, like the original cards had none. */
+.nc-classic-actions {
+    padding: 16px 20px;
+}
+
+.nc-classic-actions .nc-bottom {
+    margin: 0;
+}
+
+.nc-classic-white .nc-foot,
+.nc-classic-dark .nc-foot {
+    margin-top: 24px;
+    color: var(--card-ink);
+    border: 0;
+    opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nc-classic-social .nc-btn,
+    .nc-classic-social .nc-btn::after {
+        transition: none;
+    }
+
+    .nc-classic-social .nc-btn:hover {
+        transform: none;
+    }
+}

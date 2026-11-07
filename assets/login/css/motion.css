@@ -1,0 +1,71 @@
+/* Entrance motion for the login, forgot-password and reset pages (docs/ui-ux-2026/MOTION.md 10).
+   Only opacity and transform animate, with fill "backwards": once it ends every element is back in
+   its original place and look, so the finished page is identical to the page without this file. */
+#simple-logo,
+.simple-box,
+.simple-box .field,
+.simple-box .simple-btns,
+.nfc-lang-corner {
+    animation: login-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+#simple-logo {
+    animation-name: login-pop;
+    animation-duration: 0.7s;
+    animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.simple-box {
+    animation-delay: 0.08s;
+}
+
+.simple-box .field:nth-of-type(1) {
+    animation-delay: 0.2s;
+}
+
+.simple-box .field:nth-of-type(2) {
+    animation-delay: 0.26s;
+}
+
+.simple-box .field:nth-of-type(3) {
+    animation-delay: 0.32s;
+}
+
+.simple-box .simple-btns {
+    animation-delay: 0.36s;
+}
+
+.nfc-lang-corner {
+    animation-name: login-fade;
+    animation-delay: 0.3s;
+}
+
+@keyframes login-rise {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.985);
+    }
+}
+
+@keyframes login-pop {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.85);
+    }
+}
+
+@keyframes login-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #simple-logo,
+    .simple-box,
+    .simple-box .field,
+    .simple-box .simple-btns,
+    .nfc-lang-corner {
+        animation: none;
+    }
+}

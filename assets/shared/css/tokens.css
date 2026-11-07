@@ -1,0 +1,153 @@
+/* Design tokens for layouts/dashboard (login and cards do not load this file).
+   Palette, depth and motion follow the Coffra reference chosen by the owner (docs/ui-ux-2026/MOTION.md).
+   Light values live on :root; dark values on [data-theme="dark"], set by dashboard/js/theme.js. */
+:root {
+    color-scheme: light;
+
+    /* Page and surfaces. */
+    --nfc-bg: #f4f1ea;
+    --nfc-field-1: rgb(168 206 178 / 0.38);
+    --nfc-field-2: rgb(246 214 168 / 0.32);
+    --nfc-field-3: rgb(250 190 160 / 0.24);
+    --nfc-color-surface: rgb(255 253 249 / 0.78);
+    --nfc-color-surface-solid: #fbf9f4;
+    --nfc-color-surface-muted: rgb(60 52 36 / 0.05);
+    --nfc-color-surface-hover: rgb(60 52 36 / 0.04);
+    --nfc-color-field: #fffdf9;
+    --nfc-color-border: rgb(52 48 36 / 0.14);
+    --nfc-color-border-strong: rgb(52 48 36 / 0.24);
+    --nfc-glass: rgb(244 241 234 / 0.72);
+    --nfc-glass-blur: blur(20px) saturate(1.5);
+    --nfc-scrim: rgb(14 18 18 / 0.36);
+
+    /* Text. */
+    --nfc-color-text: #1f2420;
+    --nfc-color-text-2: #3c4440;
+    --nfc-color-text-muted: #5d6660;
+
+    /* Accent (sage) and status colours; *-soft backgrounds keep the full colour for text. */
+    --nfc-color-primary: #4e7a60;
+    --nfc-color-primary-rgb: 78, 122, 96;
+    --nfc-color-primary-hi: #5b8a6d;
+    --nfc-color-primary-ink: #fff;
+    --nfc-color-primary-text: #41694f;
+    --nfc-color-primary-soft: rgb(78 122 96 / 0.13);
+    --nfc-color-sand: #e49a62;
+    --nfc-color-success: #2f7247;
+    --nfc-color-success-soft: rgb(47 114 71 / 0.13);
+    --nfc-color-danger: #b3363c;
+    --nfc-color-danger-rgb: 179, 54, 60;
+    --nfc-color-danger-soft: rgb(179 54 60 / 0.12);
+    --nfc-color-warning: #8a5300;
+    --nfc-color-warning-soft: rgb(214 128 20 / 0.16);
+    --nfc-color-warning-line: rgb(138 83 0 / 0.26);
+    --nfc-color-info: #2d6a6e;
+    --nfc-color-info-soft: rgb(45 106 110 / 0.12);
+    --nfc-color-selected: var(--nfc-color-primary);
+    --nfc-color-selected-ink: var(--nfc-color-primary-ink);
+
+    /* Shell: header, sidebar, footer. */
+    --nfc-color-header: rgb(244 241 234 / 0.78);
+    --nfc-color-sidebar: rgb(251 249 244 / 0.86);
+    --nfc-color-footer: rgb(244 241 234 / 0.82);
+    --nfc-side-ink: #1f2420;
+    --nfc-side-muted: #5d6660;
+    --nfc-side-heading: #7a827c;
+    --nfc-side-hover: rgb(52 48 36 / 0.06);
+    --nfc-side-active: rgb(78 122 96 / 0.13);
+    --nfc-side-line: rgb(52 48 36 / 0.1);
+
+    /* Depth. */
+    --nfc-shadow-sm: 0 1px 2px rgb(60 52 36 / 0.05), 0 12px 32px -16px rgb(60 52 36 / 0.2);
+    --nfc-shadow-md: 0 2px 6px rgb(60 52 36 / 0.06), 0 18px 40px -20px rgb(60 52 36 / 0.26);
+    --nfc-shadow-lg: 0 2px 6px rgb(60 52 36 / 0.07), 0 30px 64px -24px rgb(60 52 36 / 0.32);
+    --nfc-focus-ring: 0 0 0 4px rgb(78 122 96 / 0.2);
+
+    /* Type. */
+    --nfc-font: "Urbanist", "Urbanist Fallback", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+    /* Shape and spacing. */
+    --nfc-radius-sm: 0.375rem;
+    --nfc-radius-md: 12px;
+    --nfc-radius-lg: 16px;
+    --nfc-radius-control: 12px;
+    --nfc-radius-panel: 16px;
+    --nfc-radius-dialog: 22px;
+    --nfc-radius-pill: 999px;
+    --nfc-space-1: 8px;
+    --nfc-space-2: 16px;
+    --nfc-space-3: 24px;
+    --nfc-space-4: 32px;
+    --nfc-target-min: 48px;
+    --nfc-sidebar-width: 225px;
+
+    /* Motion. */
+    --nfc-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --nfc-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --nfc-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+    --nfc-ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --nfc-dur-fast: 0.15s;
+    --nfc-dur-base: 0.25s;
+    --nfc-dur-slow: 0.45s;
+    --nfc-motion-hover: 0.45s;
+
+    /* Pro badge (PRD CARD-02): gold/orange gradient with dark text, contrast at least 5.9:1. */
+    --nfc-pro-bg: #f6b73c;
+    --nfc-pro-bg-end: #f08a24;
+    --nfc-pro-text: #3b2200;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --nfc-bg: #0e1210;
+    --nfc-field-1: rgb(80 130 96 / 0.26);
+    --nfc-field-2: rgb(190 130 70 / 0.14);
+    --nfc-field-3: rgb(200 110 80 / 0.1);
+    --nfc-color-surface: rgb(28 33 30 / 0.78);
+    --nfc-color-surface-solid: #181d1a;
+    --nfc-color-surface-muted: rgb(230 240 225 / 0.05);
+    --nfc-color-surface-hover: rgb(230 240 225 / 0.05);
+    --nfc-color-field: #1a1f1c;
+    --nfc-color-border: rgb(230 240 225 / 0.1);
+    --nfc-color-border-strong: rgb(230 240 225 / 0.2);
+    --nfc-glass: rgb(14 18 16 / 0.7);
+    --nfc-scrim: rgb(0 0 0 / 0.55);
+
+    --nfc-color-text: #ecefe9;
+    --nfc-color-text-2: #c9cfc6;
+    --nfc-color-text-muted: #a0a99f;
+
+    --nfc-color-primary: #93c4a3;
+    --nfc-color-primary-rgb: 147, 196, 163;
+    --nfc-color-primary-hi: #a8d3b6;
+    --nfc-color-primary-ink: #0f2016;
+    --nfc-color-primary-text: #a6d2b4;
+    --nfc-color-primary-soft: rgb(147 196 163 / 0.15);
+    --nfc-color-sand: #f0ac7a;
+    --nfc-color-success: #78cf98;
+    --nfc-color-success-soft: rgb(120 207 152 / 0.14);
+    --nfc-color-danger: #f28a8f;
+    --nfc-color-danger-rgb: 242, 138, 143;
+    --nfc-color-danger-soft: rgb(242 138 143 / 0.14);
+    --nfc-color-warning: #eaae55;
+    --nfc-color-warning-soft: rgb(234 174 85 / 0.14);
+    --nfc-color-warning-line: rgb(234 174 85 / 0.3);
+    --nfc-color-info: #7cc8cc;
+    --nfc-color-info-soft: rgb(124 200 204 / 0.14);
+
+    --nfc-color-header: rgb(14 18 16 / 0.78);
+    --nfc-color-sidebar: rgb(22 27 24 / 0.9);
+    --nfc-color-footer: rgb(14 18 16 / 0.85);
+    --nfc-side-ink: #ecefe9;
+    --nfc-side-muted: #a0a99f;
+    --nfc-side-heading: #7f877e;
+    --nfc-side-hover: rgb(230 240 225 / 0.06);
+    --nfc-side-active: rgb(147 196 163 / 0.14);
+    --nfc-side-line: rgb(230 240 225 / 0.08);
+
+    --nfc-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3), 0 14px 34px -16px rgb(0 0 0 / 0.65);
+    --nfc-shadow-md: 0 2px 6px rgb(0 0 0 / 0.35), 0 20px 44px -20px rgb(0 0 0 / 0.75);
+    --nfc-shadow-lg: 0 2px 6px rgb(0 0 0 / 0.4), 0 30px 70px -24px rgb(0 0 0 / 0.85);
+    --nfc-focus-ring: 0 0 0 4px rgb(147 196 163 / 0.22);
+}

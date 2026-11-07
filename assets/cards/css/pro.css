@@ -1,0 +1,1594 @@
+/*
+ * Nine Pro card designs (digital_card/pro.php, PRD NT-01..07). Loaded after layouts.css. Each design
+ * sets its colours through --pro-* variables and reshapes the shared hero; contact, social, gallery
+ * and action slots keep their markup. Buttons stay at least 44 px tall with a visible focus ring.
+ */
+.nc-pro {
+    --pro-accent: #143656;
+    --pro-soft: #e8eff3;
+    --pro-ink: #243648;
+    --pro-radius: 10px;
+    --pro-border: #a6b6ac;
+    --pro-body: #fff;
+    --card-accent: var(--pro-accent);
+    --card-ink: var(--pro-ink);
+    --card-paper: var(--pro-body);
+}
+
+.nc-pro .nc-card {
+    max-width: 490px;
+    background: var(--pro-body);
+}
+
+header[class$="-hero"] {
+    position: relative;
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 16px;
+    align-items: end;
+    min-height: 260px;
+    padding: 88px 25px 25px;
+    overflow: hidden;
+    text-align: left;
+    background: var(--pro-soft);
+    isolation: isolate;
+}
+
+header[class$="-hero"]::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: -1;
+    width: 100%;
+    height: 48%;
+    background: var(--pro-accent);
+    opacity: 0.22;
+}
+
+/* Brand logo sits at the right of the identity block, level with the name and company. */
+.tpl-pro-brand {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    align-self: center;
+    justify-self: end;
+    max-width: 45%;
+    display: grid;
+    place-items: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 4px 9px;
+    color: var(--pro-accent);
+    background: #fff;
+    border-radius: 5px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.tpl-pro-photo {
+    position: relative;
+    z-index: 1;
+}
+
+.nc-pro .tpl-pro-photo .nc-avatar {
+    width: 110px;
+    height: 110px;
+    margin: 0;
+    color: var(--pro-accent);
+    background: #cbd7db;
+    border: 4px solid #fff;
+    border-radius: 8px;
+}
+
+.nc-pro .tpl-pro-photo .nc-avatar-button {
+    border-radius: 8px;
+}
+
+.tpl-pro-identity {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 14px;
+    align-content: end;
+    min-width: 0;
+}
+
+.tpl-pro-identity > :not(.tpl-pro-brand) {
+    grid-column: 1;
+}
+
+.tpl-pro-identity h2 {
+    margin: 7px 0;
+    font-size: 1.75rem;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.tpl-pro-kicker {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.85;
+    overflow-wrap: anywhere;
+}
+
+.tpl-pro-content {
+    background: var(--pro-body);
+}
+
+.nc-pro .nc-foot {
+    background: var(--pro-body);
+    border-color: #dce4e6;
+}
+
+.nc-pro .nc-detail {
+    border-color: #dce4e6;
+}
+
+.nc-pro .nc-btn {
+    min-height: 46px;
+    border-color: var(--pro-border);
+    border-radius: var(--pro-radius);
+    line-height: 1.25;
+    text-align: center;
+    white-space: normal;
+    transition: border-color 0.16s, transform 0.16s;
+}
+
+.nc-pro .nc-btn:hover {
+    border-color: var(--pro-accent);
+    transform: translateY(-1px);
+}
+
+.nc-pro .nc-btn-primary {
+    color: #fff;
+    background: var(--pro-accent);
+    border-color: var(--pro-accent);
+}
+
+/* "Lihat lokasi" right under the address text (NT-06). */
+.nc-pro .nc-address {
+    padding-bottom: 18px;
+}
+
+.nc-pro .nc-map-btn {
+    display: flex;
+    width: max-content;
+    max-width: 100%;
+    min-width: 150px;
+    margin-top: 12px;
+    padding-inline: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nc-pro .nc-btn {
+        transition: none;
+    }
+
+    .nc-pro .nc-btn:hover {
+        transform: none;
+    }
+}
+
+/* Aurora: dark blue cover, orange diagonal, round portrait, capsule buttons. */
+.nc-pro-aurora {
+    --pro-accent: #c4512a;
+    --pro-ink: #182b41;
+    --pro-radius: 999px;
+    --pro-body: #fff7f0;
+}
+
+.nc-pro-aurora header[class$="-hero"] {
+    grid-template-columns: 116px 1fr;
+    min-height: 310px;
+    padding-top: 84px;
+    color: #fff;
+    background: linear-gradient(140deg, #10213a 0%, #153a5c 67%, #b84d2c 67%, #e8753c 100%);
+}
+
+.nc-pro-aurora header[class$="-hero"]::before {
+    inset: auto 0 0;
+    height: 11px;
+    background: #f6a04c;
+    opacity: 1;
+}
+
+.nc-pro-aurora header[class$="-hero"]::after {
+    content: "";
+    position: absolute;
+    top: 63px;
+    right: -24px;
+    z-index: -1;
+    width: 125px;
+    height: 100px;
+    transform: rotate(-20deg);
+    background: repeating-linear-gradient(0deg, transparent 0 10px, #f7ab63 10px 13px, transparent 13px 23px);
+}
+
+.nc-pro-aurora .tpl-pro-photo .nc-avatar {
+    width: 116px;
+    height: 116px;
+    color: #fff;
+    background: #31536a;
+    border-color: #f8b46e;
+    border-radius: 50%;
+}
+
+.nc-pro-aurora .tpl-pro-photo .nc-avatar-button {
+    border-radius: 50%;
+}
+
+.nc-pro-aurora .tpl-pro-brand {
+    color: #19314b;
+    background: #f8b46e;
+    border-radius: 18px;
+}
+
+.nc-pro-aurora .tpl-pro-kicker {
+    color: #f9dec4;
+    opacity: 1;
+}
+
+.nc-pro-aurora .tpl-pro-content {
+    background: radial-gradient(circle at 92% 2%, #f9dcc6 0 11%, transparent 35%), linear-gradient(180deg, #fff7f0, #fffaf6);
+}
+
+/* Meridian: cream and blue panels, tall portrait on the right, asymmetric corners. */
+.nc-pro-meridian {
+    --pro-accent: #263d59;
+    --pro-ink: #263d59;
+    --pro-radius: 12px 3px 12px 3px;
+    --pro-body: #f6f2ea;
+}
+
+.nc-pro-meridian header[class$="-hero"] {
+    grid-template-columns: minmax(0, 1fr) 43%;
+    min-height: 300px;
+    color: #263d59;
+    background: #f4f0e9;
+}
+
+.nc-pro-meridian header[class$="-hero"]::before {
+    inset: 0 0 0 auto;
+    width: 43%;
+    height: 100%;
+    background: linear-gradient(150deg, #16314d, #53748d);
+    opacity: 1;
+}
+
+.nc-pro-meridian .tpl-pro-photo {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+}
+
+.nc-pro-meridian .tpl-pro-photo .nc-avatar {
+    width: 120px;
+    height: 182px;
+    color: #263d59;
+    background: #b7c9cb;
+    border-width: 3px;
+    border-radius: 55px 55px 5px 5px;
+}
+
+.nc-pro-meridian .tpl-pro-identity {
+    grid-column: 1;
+    grid-row: 1;
+    padding-bottom: 13px;
+}
+
+.nc-pro-meridian .tpl-pro-kicker {
+    color: #8a4b2e;
+    opacity: 1;
+}
+
+.nc-pro-meridian .tpl-pro-brand {
+    color: #263d59;
+}
+
+.nc-pro-meridian .tpl-pro-contact {
+    padding-left: 14px;
+    border-left: 4px solid #d48d5a;
+}
+
+.nc-pro-meridian .tpl-pro-content {
+    background: linear-gradient(125deg, #fffaf2 0 55%, #f0eee8 100%);
+}
+
+.nc-pro-meridian .nc-bottom .nc-btn {
+    border-bottom: 2px solid #a05b3a;
+}
+
+/* Atelier: editorial black/grey, serif name, square greyscale portrait, sharp corners. */
+.nc-pro-atelier {
+    --pro-accent: #332b2a;
+    --pro-ink: #332b2a;
+    --pro-radius: 0;
+    --pro-border: #706b66;
+    --pro-body: #f1f0ed;
+}
+
+.nc-pro-atelier header[class$="-hero"] {
+    grid-template-columns: 46% 54%;
+    gap: 0;
+    min-height: 315px;
+    padding: 72px 21px 22px;
+    color: #fff;
+    background: #292a2b;
+}
+
+.nc-pro-atelier header[class$="-hero"]::before {
+    inset: 0 0 0 46%;
+    width: 54%;
+    height: 100%;
+    background: linear-gradient(140deg, #c8c6c2, #555657);
+    opacity: 1;
+}
+
+.nc-pro-atelier .tpl-pro-photo {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: stretch;
+    margin-left: 12px;
+}
+
+.nc-pro-atelier .tpl-pro-photo .nc-avatar,
+.nc-pro-atelier .tpl-pro-photo .nc-avatar-button {
+    width: 100%;
+    height: 205px;
+    color: #25303a;
+    background: #a4a7a5;
+    border: 0;
+    border-radius: 0;
+}
+
+.nc-pro-atelier .tpl-pro-photo img.nc-avatar {
+    filter: grayscale(1);
+}
+
+.nc-pro-atelier .tpl-pro-identity {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.nc-pro-atelier .tpl-pro-identity h2 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2.1rem;
+    font-weight: 400;
+    letter-spacing: -0.04em;
+}
+
+.nc-pro-atelier .tpl-pro-kicker {
+    color: #d8d6d2;
+}
+
+.nc-pro-atelier .tpl-pro-brand {
+    color: #2b2b2b;
+    border-radius: 0;
+    letter-spacing: 0.12em;
+}
+
+.nc-pro-atelier .tpl-pro-content {
+    background: linear-gradient(90deg, #dfddda 0 5px, transparent 5px), linear-gradient(180deg, #f6f5f2, #eeece9);
+}
+
+.nc-pro-atelier .nc-gallery {
+    margin-top: 0;
+    padding-top: 15px;
+    border-top: 2px solid #292a2b;
+}
+
+/* Vista: layered landscape cover, floating round portrait, soft rectangles. */
+.nc-pro-vista {
+    --pro-accent: #166479;
+    --pro-ink: #17485b;
+    --pro-radius: 16px;
+    --pro-body: #e9f6f5;
+}
+
+.nc-pro-vista header[class$="-hero"] {
+    display: block;
+    min-height: 325px;
+    padding: 180px 25px 22px;
+    color: #fff;
+    background: linear-gradient(145deg, #15556c 0 44%, #3caab6 44% 74%, #f2b968 74%);
+}
+
+.nc-pro-vista header[class$="-hero"]::before {
+    inset: auto 0 0;
+    height: 45%;
+    background: linear-gradient(0deg, #15556cf0, #15556c12);
+    opacity: 1;
+}
+
+.nc-pro-vista header[class$="-hero"]::after {
+    content: "";
+    position: absolute;
+    top: 70px;
+    right: 10px;
+    z-index: -1;
+    width: 145px;
+    height: 145px;
+    border: 2px solid #ffffff8c;
+    border-radius: 50%;
+}
+
+.nc-pro-vista .tpl-pro-photo {
+    float: right;
+    margin: -62px 0 7px 12px;
+}
+
+.nc-pro-vista .tpl-pro-photo .nc-avatar {
+    width: 96px;
+    height: 96px;
+    color: #15556c;
+    background: #b8e6dc;
+    border-radius: 50%;
+}
+
+.nc-pro-vista .tpl-pro-photo .nc-avatar-button {
+    border-radius: 50%;
+}
+
+.nc-pro-vista .tpl-pro-brand {
+    color: #15556c;
+}
+
+.nc-pro-vista .tpl-pro-content {
+    background: radial-gradient(circle at 100% 0, #b9e5e4 0 9%, transparent 35%), linear-gradient(180deg, #e8f6f5, #f5fbfa);
+}
+
+.nc-pro-vista .nc-detail {
+    margin-top: 8px;
+    padding: 12px;
+    background: #d9efef;
+    border: 0;
+    border-radius: 5px;
+}
+
+/* Ledger: black and gold grid, framed portrait, structured label/value rows. */
+.nc-pro-ledger {
+    --pro-accent: #8a5c1b;
+    --pro-ink: #29312f;
+    --pro-radius: 3px;
+    --pro-border: #a98b57;
+    --pro-body: #f3eee4;
+}
+
+.nc-pro-ledger header[class$="-hero"] {
+    grid-template-columns: 100px 1fr;
+    min-height: 265px;
+    padding-top: 83px;
+    color: #fff;
+    background: #1d2727;
+    border-bottom: 7px solid #c59248;
+}
+
+.nc-pro-ledger header[class$="-hero"]::before {
+    inset: 0;
+    height: 100%;
+    background: repeating-linear-gradient(90deg, transparent 0 37px, #d6b7791a 37px 38px), repeating-linear-gradient(0deg, transparent 0 37px, #d6b7791a 37px 38px);
+    opacity: 1;
+}
+
+.nc-pro-ledger .tpl-pro-photo .nc-avatar {
+    width: 100px;
+    height: 122px;
+    color: #fff;
+    background: #62726c;
+    border: 3px solid #c59248;
+    border-radius: 3px;
+}
+
+.nc-pro-ledger .tpl-pro-brand {
+    color: #1d2727;
+    background: #c59248;
+}
+
+.nc-pro-ledger .tpl-pro-kicker {
+    color: #e3c99f;
+    opacity: 1;
+}
+
+.nc-pro-ledger .tpl-pro-content {
+    background: repeating-linear-gradient(0deg, transparent 0 35px, #c7b99419 35px 36px), linear-gradient(180deg, #faf6eb, #f0ece3);
+}
+
+.nc-pro-ledger .nc-detail {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr);
+    gap: 12px;
+}
+
+.nc-pro-ledger .nc-detail strong {
+    margin: 0;
+}
+
+.nc-pro-ledger .nc-map-btn {
+    grid-column: 2;
+    width: 100%;
+    min-width: 0;
+    margin-top: 2px;
+}
+
+/* Kanvas: plum and pink, tilted photo, gallery first in two sizes, expressive corners. */
+.nc-pro-kanvas {
+    --pro-accent: #9c3f5a;
+    --pro-ink: #563449;
+    --pro-radius: 5px 18px 5px 18px;
+    --pro-body: #fff2f3;
+}
+
+.nc-pro-kanvas header[class$="-hero"] {
+    grid-template-columns: minmax(0, 1fr) 42%;
+    min-height: 260px;
+    padding-top: 75px;
+    color: #5c334c;
+    background: linear-gradient(132deg, #f5dedb 0 56%, #aa5b78 56%);
+}
+
+.nc-pro-kanvas header[class$="-hero"]::before {
+    inset: auto 0 0;
+    height: 13px;
+    background: #ef9a78;
+    opacity: 1;
+}
+
+.nc-pro-kanvas .tpl-pro-photo {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    transform: rotate(6deg);
+}
+
+.nc-pro-kanvas .tpl-pro-photo .nc-avatar {
+    width: 110px;
+    height: 142px;
+    color: #572e49;
+    background: #df9ab0;
+    border: 5px solid #fff;
+    border-radius: 3px;
+}
+
+.nc-pro-kanvas .tpl-pro-identity {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.nc-pro-kanvas .tpl-pro-brand {
+    color: #fff;
+    background: #8d3d59;
+}
+
+.nc-pro-kanvas .tpl-pro-content {
+    background: radial-gradient(circle at 95% 5%, #f5c9d4 0 8%, transparent 31%), radial-gradient(circle at 0 75%, #dcebe7 0 8%, transparent 31%), #fff3f4;
+}
+
+.nc-pro-kanvas .nc-gallery {
+    margin-top: 0;
+}
+
+.nc-pro-kanvas .nc-gallery-cols-2 {
+    grid-template-columns: 1.4fr 1fr;
+}
+
+/* Halo: white space, centred portrait, large contact buttons with a teal edge. */
+.nc-pro-halo {
+    --pro-accent: #176a68;
+    --pro-ink: #204b49;
+    --pro-radius: 14px;
+    --pro-body: #eff8f6;
+}
+
+.nc-pro-halo header[class$="-hero"] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    min-height: 285px;
+    padding: 72px 22px 22px;
+    color: #204b49;
+    text-align: center;
+    background: #fff;
+    border-bottom: 9px solid #59b9b4;
+}
+
+.nc-pro-halo header[class$="-hero"]::before {
+    height: 89px;
+    background: linear-gradient(110deg, #dff5f1, #77c9c2);
+    opacity: 1;
+}
+
+.nc-pro-halo .tpl-pro-photo .nc-avatar {
+    width: 104px;
+    height: 104px;
+    color: #205653;
+    background: #a4d6cf;
+    border: 5px solid #fff;
+    border-radius: 50%;
+}
+
+.nc-pro-halo .tpl-pro-photo .nc-avatar-button {
+    border-radius: 50%;
+}
+
+.nc-pro-halo .tpl-pro-kicker {
+    color: #176a68;
+}
+
+.nc-pro-halo .tpl-pro-brand {
+    color: #fff;
+    background: #176a68;
+}
+
+.nc-pro-halo .tpl-pro-content {
+    background: radial-gradient(circle at 8% 0, #d2f0e9 0 11%, transparent 39%), linear-gradient(180deg, #eff8f6, #f9fcfa);
+}
+
+.nc-pro-halo .tpl-pro-contact .nc-actions:first-child .nc-btn {
+    justify-content: flex-start;
+    padding: 12px;
+    text-align: left;
+}
+
+.nc-pro-halo .tpl-pro-contact .nc-actions:first-child .nc-btn:not(.nc-btn-primary) {
+    border-left: 4px solid #59b9b4;
+}
+
+/* Rona and Sorot: the stored profile photo fills the hero (no header background slot, NT-07). */
+.nc-pro-rona header[class$="-hero"],
+.nc-pro-sorot header[class$="-hero"] {
+    display: block;
+    min-height: 410px;
+    padding: 0;
+}
+
+.nc-pro-rona .tpl-pro-photo,
+.nc-pro-sorot .tpl-pro-photo {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+.nc-pro-rona .tpl-pro-photo .nc-avatar-button,
+.nc-pro-sorot .tpl-pro-photo .nc-avatar-button,
+.nc-pro-rona .tpl-pro-photo .nc-avatar,
+.nc-pro-sorot .tpl-pro-photo .nc-avatar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+}
+
+.nc-pro-rona .tpl-pro-photo div.nc-avatar,
+.nc-pro-sorot .tpl-pro-photo div.nc-avatar {
+    display: grid;
+    font-size: 4rem;
+}
+
+.nc-pro-rona header[class$="-hero"]::after,
+.nc-pro-sorot header[class$="-hero"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.nc-pro-rona .tpl-pro-identity,
+.nc-pro-sorot .tpl-pro-identity {
+    position: absolute;
+    right: 25px;
+    bottom: 22px;
+    left: 25px;
+    z-index: 3;
+}
+
+.nc-pro-rona .tpl-pro-identity h2,
+.nc-pro-sorot .tpl-pro-identity h2 {
+    margin: 0 0 6px;
+    font-size: 2.1rem;
+}
+
+.nc-pro-rona .tpl-pro-contact .nc-actions:first-child,
+.nc-pro-sorot .tpl-pro-contact .nc-actions:first-child {
+    gap: 9px;
+}
+
+/* Rona: warm tall portrait, identity over a light gradient, three round contact actions. */
+.nc-pro-rona {
+    --pro-accent: #c43c4a;
+    --pro-ink: #4b3036;
+    --pro-radius: 999px;
+    --pro-body: #fff6f1;
+}
+
+.nc-pro-rona header[class$="-hero"] {
+    background: #f5e8df;
+}
+
+.nc-pro-rona header[class$="-hero"]::before {
+    inset: 0 auto 0 0;
+    width: 15%;
+    height: 100%;
+    background: #ebbdaf;
+    opacity: 0.35;
+}
+
+.nc-pro-rona .tpl-pro-photo img.nc-avatar {
+    object-fit: cover;
+    object-position: center 25%;
+}
+
+.nc-pro-rona .tpl-pro-photo div.nc-avatar {
+    color: #a83f4a;
+    background: linear-gradient(135deg, #f4c5ba, #e5a9aa);
+}
+
+.nc-pro-rona header[class$="-hero"]::after {
+    background: linear-gradient(90deg, #fff7efb8 0%, #fff7ef18 57%, transparent 85%), linear-gradient(0deg, #fff6f1 0%, #fff6f1c9 19%, transparent 54%);
+}
+
+.nc-pro-rona .tpl-pro-brand {
+    color: #a83f4a;
+    background: #fff8f4;
+    border-radius: 999px;
+    box-shadow: 0 4px 16px #412a2724;
+}
+
+.nc-pro-rona .tpl-pro-identity {
+    color: #332f33;
+    text-shadow: 0 1px 8px #fff8;
+}
+
+.nc-pro-rona .tpl-pro-kicker {
+    color: #a83f4a;
+    opacity: 1;
+}
+
+.nc-pro-rona .tpl-pro-content {
+    background: radial-gradient(circle at 95% 12%, #f8d9d0 0 9%, transparent 36%), linear-gradient(180deg, #fff6f1, #fffaf7);
+}
+
+.nc-pro-rona .tpl-pro-contact .nc-actions:first-child {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.nc-pro-rona .tpl-pro-contact .nc-actions:first-child .nc-btn {
+    flex-direction: column;
+    gap: 7px;
+    min-height: 88px;
+    padding: 0 2px;
+    color: #5d3a42;
+    background: transparent;
+    border: 0;
+    font-size: 0.78rem;
+}
+
+.nc-pro-rona .tpl-pro-contact .nc-actions:first-child .nc-btn i {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    color: #fff;
+    background: #c43c4a;
+    border-radius: 50%;
+    font-size: 1.12rem;
+    box-shadow: 0 5px 14px #963d4633;
+}
+
+.nc-pro-rona .nc-detail {
+    border-color: #ecd6d1;
+}
+
+/* Sorot: editorial portrait on a dark panel, bright identity, icon contact rows. */
+.nc-pro-sorot {
+    --pro-accent: #d4ac79;
+    --pro-ink: #eef6f5;
+    --pro-radius: 9px;
+    --pro-border: #68868b;
+    --pro-body: #152f38;
+    --card-muted: #c5d3d3;
+}
+
+.nc-pro-sorot .nc-card {
+    color: #eef6f5;
+    border-color: #42616a;
+}
+
+.nc-pro-sorot header[class$="-hero"] {
+    min-height: 390px;
+    background: #263b49;
+}
+
+.nc-pro-sorot header[class$="-hero"]::before {
+    inset: 0 auto 0 0;
+    width: 29%;
+    height: 100%;
+    background: repeating-linear-gradient(0deg, #ffffff0c 0 1px, transparent 1px 29px);
+    opacity: 1;
+}
+
+.nc-pro-sorot .tpl-pro-photo img.nc-avatar {
+    object-fit: cover;
+    object-position: center 25%;
+}
+
+.nc-pro-sorot .tpl-pro-photo div.nc-avatar {
+    color: #d4ac79;
+    background: linear-gradient(135deg, #315467, #183443);
+}
+
+.nc-pro-sorot header[class$="-hero"]::after {
+    background: linear-gradient(90deg, #142b38e8 0%, #142b389e 38%, transparent 82%), linear-gradient(0deg, #142b38e8 0%, transparent 53%);
+}
+
+.nc-pro-sorot .tpl-pro-brand {
+    color: #142b38;
+    background: #d4ac79;
+    border-radius: 3px;
+}
+
+.nc-pro-sorot .tpl-pro-identity {
+    color: #fff;
+    text-shadow: 0 2px 12px #10232acc;
+}
+
+.nc-pro-sorot .tpl-pro-kicker {
+    color: #f1d2a8;
+    opacity: 1;
+}
+
+.nc-pro-sorot .tpl-pro-content {
+    color: #eef6f5;
+    background: repeating-linear-gradient(90deg, transparent 0 42px, #ffffff08 42px 43px), linear-gradient(180deg, #152f38, #1b3a42);
+}
+
+.nc-pro-sorot .nc-foot {
+    color: #d3dfdd;
+    background: #152f38;
+    border-color: #42616a;
+}
+
+.nc-pro-sorot .nc-detail {
+    border-color: #557079;
+}
+
+.nc-pro-sorot .nc-detail span {
+    color: #d4e0df;
+}
+
+.nc-pro-sorot .nc-btn {
+    color: #fff;
+    background: #254652;
+    border-color: #5d7c83;
+}
+
+.nc-pro-sorot .tpl-pro-contact .nc-actions:first-child .nc-btn {
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 11px 14px;
+    text-align: left;
+}
+
+.nc-pro-sorot .tpl-pro-contact .nc-actions:first-child .nc-btn i {
+    width: 23px;
+    flex: none;
+    color: #e8c79a;
+    text-align: center;
+}
+
+.nc-pro-sorot .nc-btn-primary {
+    color: #172b35;
+    background: #d4ac79;
+    border-color: #d4ac79;
+}
+
+.nc-pro-sorot .tpl-pro-contact .nc-actions:first-child .nc-btn-primary i {
+    color: #172b35;
+}
+
+.nc-pro-sorot .nc-share-fallback input {
+    color: #172b35;
+}
+
+.nc-pro-sorot .nc-status {
+    color: #9fe0b8;
+}
+
+@media (max-width: 420px) {
+    .nc-pro-meridian header[class$="-hero"],
+    .nc-pro-atelier header[class$="-hero"],
+    .nc-pro-kanvas header[class$="-hero"] {
+        gap: 8px;
+    }
+
+    .nc-pro-atelier .tpl-pro-photo .nc-avatar,
+    .nc-pro-atelier .tpl-pro-photo .nc-avatar-button {
+        height: 185px;
+    }
+
+    .tpl-pro-identity h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Brand assets (PRD BR-01): owner's header background under the design colours, logo in its slot. */
+.nc-pro-cover {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.45;
+}
+
+/*
+ * Uploaded logo frame. The shapes match TemplateCatalog::logoFrame(), which the Personal Info cropper
+ * crops to, so the logo fills its frame exactly: circle for aurora/vista/halo/rona, sharp 2:1 box for
+ * atelier/ledger, rounded 2:1 box for the rest.
+ */
+.tpl-pro-brand:has(.nc-pro-brand-logo) {
+    width: 96px;
+    max-width: 45%;
+    height: auto;
+    aspect-ratio: 2 / 1;
+    padding: 0;
+    overflow: hidden;
+    background: #fff;
+    border-radius: 8px;
+}
+
+.nc-pro-aurora .tpl-pro-brand:has(.nc-pro-brand-logo),
+.nc-pro-vista .tpl-pro-brand:has(.nc-pro-brand-logo),
+.nc-pro-halo .tpl-pro-brand:has(.nc-pro-brand-logo),
+.nc-pro-rona .tpl-pro-brand:has(.nc-pro-brand-logo),
+.nc-pro-ombak .tpl-pro-brand:has(.nc-pro-brand-logo),
+.nc-pro-siluet .tpl-pro-brand:has(.nc-pro-brand-logo) {
+    width: 52px;
+    min-width: 52px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+}
+
+.nc-pro-atelier .tpl-pro-brand:has(.nc-pro-brand-logo),
+.nc-pro-ledger .tpl-pro-brand:has(.nc-pro-brand-logo) {
+    border-radius: 0;
+}
+
+.nc-pro-brand-logo,
+.nc-pro-brand-logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.nc-pro-brand-logo img {
+    object-fit: cover;
+}
+
+.tpl-pro-identity p {
+    margin: 0;
+    font-size: 0.94rem;
+    overflow-wrap: anywhere;
+}
+
+/* An empty job title or company leaves no blank line. */
+.tpl-pro-identity p:has(> [data-preview-field]:empty) {
+    display: none;
+}
+
+.nc-pro-aurora .tpl-pro-identity p:not(.tpl-pro-kicker),
+.nc-pro-ledger .tpl-pro-identity p:not(.tpl-pro-kicker) {
+    color: #f9dec4;
+}
+
+.nc-pro-atelier .tpl-pro-identity p:not(.tpl-pro-kicker),
+.nc-pro-sorot .tpl-pro-identity p:not(.tpl-pro-kicker) {
+    color: #e2ecec;
+}
+
+.nc-pro-meridian .tpl-pro-identity p:not(.tpl-pro-kicker),
+.nc-pro-halo .tpl-pro-identity p:not(.tpl-pro-kicker) {
+    color: #506276;
+}
+
+.nc-pro-rona .tpl-pro-identity p:not(.tpl-pro-kicker) {
+    color: #49343b;
+}
+
+
+/* Docs template structure (digital_card/pro/<design>.html). */
+.nc-pro .nc-card > .nc-pro-template > section {
+    display: block;
+}
+
+.tpl-pro-content {
+    padding: 24px;
+}
+
+.tpl-pro-content > div + div {
+    margin-top: 6px;
+}
+
+.tpl-pro-cover {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+}
+
+.tpl-pro-cover:empty {
+    display: none;
+}
+
+.tpl-pro-identity h2 {
+    margin: 7px 0;
+    font-size: 1.75rem;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+/* Section headings printed by the slots in Pro designs. */
+.tpl-pro-social h2,
+.tpl-pro-gallery h2 {
+    margin: 22px 0 8px;
+    font-size: 1rem;
+}
+
+.tpl-pro-social .nc-social,
+.tpl-pro-gallery .nc-gallery {
+    margin-top: 22px;
+}
+
+.tpl-pro-social:has(.nc-slot-empty),
+.tpl-pro-gallery:has(.nc-slot-empty) {
+    display: none;
+}
+
+.nc-pro-brand-text {
+    display: block;
+}
+
+/* A logo switched off by the owner leaves the slot empty; the identity then uses the full width. */
+.tpl-pro-brand:not(:has(*)),
+.tpl-pro-brand[hidden] {
+    display: none;
+}
+
+/*
+ * Ombak, Siluet and Bingkai (2026-10-26): three designs after the familiar "phone card" layout
+ * (photo hero, round icon contacts, list-style social links), each reworked with its own palette and
+ * signature element. Contact icons come from the shared contact slot; only CSS changes per design.
+ */
+.nc-pro-ombak .tpl-pro-contact .nc-actions:first-child,
+.nc-pro-siluet .tpl-pro-contact .nc-actions:first-child,
+.nc-pro-bingkai .tpl-pro-contact .nc-actions:first-child {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+}
+
+/* Round icon actions: the label stays for screen readers and appears under the icon. */
+.nc-pro-ombak .tpl-pro-contact .nc-actions:first-child .nc-btn,
+.nc-pro-siluet .tpl-pro-contact .nc-actions:first-child .nc-btn,
+.nc-pro-bingkai .tpl-pro-contact .nc-actions:first-child .nc-btn {
+    flex-direction: column;
+    gap: 6px;
+    width: 76px;
+    min-height: 0;
+    padding: 0;
+    color: var(--pro-ink);
+    background: transparent;
+    border: 0;
+    font-size: 0.74rem;
+    font-weight: 600;
+}
+
+.nc-pro-ombak .tpl-pro-contact .nc-actions:first-child .nc-btn i,
+.nc-pro-siluet .tpl-pro-contact .nc-actions:first-child .nc-btn i,
+.nc-pro-bingkai .tpl-pro-contact .nc-actions:first-child .nc-btn i {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    font-size: 1.15rem;
+    transition: transform 0.16s;
+}
+
+.nc-pro-ombak .tpl-pro-contact .nc-actions:first-child .nc-btn:hover,
+.nc-pro-siluet .tpl-pro-contact .nc-actions:first-child .nc-btn:hover,
+.nc-pro-bingkai .tpl-pro-contact .nc-actions:first-child .nc-btn:hover {
+    transform: none;
+}
+
+.nc-pro-ombak .tpl-pro-contact .nc-actions:first-child .nc-btn:hover i,
+.nc-pro-siluet .tpl-pro-contact .nc-actions:first-child .nc-btn:hover i,
+.nc-pro-bingkai .tpl-pro-contact .nc-actions:first-child .nc-btn:hover i {
+    transform: translateY(-2px);
+}
+
+/* Social links as list rows with a chevron, like an app menu. */
+.nc-pro-ombak .nc-social,
+.nc-pro-siluet .nc-social,
+.nc-pro-bingkai .nc-social {
+    display: grid;
+    gap: 10px;
+}
+
+.nc-pro-ombak .nc-social .nc-btn,
+.nc-pro-siluet .nc-social .nc-btn,
+.nc-pro-bingkai .nc-social .nc-btn {
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 12px 16px;
+    text-align: left;
+}
+
+.nc-pro-ombak .nc-social .nc-btn i,
+.nc-pro-siluet .nc-social .nc-btn i,
+.nc-pro-bingkai .nc-social .nc-btn i {
+    width: 22px;
+    font-size: 1.3rem;
+    text-align: center;
+}
+
+.nc-pro-ombak .nc-social .nc-btn::after,
+.nc-pro-siluet .nc-social .nc-btn::after,
+.nc-pro-bingkai .nc-social .nc-btn::after {
+    content: "\f054";
+    margin-left: auto;
+    font-family: "Font Awesome 6 Free";
+    font-size: 0.8rem;
+    font-weight: 900;
+    opacity: 0.55;
+}
+
+.nc-pro-ombak .nc-social .fa-instagram { color: #d6336c; }
+.nc-pro-ombak .nc-social .fa-facebook,
+.nc-pro-bingkai .nc-social .fa-facebook { color: #1877f2; }
+.nc-pro-bingkai .nc-social .fa-instagram { color: #d6336c; }
+
+/* Ombak: deep navy cover that ends in a coral wave, round portrait, coral icon actions. */
+.nc-pro-ombak {
+    --pro-accent: #ef5b5b;
+    --pro-ink: #1b2a4a;
+    --pro-radius: 14px;
+    --pro-border: #e4e7ef;
+    --pro-body: #f6f7fb;
+}
+
+.nc-pro-ombak header[class$="-hero"] {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    min-height: 360px;
+    padding: 46px 24px 70px;
+    color: #fff;
+    text-align: center;
+    background: radial-gradient(circle at 85% 12%, #3a5a9a 0 18%, transparent 45%), linear-gradient(160deg, #142449 0%, #1f3a6e 60%, #2b4c86 100%);
+}
+
+/* Two layered waves at the bottom of the hero (coral line over the white body). */
+.nc-pro-ombak header[class$="-hero"]::before {
+    inset: auto -10% -2px;
+    width: 120%;
+    height: 78px;
+    background: var(--pro-body);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    box-shadow: 0 -10px 0 #ef5b5b;
+    opacity: 1;
+}
+
+.nc-pro-ombak header[class$="-hero"]::after {
+    content: "";
+    position: absolute;
+    top: -40px;
+    left: -50px;
+    z-index: -1;
+    width: 180px;
+    height: 180px;
+    border: 26px solid #ffffff10;
+    border-radius: 50%;
+}
+
+.nc-pro-ombak .nc-pro-cover {
+    opacity: 0.35;
+}
+
+.nc-pro-ombak .tpl-pro-photo .nc-avatar {
+    width: 124px;
+    height: 124px;
+    color: #1b2a4a;
+    background: #ffd5cc;
+    border: 5px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 10px 28px #0b162e66;
+}
+
+.nc-pro-ombak .tpl-pro-photo .nc-avatar-button {
+    border-radius: 50%;
+}
+
+.nc-pro-ombak .tpl-pro-identity {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+}
+
+.nc-pro-ombak .tpl-pro-identity > * {
+    grid-column: 1;
+}
+
+.nc-pro-ombak .tpl-pro-brand {
+    grid-row: auto;
+    order: -1;
+    justify-self: center;
+    margin-bottom: 4px;
+    color: #1b2a4a;
+    background: #fff;
+    box-shadow: 0 4px 14px #0b162e40;
+}
+
+.nc-pro-ombak .tpl-pro-identity h2 {
+    margin: 2px 0 4px;
+    font-size: 1.9rem;
+    letter-spacing: -0.01em;
+}
+
+.nc-pro-ombak .tpl-pro-identity p:not(.tpl-pro-kicker) {
+    color: #ffd5cc;
+}
+
+.nc-pro-ombak .tpl-pro-kicker {
+    margin-top: 6px;
+    padding: 3px 12px;
+    color: #fff;
+    background: #ffffff1f;
+    border-radius: 999px;
+    letter-spacing: 0.08em;
+}
+
+.nc-pro-ombak .tpl-pro-content {
+    margin-top: -26px;
+    background: var(--pro-body);
+}
+
+.nc-pro-ombak .tpl-pro-contact .nc-actions:first-child .nc-btn i {
+    color: #fff;
+    background: linear-gradient(145deg, #ff7a6b, #e0464f);
+    box-shadow: 0 6px 16px #e0464f55;
+}
+
+.nc-pro-ombak .nc-social .nc-btn,
+.nc-pro-ombak .nc-detail,
+.nc-pro-ombak .tpl-pro-actions .nc-btn {
+    background: #fff;
+    border: 0;
+    box-shadow: 0 4px 14px #1b2a4a14;
+}
+
+.nc-pro-ombak .nc-detail {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+}
+
+/* Siluet: charcoal and champagne gold, big uppercase name over a monochrome arched portrait. */
+.nc-pro-siluet {
+    --pro-accent: #c9a45c;
+    --pro-ink: #f3efe7;
+    --pro-radius: 999px;
+    --pro-border: #3b3b3f;
+    --pro-body: #151517;
+    --card-muted: #b9b4aa;
+}
+
+.nc-pro-siluet .nc-card {
+    color: #f3efe7;
+    border-color: #2a2a2e;
+}
+
+.nc-pro-siluet header[class$="-hero"] {
+    grid-template-columns: minmax(0, 1fr) 46%;
+    gap: 6px;
+    align-items: end;
+    min-height: 380px;
+    padding: 30px 0 28px 24px;
+    color: #fff;
+    background: linear-gradient(180deg, #2b2b30 0%, #151517 100%);
+}
+
+/* Thin gold frame line and a soft spotlight behind the portrait. */
+.nc-pro-siluet header[class$="-hero"]::before {
+    inset: 14px;
+    width: auto;
+    height: auto;
+    background: radial-gradient(circle at 78% 38%, #c9a45c33 0 22%, transparent 55%);
+    border: 1px solid #c9a45c59;
+    border-radius: 18px;
+    opacity: 1;
+}
+
+.nc-pro-siluet .nc-pro-cover {
+    opacity: 0.22;
+    filter: grayscale(1);
+}
+
+.nc-pro-siluet .tpl-pro-photo {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: stretch;
+}
+
+.nc-pro-siluet .tpl-pro-photo .nc-avatar,
+.nc-pro-siluet .tpl-pro-photo .nc-avatar-button {
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+    color: #c9a45c;
+    background: linear-gradient(160deg, #3a3a40, #1d1d21);
+    border: 0;
+    border-radius: 999px 0 0 0;
+}
+
+.nc-pro-siluet .tpl-pro-photo img.nc-avatar {
+    filter: grayscale(1) contrast(1.05);
+}
+
+.nc-pro-siluet .tpl-pro-identity {
+    grid-column: 1;
+    grid-row: 1;
+    grid-template-columns: minmax(0, 1fr);
+    align-self: end;
+}
+
+.nc-pro-siluet .tpl-pro-identity > * {
+    grid-column: 1;
+}
+
+.nc-pro-siluet .tpl-pro-brand {
+    grid-row: auto;
+    order: 5;
+    justify-self: start;
+    margin-top: 16px;
+    color: #151517;
+    background: #c9a45c;
+}
+
+.nc-pro-siluet .tpl-pro-identity h2 {
+    margin: 0 0 8px;
+    font-size: 2.05rem;
+    font-weight: 300;
+    line-height: 1.02;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.nc-pro-siluet .tpl-pro-identity p:not(.tpl-pro-kicker) {
+    color: #e6d3a8;
+    font-weight: 600;
+}
+
+.nc-pro-siluet .tpl-pro-kicker {
+    margin-top: 4px;
+    color: #b9b4aa;
+}
+
+.nc-pro-siluet .tpl-pro-content {
+    color: #f3efe7;
+    background: radial-gradient(circle at 100% 0, #c9a45c14 0 18%, transparent 45%), #151517;
+}
+
+.nc-pro-siluet .tpl-pro-contact .nc-actions:first-child .nc-btn {
+    color: #e6e1d6;
+}
+
+.nc-pro-siluet .tpl-pro-contact .nc-actions:first-child .nc-btn i {
+    color: #151517;
+    background: #f3efe7;
+    box-shadow: 0 0 0 3px #151517, 0 0 0 4px #c9a45c80;
+}
+
+.nc-pro-siluet .tpl-pro-contact .nc-actions:first-child .nc-btn-primary i {
+    background: #c9a45c;
+}
+
+.nc-pro-siluet .nc-btn {
+    color: #f3efe7;
+    background: #222226;
+    border-color: #3b3b3f;
+}
+
+.nc-pro-siluet .nc-social .nc-btn {
+    border-radius: 14px;
+}
+
+.nc-pro-siluet .nc-social .nc-btn i {
+    color: #c9a45c;
+}
+
+.nc-pro-siluet .nc-detail {
+    border-color: #2f2f34;
+}
+
+.nc-pro-siluet .nc-detail span {
+    color: #cfc9bd;
+}
+
+.nc-pro-siluet .nc-foot {
+    color: #b9b4aa;
+    background: #151517;
+    border-color: #2a2a2e;
+}
+
+.nc-pro-siluet .nc-share-fallback input {
+    color: #151517;
+}
+
+.nc-pro-siluet .nc-status {
+    color: #e6d3a8;
+}
+
+/* Bingkai: header image with the logo, photo + deep-blue identity panel side by side, amber strip. */
+.nc-pro-bingkai {
+    --pro-accent: #f28c28;
+    --pro-ink: #13294b;
+    --pro-radius: 12px;
+    --pro-border: #e6e9f0;
+    --pro-body: #f7f8fb;
+}
+
+.nc-pro-bingkai header[class$="-hero"] {
+    grid-template-columns: 40% minmax(0, 1fr);
+    gap: 0;
+    align-items: stretch;
+    min-height: 0;
+    padding: 72px 18px 0;
+    background: linear-gradient(135deg, #fff4e6 0%, #ffe2c2 100%);
+}
+
+/* Soft dotted pattern in the header band. */
+.nc-pro-bingkai header[class$="-hero"]::before {
+    height: 120px;
+    background: radial-gradient(#f28c2833 1.4px, transparent 1.6px) 0 0 / 14px 14px;
+    opacity: 1;
+}
+
+/* Amber contact strip under the photo/identity pair. */
+.nc-pro-bingkai header[class$="-hero"]::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    z-index: -1;
+    height: 34px;
+    background: #f28c28;
+}
+
+.nc-pro-bingkai .nc-pro-cover {
+    height: 120px;
+    opacity: 0.55;
+}
+
+.nc-pro-bingkai .tpl-pro-photo .nc-avatar,
+.nc-pro-bingkai .tpl-pro-photo .nc-avatar-button {
+    width: 100%;
+    height: 100%;
+    min-height: 170px;
+    color: #13294b;
+    background: #d9e2f2;
+    border: 0;
+    border-radius: 14px 0 0 14px;
+}
+
+.nc-pro-bingkai .tpl-pro-photo {
+    margin-bottom: 18px;
+}
+
+.nc-pro-bingkai .tpl-pro-identity {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    margin-bottom: 18px;
+    padding: 18px;
+    color: #fff;
+    background: linear-gradient(160deg, #13294b, #1e3f73);
+    border-radius: 0 14px 14px 0;
+    box-shadow: 0 10px 24px #13294b33;
+}
+
+.nc-pro-bingkai .tpl-pro-identity > * {
+    grid-column: 1;
+}
+
+/* The logo heads the identity panel, aligned right on the company/name side (never top-left). */
+.nc-pro-bingkai .tpl-pro-brand {
+    grid-row: auto;
+    order: -1;
+    justify-self: end;
+    max-width: 100%;
+    margin-bottom: 10px;
+    color: #13294b;
+    background: #fff;
+    box-shadow: 0 4px 12px #0b1a3340;
+}
+
+.nc-pro-bingkai .tpl-pro-identity h2 {
+    margin: 4px 0 6px;
+    font-size: 1.45rem;
+}
+
+.nc-pro-bingkai .tpl-pro-kicker {
+    color: #ffc38a;
+    opacity: 1;
+}
+
+.nc-pro-bingkai .tpl-pro-identity p:not(.tpl-pro-kicker) {
+    color: #d6e0f2;
+    font-size: 0.85rem;
+}
+
+.nc-pro-bingkai .tpl-pro-content {
+    background: var(--pro-body);
+}
+
+.nc-pro-bingkai .tpl-pro-contact .nc-actions:first-child {
+    margin: -24px -24px 24px;
+    padding: 0 24px 18px;
+    background: #f28c28;
+    border-radius: 0 0 22px 22px;
+}
+
+.nc-pro-bingkai .tpl-pro-contact .nc-actions:first-child .nc-btn {
+    color: #fff;
+}
+
+.nc-pro-bingkai .tpl-pro-contact .nc-actions:first-child .nc-btn i {
+    color: #f28c28;
+    background: #fff;
+    box-shadow: 0 4px 12px #a3540f40;
+}
+
+.nc-pro-bingkai .nc-social .nc-btn,
+.nc-pro-bingkai .nc-detail,
+.nc-pro-bingkai .tpl-pro-actions .nc-btn {
+    background: #fff;
+    border: 0;
+    box-shadow: 0 4px 14px #13294b12;
+}
+
+.nc-pro-bingkai .nc-detail {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+}
+
+@media (max-width: 380px) {
+    .nc-pro-siluet header[class$="-hero"] {
+        grid-template-columns: minmax(0, 1fr) 42%;
+    }
+
+    .nc-pro-siluet .tpl-pro-identity h2 {
+        font-size: 1.6rem;
+    }
+
+    .nc-pro-bingkai header[class$="-hero"] {
+        grid-template-columns: 38% minmax(0, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nc-pro-ombak .tpl-pro-contact .nc-actions:first-child .nc-btn i,
+    .nc-pro-siluet .tpl-pro-contact .nc-actions:first-child .nc-btn i,
+    .nc-pro-bingkai .tpl-pro-contact .nc-actions:first-child .nc-btn i {
+        transition: none;
+    }
+}
+

@@ -1,0 +1,6 @@
+Options -Indexes
+
+# Uploaded files must never be interpreted as scripts or HTML.
+<FilesMatch "\.(?:php|phtml|phar|cgi|pl|py|sh|html?|svg)$">
+    Require all denied
+</FilesMatch>

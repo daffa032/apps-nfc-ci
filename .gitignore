@@ -1,0 +1,31 @@
+# Environment & credentials
+.env
+
+# Dependencies
+/vendor/
+
+# IDE
+.idea/
+
+# Writable (runtime data, logs, cache, sessions)
+/writable/cache/*
+!/writable/cache/index.html
+/writable/logs/*
+!/writable/logs/index.html
+/writable/debugbar/*
+/writable/session/*
+/writable/uploads/*
+!/writable/uploads/index.html
+!/writable/uploads/multiple_images/index.html
+
+# Test output
+/build/logs/*
+
+# Private docs & planning
+/docs/
+/docs.zip
+/deploy/
+
+# OS
+Thumbs.db
+.DS_Store

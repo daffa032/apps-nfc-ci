@@ -1,0 +1,2 @@
+# Downloaded GeoLite2 database (MaxMind licence); never commit it.
+*.mmdb

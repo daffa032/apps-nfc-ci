@@ -1,0 +1,1855 @@
+/* Dashboard components layered after SB Admin / Bootstrap 5.
+   Pages on layouts/dashboard also load shared/css/tokens.css; the fallbacks keep
+   pages still on dashboard-home.php looking the same. */
+.dash-brand-subtitle {
+    display: block;
+    margin-top: -5px;
+    color: var(--nfc-color-text-muted);
+    font-size: 12px;
+}
+
+.dashboard-breadcrumb {
+    padding: 0.75rem 1rem;
+    background-color: var(--nfc-color-surface-muted);
+    border-radius: 0.25rem;
+}
+
+/* Dashboard home (dashboard/pages/main/dashboard.php), following the UI/UX 2026 prototype. */
+/* Shared by every redesigned dashboard page (main element carries .dash-home). */
+.dash-home {
+    --dash-pale: var(--nfc-color-primary-soft);
+    --dash-warn: var(--nfc-color-warning);
+    --dash-warn-bg: var(--nfc-color-warning-soft);
+}
+
+.dash-page-head {
+    margin: var(--nfc-space-3) 0 28px;
+}
+
+.dash-page-head h1 {
+    margin-bottom: 12px;
+}
+
+.dash-page-head h1.dash-title-strong {
+    font-weight: 700;
+}
+
+.dash-eyebrow {
+    margin-bottom: 14px;
+    color: var(--nfc-color-primary);
+    font-size: 0.89rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+}
+
+.dash-home h2 {
+    font-size: 1.5rem;
+    line-height: 1.35;
+}
+
+.dash-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.dash-wide {
+    grid-column: 1 / -1;
+}
+
+.dash-panel {
+    padding: 26px;
+    background: var(--nfc-color-surface);
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 6px;
+}
+
+.dash-panel p:last-child {
+    margin-bottom: 0;
+}
+
+.dash-hero {
+    display: grid;
+    grid-template-columns: 1fr 190px;
+    gap: var(--nfc-space-3);
+    align-items: center;
+    background: var(--nfc-color-surface-muted);
+}
+
+.dash-hero h2 {
+    max-width: 550px;
+}
+
+.dash-expiry {
+    color: var(--nfc-color-text);
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.dash-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    color: var(--nfc-color-primary);
+    background: var(--dash-pale);
+    border-radius: 4px;
+    font-size: 0.89rem;
+    font-weight: 650;
+}
+
+.dash-tag-warn {
+    color: var(--dash-warn);
+    background: var(--dash-warn-bg);
+}
+
+.dash-tag-neutral {
+    color: var(--nfc-color-text-muted);
+    background: var(--nfc-color-surface-muted);
+}
+
+.dash-tag-pro {
+    color: var(--nfc-color-primary);
+    background: var(--nfc-color-primary-soft);
+}
+
+.dash-notice {
+    margin-bottom: var(--nfc-space-3);
+    padding: 17px 20px;
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 10px;
+}
+
+.dash-notice-warning {
+    color: var(--dash-warn);
+    background: var(--dash-warn-bg);
+    border-color: var(--nfc-color-warning-line);
+}
+
+.dash-mini-id {
+    padding: 24px 16px;
+    text-align: center;
+    background: var(--nfc-color-surface);
+    border: 1px solid var(--nfc-color-border);
+    border-radius: var(--nfc-radius-md);
+}
+
+.dash-mini-id strong {
+    display: block;
+    overflow-wrap: anywhere;
+}
+
+.dash-mini-company {
+    display: block;
+    margin: 6px 0;
+    color: var(--nfc-color-text-muted);
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+
+.dash-avatar {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 12px;
+    color: var(--nfc-color-primary);
+    background: var(--nfc-color-surface-muted);
+    border-radius: 50%;
+    font-weight: 700;
+    object-fit: cover;
+}
+
+.dash-mini-line {
+    width: 70%;
+    height: 7px;
+    margin: 10px auto;
+    background: var(--nfc-color-surface-muted);
+    border-radius: 4px;
+}
+
+.dash-mini-line-short {
+    width: 45%;
+}
+
+.dash-link-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.dash-link-box code {
+    flex: 1;
+    padding: 14px;
+    color: var(--nfc-color-text);
+    background: var(--nfc-color-surface-muted);
+    border-radius: 8px;
+    font-size: 0.89rem;
+    overflow-wrap: anywhere;
+}
+
+.dash-section {
+    margin-top: 30px;
+}
+
+.dash-steps {
+    margin: 0 0 var(--nfc-space-2);
+    padding-left: 1.25rem;
+}
+
+.dash-steps li + li {
+    margin-top: var(--nfc-space-1);
+}
+
+.dash-transfer {
+    padding: 12px 14px;
+    background: var(--nfc-color-surface-muted);
+    border-radius: 8px;
+    overflow-wrap: anywhere;
+}
+
+/* Links and buttons share one height and centre their label (links are inline-block by default). */
+.dash-home .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+}
+
+@media (max-width: 1100px) {
+    .dash-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-mini-id {
+        display: none;
+    }
+}
+
+@media (max-width: 760px) {
+    .dash-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-panel {
+        padding: 21px;
+    }
+}
+
+/* Shared page parts for redesigned dashboard pages (UI/UX 2026 prototype). */
+.dash-form-wrap {
+    max-width: 780px;
+}
+
+.dash-stack {
+    display: grid;
+    gap: 20px;
+}
+
+.dash-field {
+    margin-bottom: 20px;
+}
+
+.dash-field label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.dash-field .form-control,
+.dash-field .form-select {
+    min-height: 44px;
+}
+
+.dash-hint {
+    margin: 7px 0 0;
+    color: var(--nfc-color-text-muted);
+    font-size: 0.89rem;
+}
+
+.dash-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 20px;
+}
+
+.dash-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.dash-panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.dash-panel-head h2 {
+    margin: 0;
+}
+
+.dash-list-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--nfc-color-border);
+}
+
+.dash-list-row:last-child {
+    border-bottom: 0;
+}
+
+.dash-settings-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 22px;
+    align-items: start;
+}
+
+/* Personal Info */
+.dash-profile-form .dash-form-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dash-photo-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 16px;
+}
+
+.dash-photo,
+.dash-photo-placeholder {
+    width: 96px;
+    height: 96px;
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 50%;
+}
+
+.dash-photo {
+    object-fit: cover;
+}
+
+.dash-photo[hidden],
+.dash-photo-placeholder[hidden] {
+    display: none;
+}
+
+.dash-photo-placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--nfc-color-text-muted);
+    background: var(--nfc-color-surface-muted);
+    font-size: 2rem;
+}
+
+.dash-profile-lower {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.dash-social-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.dash-social-field {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 12px;
+}
+
+.dash-social-field .dash-field {
+    margin: 0;
+}
+
+.dash-social-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    font-weight: 600;
+}
+
+.dash-social-name i {
+    width: 20px;
+    color: var(--nfc-color-text-muted);
+}
+
+.dash-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.dash-gallery.dash-gallery-one {
+    grid-template-columns: 1fr;
+}
+
+.dash-gallery-item {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 6px;
+}
+
+.dash-gallery-item img,
+.dash-gallery-placeholder {
+    display: block;
+    width: 100%;
+    height: 145px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.dash-gallery-item img[hidden] {
+    display: none;
+}
+
+.dash-gallery-placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--nfc-color-text-muted);
+    background: var(--nfc-color-surface-muted);
+}
+
+.dash-gallery-item .dash-field {
+    margin: 12px 0;
+}
+
+.dash-gallery-empty {
+    margin: 0;
+    color: var(--nfc-color-text-muted);
+}
+
+/* Templates */
+.dash-theme-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.dash-theme-tile {
+    min-width: 0;
+    overflow: hidden;
+    background: var(--nfc-color-surface);
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 14px;
+    transition: transform var(--nfc-motion-hover) ease, box-shadow var(--nfc-motion-hover) ease, border-color 0.2s ease;
+}
+
+@media (hover: hover) {
+    .dash-theme-tile:hover {
+        position: relative;
+        z-index: 2;
+        transform: scale(1.05);
+        box-shadow: var(--nfc-shadow-lg);
+    }
+}
+
+.dash-theme-tile:focus-within {
+    position: relative;
+    z-index: 2;
+    transform: scale(1.05);
+    box-shadow: var(--nfc-shadow-md);
+}
+
+.dash-theme-stage {
+    display: flex;
+    justify-content: center;
+    height: 230px;
+    padding: 20px;
+    overflow: hidden;
+    background: var(--nfc-color-surface-muted);
+}
+
+.dash-theme-stage img {
+    max-width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* CSS preview for layouts without a screenshot: avatar, two text lines, one button. */
+.dash-theme-swatch {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    width: 140px;
+    padding: 18px 16px;
+    background: #fff;
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 12px;
+}
+
+.dash-theme-swatch span {
+    display: block;
+    height: 8px;
+    background: #dee2e6;
+    border-radius: 4px;
+}
+
+.dash-theme-swatch span:first-child {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 4px;
+    border-radius: 50%;
+}
+
+.dash-theme-swatch span:nth-child(3) {
+    width: 70%;
+    margin: 0 auto;
+}
+
+.dash-theme-swatch span:last-child {
+    height: 22px;
+    margin-top: 8px;
+    background: #0d6efd;
+    border-radius: 6px;
+}
+
+.dash-swatch-profesional {
+    border-top: 10px solid #244966;
+}
+
+.dash-swatch-profesional span:first-child {
+    margin-left: 0;
+}
+
+.dash-swatch-profesional span:nth-child(3) {
+    margin-left: 0;
+}
+
+.dash-swatch-profesional span:last-child {
+    background: #244966;
+}
+
+.dash-swatch-hangat {
+    background: #f1f3f5;
+}
+
+.dash-swatch-hangat span:not(:first-child) {
+    height: 14px;
+    background: #fff;
+}
+
+.dash-swatch-portofolio span:nth-child(2) {
+    height: 46px;
+    background: #e9ecef;
+}
+
+.dash-swatch-gelap {
+    background: #212529;
+    border-color: #212529;
+}
+
+.dash-swatch-gelap span {
+    background: #495057;
+}
+
+.dash-swatch-gelap span:last-child {
+    background: #cfe2ff;
+}
+
+/* Catalog previews for the nine Pro designs (layout-pro-*): hero colours, portrait shape, button shape. */
+.dash-theme-swatch[class*="dash-swatch-pro-"] {
+    position: relative;
+    padding-top: 64px;
+    overflow: hidden;
+    border: 0;
+}
+
+.dash-theme-swatch[class*="dash-swatch-pro-"]::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 74px;
+    background: var(--swatch-hero);
+}
+
+.dash-theme-swatch[class*="dash-swatch-pro-"] span {
+    position: relative;
+    background: color-mix(in srgb, var(--swatch-button) 22%, #fff);
+}
+
+.dash-theme-swatch[class*="dash-swatch-pro-"] span:first-child {
+    width: 46px;
+    height: 46px;
+    margin: -32px 0 4px;
+    background: var(--swatch-photo);
+    border: 3px solid #fff;
+    border-radius: var(--swatch-photo-radius);
+}
+
+.dash-theme-swatch[class*="dash-swatch-pro-"] span:last-child {
+    background: var(--swatch-button);
+    border-radius: var(--swatch-button-radius);
+}
+
+.dash-swatch-pro-aurora {
+    --swatch-hero: linear-gradient(140deg, #10213a 0 67%, #e8753c 67%);
+    --swatch-photo: #f8b46e;
+    --swatch-photo-radius: 50%;
+    --swatch-button: #e56537;
+    --swatch-button-radius: 999px;
+    background: #fff7f0;
+}
+
+.dash-swatch-pro-meridian {
+    --swatch-hero: linear-gradient(90deg, #f4f0e9 0 57%, #16314d 57%);
+    --swatch-photo: #b7c9cb;
+    --swatch-photo-radius: 40px 40px 4px 4px;
+    --swatch-button: #263d59;
+    --swatch-button-radius: 10px 2px;
+    background: #f6f2ea;
+}
+
+.dash-swatch-pro-atelier {
+    --swatch-hero: linear-gradient(90deg, #292a2b 0 46%, #a4a7a5 46%);
+    --swatch-photo: #a4a7a5;
+    --swatch-photo-radius: 0;
+    --swatch-button: #332b2a;
+    --swatch-button-radius: 0;
+    background: #f1f0ed;
+}
+
+.dash-swatch-pro-vista {
+    --swatch-hero: linear-gradient(145deg, #15556c 0 44%, #3caab6 44% 74%, #f2b968 74%);
+    --swatch-photo: #b8e6dc;
+    --swatch-photo-radius: 50%;
+    --swatch-button: #166479;
+    --swatch-button-radius: 12px;
+    background: #e9f6f5;
+}
+
+.dash-swatch-pro-ledger {
+    --swatch-hero: #1d2727;
+    --swatch-photo: #62726c;
+    --swatch-photo-radius: 3px;
+    --swatch-button: #b17a2c;
+    --swatch-button-radius: 3px;
+    background: #f3eee4;
+}
+
+.dash-swatch-pro-kanvas {
+    --swatch-hero: linear-gradient(132deg, #f5dedb 0 56%, #aa5b78 56%);
+    --swatch-photo: #df9ab0;
+    --swatch-photo-radius: 3px;
+    --swatch-button: #9c3f5a;
+    --swatch-button-radius: 4px 12px;
+    background: #fff2f3;
+}
+
+.dash-swatch-pro-halo {
+    --swatch-hero: linear-gradient(180deg, #77c9c2 0 40%, #fff 40%);
+    --swatch-photo: #a4d6cf;
+    --swatch-photo-radius: 50%;
+    --swatch-button: #176a68;
+    --swatch-button-radius: 10px;
+    background: #eff8f6;
+}
+
+.dash-swatch-pro-rona {
+    --swatch-hero: linear-gradient(0deg, #fff6f1 0 18%, #f4c5ba 18%);
+    --swatch-photo: #e5a9aa;
+    --swatch-photo-radius: 0;
+    --swatch-button: #df5b61;
+    --swatch-button-radius: 999px;
+    background: #fff6f1;
+}
+
+.dash-swatch-pro-sorot {
+    --swatch-hero: linear-gradient(0deg, #142b38 0 18%, #315467 18%);
+    --swatch-photo: #183443;
+    --swatch-photo-radius: 0;
+    --swatch-button: #d4ac79;
+    --swatch-button-radius: 6px;
+    background: #152f38;
+}
+
+.dash-swatch-pro-ombak {
+    --swatch-hero: linear-gradient(160deg, #142449 0 70%, #ef5b5b 70% 78%, #f6f7fb 78%);
+    --swatch-photo: #ffd5cc;
+    --swatch-photo-radius: 50%;
+    --swatch-button: #ef5b5b;
+    --swatch-button-radius: 999px;
+    background: #f6f7fb;
+}
+
+.dash-swatch-pro-siluet {
+    --swatch-hero: linear-gradient(90deg, #2b2b30 0 54%, #5a5a60 54%);
+    --swatch-photo: #c9a45c;
+    --swatch-photo-radius: 999px 0 0 0;
+    --swatch-button: #c9a45c;
+    --swatch-button-radius: 999px;
+    background: #151517;
+}
+
+.dash-swatch-pro-siluet span:not(:last-child) {
+    background: #3b3b3f;
+}
+
+.dash-swatch-pro-bingkai {
+    --swatch-hero: linear-gradient(90deg, #d9e2f2 0 40%, #13294b 40%);
+    --swatch-photo: #f28c28;
+    --swatch-photo-radius: 8px;
+    --swatch-button: #f28c28;
+    --swatch-button-radius: 12px;
+    background: #f7f8fb;
+}
+
+/* Rona/Sorot: the portrait fills the hero, so the preview shows a tall photo block. */
+.dash-swatch-pro-rona,
+.dash-swatch-pro-sorot {
+    padding-top: 96px;
+}
+
+.dash-swatch-pro-rona::before,
+.dash-swatch-pro-sorot::before {
+    height: 110px;
+}
+
+.dash-swatch-pro-rona span:first-child,
+.dash-swatch-pro-sorot span:first-child {
+    display: none;
+}
+
+.dash-swatch-pro-sorot span:not(:last-child) {
+    background: #42616a;
+}
+
+.dash-theme-details {
+    padding: 18px;
+}
+
+.dash-theme-details h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.dash-theme-details p {
+    min-height: 24px;
+    margin: 10px 0 14px;
+    font-size: 0.89rem;
+}
+
+/* Pratinjau + Pakai side by side, white buttons as in the prototype. */
+.dash-theme-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.dash-theme-actions form {
+    display: contents;
+}
+
+.dash-theme-actions .btn {
+    width: 100%;
+    min-height: 48px;
+    font-weight: 700;
+    color: var(--nfc-color-text);
+    background: var(--nfc-color-field);
+    border-color: var(--nfc-color-border);
+}
+
+.dash-theme-actions .btn:hover,
+.dash-theme-actions .btn:focus-visible {
+    color: var(--nfc-color-text);
+    background: var(--nfc-color-surface-muted);
+}
+
+.dash-theme-actions .btn:disabled {
+    color: var(--nfc-color-text-muted);
+    background: var(--nfc-color-field);
+    opacity: 1;
+}
+
+.dash-theme-tile.is-selected {
+    border-color: var(--nfc-color-selected);
+}
+
+.dash-theme-tile.is-selected .dash-theme-details {
+    color: var(--nfc-color-selected-ink);
+    background: var(--nfc-color-selected);
+}
+
+.dash-theme-tile.is-selected .text-muted {
+    color: var(--nfc-color-selected-ink) !important;
+}
+
+.dash-theme-tile.is-selected .dash-tag {
+    color: var(--nfc-color-selected);
+    background: var(--nfc-color-primary);
+}
+
+.dash-theme-tile.is-selected .btn {
+    background: var(--nfc-color-field);
+}
+
+/* Activity Logs filters */
+.dash-log-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 20px;
+}
+
+@media (max-width: 991px) {
+    .dash-log-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575px) {
+    .dash-log-filters {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Admin tables */
+.dash-table-wrap {
+    position: relative; /* keeps absolutely positioned helpers (visually-hidden) inside the scroll area */
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* Grid/flex children default to min-width:auto, so a wide table would stretch the page on phones. */
+.dash-panel,
+.dash-home > * {
+    min-width: 0;
+}
+
+.dash-table-wrap table {
+    margin-bottom: 0;
+}
+
+.dash-table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.dash-table-actions form {
+    display: inline;
+}
+
+#imageModal .modal-img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+}
+
+@media (max-width: 1200px) {
+    .dash-profile-form .dash-form-grid,
+    .dash-theme-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1500px) {
+    .dash-profile-lower {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991px) {
+    .dash-settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .dash-form-grid,
+    .dash-profile-form .dash-form-grid,
+    .dash-gallery,
+    .dash-theme-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-social-field {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dash-theme-tile {
+        transition: none;
+    }
+
+    .dash-theme-tile:hover,
+    .dash-theme-tile:focus-within {
+        transform: none;
+    }
+}
+
+
+/* Statistik (PRD AN-01): monthly totals, daily bar chart. Bar height comes from dash-bar-0..20. */
+.dash-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.dash-number {
+    margin: 8px 0;
+    font-size: 2rem;
+    font-weight: 650;
+    letter-spacing: -0.04em;
+}
+
+.dash-stats-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.dash-chart-scroll {
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.dash-chart {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(26px, 1fr);
+    gap: 5px;
+    align-items: end;
+    min-width: 900px;
+    padding: 12px 2px;
+    border-bottom: 1px solid var(--nfc-color-border);
+}
+
+.dash-chart-day {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 5px;
+    min-height: 180px;
+    font-size: 12px;
+    text-align: center;
+}
+
+.dash-chart-bar {
+    width: 65%;
+    min-width: 10px;
+    max-width: 34px;
+    background: var(--nfc-color-primary);
+    border-radius: 4px 4px 0 0;
+}
+
+.dash-chart-day.is-future .dash-chart-bar,
+.dash-chart-bar.dash-bar-0 {
+    background: var(--nfc-color-border);
+}
+
+.dash-chart-day.is-today,
+.dash-table tr.is-today > * {
+    background: var(--nfc-color-primary-soft);
+}
+
+.dash-chart-day.is-today {
+    border-radius: 5px;
+}
+
+.dash-chart-day.is-today .dash-chart-label {
+    font-weight: 700;
+    color: var(--nfc-color-primary);
+}
+
+.dash-chart-note {
+    height: 16px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.dash-bar-0 { height: 3px; }
+.dash-bar-1 { height: 6px; }
+.dash-bar-2 { height: 12px; }
+.dash-bar-3 { height: 18px; }
+.dash-bar-4 { height: 24px; }
+.dash-bar-5 { height: 30px; }
+.dash-bar-6 { height: 36px; }
+.dash-bar-7 { height: 42px; }
+.dash-bar-8 { height: 48px; }
+.dash-bar-9 { height: 54px; }
+.dash-bar-10 { height: 60px; }
+.dash-bar-11 { height: 66px; }
+.dash-bar-12 { height: 72px; }
+.dash-bar-13 { height: 78px; }
+.dash-bar-14 { height: 84px; }
+.dash-bar-15 { height: 90px; }
+.dash-bar-16 { height: 96px; }
+.dash-bar-17 { height: 102px; }
+.dash-bar-18 { height: 108px; }
+.dash-bar-19 { height: 114px; }
+.dash-bar-20 { height: 120px; }
+
+@media (max-width: 760px) {
+    .dash-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Dialog (native <dialog>): template preview. */
+.dash-dialog {
+    width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 48px);
+    padding: 24px;
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 16px;
+    box-shadow: var(--nfc-shadow-lg);
+}
+
+.dash-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.dash-dialog::backdrop {
+    background: var(--nfc-scrim);
+}
+
+.dash-dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.dash-dialog-head h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.dash-dialog-frame {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 60vh;
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 12px;
+    background: var(--nfc-color-surface-muted);
+}
+
+.dash-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.dash-dialog-actions:not(:has(> :not([hidden]))) {
+    display: none;
+}
+
+
+/* Shell: header, sidebar and footer measured from the UI/UX 2026 prototype (docs/ui-ux-2026/templates/index.html). */
+.sb-nav-fixed .sb-topnav {
+    height: 52px;
+    background: var(--nfc-color-header);
+}
+
+.sb-nav-fixed #layoutSidenav #layoutSidenav_nav .sb-sidenav {
+    padding-top: 52px;
+}
+
+.sb-nav-fixed #layoutSidenav #layoutSidenav_content {
+    top: 52px;
+    min-height: calc(100vh - 52px);
+    /* Room for the fixed footer so it never covers buttons or forms. */
+    padding-bottom: 55px;
+}
+
+.sb-topnav .navbar-brand {
+    width: 209px;
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 1.12;
+}
+
+.sb-topnav .dash-brand-subtitle {
+    margin-top: 0;
+    font-size: 11px;
+}
+
+.sb-sidenav-dark {
+    background: var(--nfc-color-sidebar);
+}
+
+.sb-sidenav .sb-sidenav-menu .nav .sb-sidenav-menu-heading {
+    padding: 24px 14px 11px;
+    color: var(--nfc-side-heading);
+    font-size: 11px;
+    line-height: 1.2;
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link {
+    padding: 12px 16px;
+    color: var(--nfc-side-muted);
+    font-size: 14px;
+    line-height: 21px;
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link .sb-nav-link-icon,
+.sb-sidenav-dark .sb-sidenav-menu .nav-link .sb-sidenav-collapse-arrow {
+    color: var(--nfc-side-muted);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link:hover,
+.sb-sidenav-dark .sb-sidenav-menu .nav-link:not(.collapsed)[data-bs-toggle] {
+    color: var(--nfc-side-ink);
+    background: var(--nfc-side-hover);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link[aria-current="page"] {
+    color: var(--nfc-color-primary-text);
+    font-weight: 600;
+    background: var(--nfc-side-active);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link[aria-current="page"] .sb-nav-link-icon,
+.sb-sidenav-dark .sb-sidenav-menu .nav-link:hover .sb-nav-link-icon {
+    color: var(--nfc-color-primary-text);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu-nested .nav-link {
+    padding: 7px 12px;
+    min-height: 36px;
+}
+
+.sb-sidenav-dark .sb-sidenav-footer {
+    padding: 10px;
+    background: transparent;
+}
+
+.sb-sidenav-footer .btn {
+    padding: 7px;
+    font-size: 14px;
+}
+
+.dash-footer {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 225px;
+    z-index: 1035;
+    display: flex;
+    align-items: center;
+    min-height: 55px;
+    padding: 12px 22px;
+    color: var(--nfc-color-text-muted);
+    font-size: 0.89rem;
+    background: var(--nfc-color-footer);
+    border-top: 1px solid var(--nfc-side-line);
+}
+
+.sb-sidenav-toggled .dash-footer {
+    left: 0;
+}
+
+@media (max-width: 991.98px) {
+    /* The mobile menu slides over the page; the footer stays put underneath. */
+    .dash-footer,
+    .sb-sidenav-toggled .dash-footer {
+        left: 0;
+    }
+}
+
+
+/* Master Templates: upload form with live preview (PRD MA-02). */
+.dash-template-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+    gap: 24px;
+    align-items: start;
+}
+
+.dash-template-frame {
+    width: 100%;
+    height: 560px;
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 12px;
+    background: var(--nfc-color-surface-muted);
+}
+
+.dash-code {
+    max-height: 320px;
+    padding: 12px;
+    overflow: auto;
+    font-size: 0.8rem;
+    background: var(--nfc-color-surface-muted);
+    border-radius: 8px;
+}
+
+@media (max-width: 991.98px) {
+    .dash-template-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Language dropdown in the header, just left of the account menu (PRD LANG-02). */
+.dash-topnav-lang {
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+}
+
+.dash-topnav-lang .nfc-lang-toggle {
+    min-height: 32px;
+    padding: 4px 10px;
+    color: var(--nfc-color-text);
+    background: transparent;
+    border-color: var(--nfc-color-border);
+}
+
+.dash-topnav-lang .nfc-lang-toggle:hover {
+    border-color: var(--nfc-color-border-strong);
+}
+
+/* Narrow screens: the brand keeps its own room; language shows only the flag and the account
+   menu only its icon, so the five header items never overlap. */
+@media (max-width: 575.98px) {
+    .sb-topnav .navbar-brand {
+        flex: 0 1 auto;
+        min-width: 0;
+        margin-right: 8px;
+        padding-left: 12px !important;
+        font-size: 1.05rem;
+        white-space: nowrap;
+    }
+
+    .sb-topnav .dash-brand-subtitle {
+        font-size: 10px;
+    }
+
+    .dash-topnav-lang {
+        margin-right: 2px;
+    }
+
+    .dash-topnav-lang .nfc-lang-toggle span {
+        display: none;
+    }
+
+    .dash-topnav-username {
+        display: none;
+    }
+
+    .sb-topnav .dash-theme-toggle {
+        display: none;
+    }
+
+    .sb-topnav .dash-theme-item-wrap {
+        display: block;
+    }
+
+    .sb-topnav .navbar-nav {
+        margin-right: 4px !important;
+    }
+
+    .sb-topnav .navbar-nav .nav-link {
+        padding-right: 6px;
+        padding-left: 6px;
+    }
+
+    .sb-topnav .me-4 {
+        margin-right: 4px !important;
+    }
+}
+
+/* Pro plan badge (partials/shared/plan-badge.php, PRD CARD-02). The word "Pro" is always shown. */
+.nfc-badge-pro,
+.dash-theme-tile.is-selected .nfc-badge-pro {
+    color: var(--nfc-pro-text);
+    background: linear-gradient(135deg, var(--nfc-pro-bg), var(--nfc-pro-bg-end));
+    box-shadow: inset 0 0 0 1px rgba(59, 34, 0, 0.12);
+}
+
+.nfc-badge-pro .fa-crown {
+    font-size: 0.8em;
+}
+
+/* Personal Info: form and live card preview side by side 50:50 on desktop, stacked on phones (PV-01). */
+.dash-editor {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.dash-editor .dash-profile-form .dash-form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+@media (min-width: 1200px) {
+    .dash-editor {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dash-live-preview {
+        position: sticky;
+        top: 72px;
+    }
+}
+
+.dash-live-frame-wrap {
+    overflow: hidden;
+    background: var(--nfc-color-surface-muted);
+    border: 1px solid var(--nfc-color-border);
+    border-radius: var(--nfc-radius-md);
+}
+
+.dash-live-frame {
+    display: block;
+    width: 100%;
+    height: 640px;
+    border: 0;
+}
+
+.dash-preview-dialog {
+    width: min(560px, calc(100vw - 32px));
+}
+
+.dash-brand-note {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.dash-brand-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+    margin-top: 18px;
+}
+
+/* One slot: preview in the design's frame shape beside its controls. */
+.dash-brand-slot {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    padding: 16px;
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 8px;
+}
+
+.dash-brand-preview {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 120px;
+    aspect-ratio: 2 / 1;
+    overflow: hidden;
+    background: repeating-conic-gradient(#e9ecef 0 25%, #fff 0 50%) 0 0 / 12px 12px;
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 8px;
+}
+
+.dash-brand-preview-circle {
+    width: 96px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+}
+
+.dash-brand-preview-square {
+    border-radius: 0;
+}
+
+.dash-brand-preview-cover {
+    width: 160px;
+    aspect-ratio: 16 / 9;
+}
+
+.dash-brand-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dash-brand-empty {
+    display: grid;
+    gap: 4px;
+    justify-items: center;
+    padding: 6px;
+    color: var(--nfc-color-text-muted);
+    background: var(--nfc-color-surface-muted);
+    font-size: 0.78rem;
+    text-align: center;
+}
+
+.dash-brand-preview .dash-brand-empty {
+    width: 100%;
+    height: 100%;
+    align-content: center;
+}
+
+.dash-brand-controls {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.dash-brand-label {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.dash-brand-pick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: center;
+}
+
+.dash-brand-pick .btn {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    margin: 0;
+}
+
+/* The real file input is visually hidden; its label button shows the keyboard focus instead. */
+.dash-brand-file:focus-visible + .dash-brand-pick .btn {
+    outline: 3px solid var(--nfc-color-primary);
+    outline-offset: 2px;
+}
+
+.dash-brand-filename {
+    min-width: 0;
+    color: var(--nfc-color-text-muted);
+    font-size: 0.89rem;
+    overflow-wrap: anywhere;
+}
+
+.dash-brand-visible {
+    margin: 12px 0 0;
+}
+
+/* Switched off: the file stays stored but the card hides it, so the preview fades. */
+.dash-brand-slot:has([data-brand-visible]:not(:checked)) .dash-brand-preview {
+    opacity: 0.35;
+}
+
+.dash-brand-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+@media (max-width: 575px) {
+    .dash-brand-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dash-brand-slot {
+        flex-direction: column;
+    }
+
+    .dash-brand-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Live payments list (payments/payments.php, payments-live.js). */
+.dash-live-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 8px 14px;
+    color: var(--nfc-color-text-2);
+    background: var(--nfc-color-surface);
+    border: 1px solid var(--nfc-color-border);
+    border-radius: 999px;
+    font-size: 0.86rem;
+}
+
+.dash-live-dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    background: var(--nfc-color-success);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5);
+    animation: dash-live-pulse 2s infinite;
+}
+
+.dash-live-bar[data-state="paused"] .dash-live-dot {
+    background: var(--nfc-color-text-muted);
+    animation: none;
+}
+
+.dash-live-bar[data-state="failed"] .dash-live-dot {
+    background: var(--nfc-color-danger);
+    animation: none;
+}
+
+.dash-live-bar[data-state="changed"] .dash-live-dot {
+    background: var(--nfc-color-primary);
+}
+
+.dash-live-flash {
+    animation: dash-live-flash 1.6s ease-out;
+    border-radius: 12px;
+}
+
+@keyframes dash-live-pulse {
+    70% {
+        box-shadow: 0 0 0 8px rgba(25, 135, 84, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+    }
+}
+
+@keyframes dash-live-flash {
+    from {
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.45);
+    }
+
+    to {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dash-live-dot,
+    .dash-live-flash {
+        animation: none;
+    }
+}
+
+/* Payment receipt (billing/receipt.php): printable, chrome hidden in print. */
+.dash-receipt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.dash-receipt {
+    max-width: 720px;
+}
+
+.dash-receipt-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--nfc-color-border);
+}
+
+.dash-receipt-head h1 {
+    margin: 0 0 4px;
+    font-size: 1.5rem;
+}
+
+.dash-receipt-stamp {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 6px 12px;
+    color: var(--nfc-color-success);
+    background: var(--nfc-color-success-soft);
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.dash-receipt-stamp-refunded {
+    color: var(--nfc-color-warning);
+    background: var(--nfc-color-warning-soft);
+}
+
+.dash-receipt-list {
+    margin: 16px 0;
+}
+
+.dash-receipt-list > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--nfc-color-border);
+}
+
+.dash-receipt-list dt {
+    color: var(--nfc-color-text-muted);
+    font-weight: 400;
+}
+
+.dash-receipt-list dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.dash-receipt-total {
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    background: var(--nfc-color-surface-muted);
+    border-radius: 10px;
+}
+
+.dash-receipt-total strong {
+    font-size: 1.5rem;
+}
+
+@media print {
+    .sb-topnav,
+    #layoutSidenav_nav,
+    .dash-receipt-actions,
+    footer,
+    .nfc-toast-region {
+        display: none !important;
+    }
+
+    #layoutSidenav_content {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .dash-receipt {
+        max-width: none;
+        border: 0;
+    }
+}
+
+/* Payment review resolution (payments/payment_detail.php). */
+.dash-resolve {
+    border-color: var(--nfc-color-warning-line);
+    background: var(--nfc-color-warning-soft);
+}
+
+.dash-resolve h2 i {
+    color: var(--nfc-color-warning);
+}
+
+/* Template slot limits (master/templates.php, master-templates.js). */
+.dash-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.dash-slot-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px;
+    background: var(--nfc-color-surface-muted);
+    border: 1px solid var(--nfc-color-border);
+    border-radius: var(--nfc-radius-md);
+}
+
+.dash-slot-card-head {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.dash-slot-card-head h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.dash-slot-card-head p {
+    margin: 2px 0 0;
+    color: var(--nfc-color-text-muted);
+    font-size: 0.86rem;
+}
+
+.dash-slot-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    color: var(--nfc-color-selected);
+    background: var(--nfc-color-primary-soft);
+    border-radius: 10px;
+}
+
+.dash-slot-usage {
+    margin: 4px 0 0;
+    color: var(--nfc-color-text-muted);
+}
+
+.dash-slot-usage strong {
+    color: var(--nfc-color-text);
+    font-size: 1.75rem;
+    line-height: 1;
+}
+
+.dash-slot-bar {
+    width: 100%;
+    height: 8px;
+    overflow: hidden;
+    appearance: none;
+    background: var(--nfc-color-surface-muted);
+    border: 0;
+    border-radius: 999px;
+}
+
+.dash-slot-bar::-webkit-progress-bar {
+    background: var(--nfc-color-surface-muted);
+    border-radius: 999px;
+}
+
+.dash-slot-bar::-webkit-progress-value {
+    background: var(--nfc-color-selected);
+    border-radius: 999px;
+}
+
+.dash-slot-bar::-moz-progress-bar {
+    background: var(--nfc-color-selected);
+    border-radius: 999px;
+}
+
+.dash-slot-bar.is-full::-webkit-progress-value {
+    background: var(--nfc-color-sand);
+}
+
+.dash-slot-bar.is-full::-moz-progress-bar {
+    background: var(--nfc-color-sand);
+}
+
+.dash-slot-left {
+    margin: 0;
+    color: var(--nfc-color-success);
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.dash-slot-left.is-full {
+    color: var(--nfc-color-warning);
+}
+
+.dash-slot-card .dash-field {
+    margin-top: 6px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--nfc-color-border);
+}
+
+.dash-slot-stepper {
+    max-width: 200px;
+}
+
+.dash-slot-stepper .form-control {
+    font-weight: 700;
+    -moz-appearance: textfield;
+}
+
+.dash-slot-stepper .form-control::-webkit-inner-spin-button,
+.dash-slot-stepper .form-control::-webkit-outer-spin-button {
+    margin: 0;
+    appearance: none;
+}
+
+.dash-slot-stepper .btn {
+    min-width: 44px;
+}
+
+.dash-slot-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+@media (max-width: 575px) {
+    .dash-slot-stepper {
+        max-width: none;
+    }
+
+    .dash-slot-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Brand logo cropper (personal_info/brand_assets.php, logo-cropper.js). */
+.dash-crop-stage {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-bottom: 12px;
+    cursor: grab;
+    touch-action: none;
+    background: repeating-conic-gradient(#e9ecef 0 25%, #fff 0 50%) 0 0 / 16px 16px;
+    border: 1px dashed var(--nfc-color-border);
+    border-radius: 8px;
+}
+
+.dash-crop-stage:active {
+    cursor: grabbing;
+}
+
+/* The stage takes the shape of the design's logo frame (TemplateCatalog::logoFrame). */
+.dash-crop-dialog[data-crop-shape="circle"] .dash-crop-stage {
+    width: min(100%, 320px);
+    margin-inline: auto;
+    border-radius: 50%;
+}
+
+.dash-crop-dialog[data-crop-shape="square"] .dash-crop-stage {
+    border-radius: 0;
+}
+
+/* Online payment offers on the billing page (PRD BI-01). */
+.dash-plan-offers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.dash-plan-offer {
+    padding: 18px;
+    border: 1px solid var(--nfc-color-border);
+    border-radius: var(--nfc-radius-md);
+}
+
+.dash-plan-price {
+    font-size: 1.05rem;
+}
+
+/* Master Templates: rename dialog (one per row). */
+.dash-rename-dialog {
+    width: min(440px, calc(100vw - 32px));
+}
+
+.dash-rename-dialog .dash-field {
+    margin-bottom: 0;
+}
