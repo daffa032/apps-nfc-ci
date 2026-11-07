@@ -94,7 +94,7 @@ return [
     'basicFull'                 => 'All Basic slots are in use (up to {0} active templates). Disable another Basic template first.',
     'allFull'                   => 'All slots are in use (up to {0} active templates). Disable another template first.',
     'needBasic'                 => 'At least one Basic template must stay active.',
-    'optionalPlaceholders'      => 'Optional placeholders (at most once): {0}. The Pro designs in docs/ui-ux-2026/templates/pro can be uploaded as they are.',
+    'optionalPlaceholders'      => 'Optional placeholders (at most once): {0}. The Pro designs in app/Views/digital_card/pro can be uploaded as they are.',
     'tplFileRules'              => 'Choose a UTF-8 .html file of at most 100 KB.',
     'tplTagNotAllowed'          => 'The <{0}> element is not allowed in a template.',
     'tplNoScript'               => 'A template may not contain style attributes, event handlers or script URLs.',

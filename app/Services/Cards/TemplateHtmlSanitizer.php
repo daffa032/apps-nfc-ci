@@ -32,7 +32,7 @@ final class TemplateHtmlSanitizer
     public const CLASSES      = ['tpl-stack', 'tpl-grid', 'tpl-hero', 'tpl-panel', 'tpl-center', 'tpl-divider', 'tpl-title'];
 
     /**
-     * The Pro designs (PRD NT-01..07, docs/ui-ux-2026/templates/pro). Listed one by one, no prefix match.
+     * The Pro designs (PRD NT-01..07, app/Views/digital_card/pro). Listed one by one, no prefix match.
      */
     public const PRO_DESIGNS = ['aurora', 'meridian', 'atelier', 'vista', 'ledger', 'kanvas', 'halo', 'rona', 'sorot', 'ombak', 'siluet', 'bingkai'];
 

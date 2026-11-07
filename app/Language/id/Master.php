@@ -94,7 +94,7 @@ return [
     'basicFull'                 => 'Slot Basic penuh (maksimal {0} template aktif). Nonaktifkan template Basic lain terlebih dahulu.',
     'allFull'                   => 'Slot penuh (maksimal {0} template aktif). Nonaktifkan template lain terlebih dahulu.',
     'needBasic'                 => 'Minimal satu template Basic harus tetap aktif.',
-    'optionalPlaceholders'      => 'Placeholder opsional (maksimal satu kali): {0}. Desain Pro di docs/ui-ux-2026/templates/pro dapat diunggah apa adanya.',
+    'optionalPlaceholders'      => 'Placeholder opsional (maksimal satu kali): {0}. Desain Pro di app/Views/digital_card/pro dapat diunggah apa adanya.',
     'tplFileRules'              => 'Pilih berkas .html UTF-8 maksimal 100 KB.',
     'tplTagNotAllowed'          => 'Elemen <{0}> tidak diizinkan dalam template.',
     'tplNoScript'               => 'Template tidak boleh memuat atribut style, event handler, atau URL script.',
