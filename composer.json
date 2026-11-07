@@ -10,7 +10,7 @@
         "slack": "https://codeigniterchat.slack.com"
     },
     "require": {
-        "php": "^8.1",
+        "php": "^8.3",
         "ext-intl": "*",
         "ext-mbstring": "*",
         "laminas/laminas-escaper": "^2.13",
@@ -59,7 +59,7 @@
     "config": {
         "optimize-autoloader": true,
         "platform": {
-            "php": "8.1.0"
+            "php": "8.3.0"
         },
         "preferred-install": "dist",
         "sort-packages": true
