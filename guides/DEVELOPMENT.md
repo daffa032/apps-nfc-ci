@@ -42,7 +42,7 @@ Prefix dipakai hanya jika ada ambiguitas. Pertahankan nama kolom lama seperti `i
 
 ## Repository, helper, trait, dan view
 
-Rincian ada di [ARCHITECTURE](ARCHITECTURE.md#aturan-repository), [ASSETS](ASSETS.md#aturan-css-reusable), dan [PRD bagian 9–10](../docs/ui-ux-2026/PRD.md#9-pola-repository). Saat menulis kode:
+Rincian ada di [ARCHITECTURE](ARCHITECTURE.md#aturan-repository), [ASSETS](ASSETS.md#aturan-css-reusable), dan PRD bagian 9–10 (dokumen internal). Saat menulis kode:
 
 - **Repository** hanya untuk query ber-scope pemilik/role, transaksi lintas tabel, lock, agregat/pencarian admin, atau append-only. Constructor menerima model/koneksi opsional dengan `??=`. Tidak membaca session/request dan tidak mengembalikan query builder. CRUD satu tabel tanpa scope cukup memakai CI4 Model di service.
 - **Interface** di `app/Contracts/` hanya bila ada dua implementasi nyata atau batas eksternal yang perlu dipalsukan dalam tes.
@@ -58,7 +58,7 @@ Rincian ada di [ARCHITECTURE](ARCHITECTURE.md#aturan-repository), [ASSETS](ASSET
 2. Tambahkan tes untuk keberhasilan dan penolakan dengan database uji terpisah.
 3. Pindahkan satu use case lengkap; jangan membuat lapisan yang hanya meneruskan panggilan tanpa aturan. Bila halamannya ikut disentuh, pindahkan ke layout baru, ganti blok flash dengan partial `feedback/`, dan pindahkan inline style halaman itu ke CSS area.
 4. Jalankan `php -l` untuk file PHP yang berubah dan `composer test` jika dependensi tersedia. Service dan helper diuji di `tests/unit` dengan repository palsu; repository diuji di `tests/database` dengan fixture sintetis.
-5. Periksa form, route, redirect, dan aset, termasuk screenshot sebelum/sesudah bila layout berubah. Jalankan baris terkait di [gate arsitektur QA](../docs/ui-ux-2026/QA.md#gate-arsitektur-dan-komponen-reusable). Catat langkah rollback untuk perubahan schema/URL.
+5. Periksa form, route, redirect, dan aset, termasuk screenshot sebelum/sesudah bila layout berubah. Jalankan baris terkait di gate arsitektur QA (dokumen internal). Catat langkah rollback untuk perubahan schema/URL.
 
 ## GeoLite2 untuk bahasa awal (cPanel)
 
