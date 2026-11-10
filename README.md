@@ -160,13 +160,15 @@ app/
 ├── Models/                5 model untuk CRUD sederhana
 ├── Libraries/             MidtransClient, QrCode, MaxMindReader, AppMailer
 ├── Commands/              payments:reconcile, billing:notify, analytics:purge, geoip:update
-├── Database/Migrations/   23 migration
+├── Database/Migrations/   24 migration
 └── Views/                 Layout, partial, template kartu
 
 tests/
 ├── unit/                  39 berkas — service, sanitizer, QR, mailer
 ├── database/              3 berkas — integrasi repository terhadap MySQL nyata
 └── session/               1 berkas
+
+Dockerfile, compose.yaml, nginx.conf   Stack dev: Nginx → PHP-FPM → MariaDB + phpMyAdmin
 ```
 
 ## Menjalankan secara lokal
@@ -180,6 +182,67 @@ cp .env.example .env
 php spark migrate --all
 php spark serve
 ```
+
+### Menjalankan dengan Docker (app + database + phpMyAdmin)
+
+Setup ini jalankan seluruh stack dev: Nginx (pintu masuk tunggal) → PHP-FPM
+(aplikasi) → MariaDB, plus phpMyAdmin — empat container, satu perintah. Ini
+**bukan** gambaran deployment produksi (yang tetap di cPanel, lihat
+[DEPLOYMENT.md](guides/DEPLOYMENT.md)); image ini dioptimalkan untuk iterasi
+lokal, bukan untuk dikirim ke server.
+
+```bash
+cp .env.docker.example .env.docker
+# Ganti kedua kata sandi contoh dengan nilai acak yang berbeda sebelum melanjutkan.
+
+cp .env.example .env
+# Edit .env (dipakai saat `composer test`/`php spark` jalan langsung di host):
+# database.default.hostname = 127.0.0.1, port = 3307, password sesuai .env.docker.
+
+cp .env.docker-app.example .env.docker-app
+# Edit .env.docker-app (satu-satunya yang dibaca APLIKASI di dalam Docker;
+# lihat compose.yaml — mounted sebagai /app/.env, menimpa bind-mount di atas):
+# database.default.hostname = database, port = 3306, password sama dengan di atas.
+
+docker compose --env-file .env.docker up -d --wait
+docker compose --env-file .env.docker exec app php spark migrate --all
+```
+
+Dua file `.env*` database itu sengaja terpisah: CodeIgniter membaca nilai
+`.env` ke dalam `$_ENV`, dan `env()` mengutamakan `$_ENV` di atas variabel
+sistem — jadi satu file tidak bisa menyimpan dua hostname database sekaligus
+(`database` untuk jaringan Docker vs `127.0.0.1` untuk akses dari host).
+
+Lalu buka:
+
+- **http://localhost:8080/** — aplikasi (satu-satunya port yang perlu dibuka: Nginx di depan)
+- **http://localhost:8080/phpmyadmin/** — phpMyAdmin (server `database`, pengguna `nfc_user`)
+- `127.0.0.1:3307` — akses database langsung dari tool eksternal di host (DBeaver, HeidiSQL, dll), terpisah dari port Nginx
+
+24 migration membangun baseline lima tabel lama lebih 14 tabel tambahan serta
+katalog awal. Periksa `docker compose --env-file .env.docker exec app php spark migrate:status`
+setelah selesai. **Jangan impor `qrcode_system.sql` ke `nfc_local` sebelum
+menjalankan migration**: dump tersebut sudah berisi schema akhir dan data
+privat, termasuk tabel riwayat migration. Bila ingin memulihkan dump lama,
+gunakan database terpisah melalui Import di phpMyAdmin, periksa backup dan
+konfigurasi strict/zero-date dahulu; jangan jalankan `migrate:refresh` atau
+reset riwayat migration pada dump. Berkas gambar yang dirujuk dump harus
+dipulihkan secara terpisah.
+
+**Jangan jalankan `php spark serve` langsung di Windows sambil stack ini
+jalan** — keduanya akan berebut port 8080 (Nginx sudah memakainya). Matikan
+stack (`docker compose --env-file .env.docker down`) dulu bila sesekali perlu
+`spark serve` manual; `.env` host tetap siap pakai untuk kasus itu.
+
+`composer test`/`lint`/`analyse` tetap dijalankan di host seperti biasa
+(lihat [Pengujian dan kualitas](#pengujian-dan-kualitas)) — image `app` di
+Docker di-build dengan `--no-dev`, jadi PHPUnit/PHPStan/php-cs-fixer sengaja
+tidak ada di dalamnya.
+
+Hentikan layanan tanpa menghapus data: `docker compose --env-file .env.docker down`.
+Volume database dan upload tetap tersimpan. Jangan gunakan `down -v` untuk
+database berisi data. Setelah mengubah `Dockerfile`/`composer.lock`, build
+ulang image: `docker compose --env-file .env.docker up -d --build`.
 
 Langkah konfigurasi selengkapnya — `app.baseURL`, pengaturan tagihan, cron statistik, dan document root — ada di [panduan deployment](guides/DEPLOYMENT.md).
 

@@ -17,12 +17,13 @@ use RuntimeException;
  * Repository integration tests on a real MySQL schema (PRD ARC-05).
  *
  * Uses its own database (NFC_TEST_DB, default nfc_repo_test) and refuses any name without "test",
- * so it can never touch the application database. Once per run: drop + create the database, load
- * the legacy base tables (tests/_support/Database/Schema/legacy.sql, structure only) and run every
- * app migration. Before each test all tables are emptied, so fixtures are synthetic and local.
+ * so it can never touch the application database. Once per run: drop + create the database and run
+ * every app migration, including the legacy baseline. Before each test all tables are emptied,
+ * so fixtures are synthetic and local.
  *
  * Connection: NFC_TEST_DB_HOST/USER/PASS environment variables (defaults: localhost, root, empty
- * password); a host starting with "/" is a socket path, as in CI4. Skipped when MySQL is not reachable.
+ * password); NFC_TEST_DB_PORT defaults to 3306. A host starting with "/" is a socket path,
+ * as in CI4. Skipped when MySQL is not reachable.
  */
 abstract class RepositoryTestCase extends CIUnitTestCase
 {
@@ -41,11 +42,12 @@ abstract class RepositoryTestCase extends CIUnitTestCase
             throw new RuntimeException('Refusing to run repository tests on a database without "test" in its name.');
         }
 
+        $port   = (int) (getenv('NFC_TEST_DB_PORT') ?: 3306);
         $config = [
             'DSN'      => '', 'hostname' => getenv('NFC_TEST_DB_HOST') ?: 'localhost',
             'username' => getenv('NFC_TEST_DB_USER') ?: 'root', 'password' => getenv('NFC_TEST_DB_PASS') ?: '',
             'database' => $name, 'DBDriver' => 'MySQLi', 'DBPrefix' => '', 'pConnect' => false, 'DBDebug' => true,
-            'charset'  => 'utf8mb4', 'DBCollat' => 'utf8mb4_general_ci', 'strictOn' => true, 'port' => 3306,
+            'charset'  => 'utf8mb4', 'DBCollat' => 'utf8mb4_general_ci', 'strictOn' => true, 'port' => $port,
         ];
         $isSocket = str_starts_with($config['hostname'], '/');
 
@@ -53,7 +55,7 @@ abstract class RepositoryTestCase extends CIUnitTestCase
             // mysqli_report defaults to throwing since PHP 8.1, so a refused connection never
             // reaches connect_errno; catch it so an absent MySQL skips instead of failing.
             try {
-                $server = @new mysqli($isSocket ? null : $config['hostname'], $config['username'], $config['password'], '', 3306, $isSocket ? $config['hostname'] : null);
+                $server = @new mysqli($isSocket ? null : $config['hostname'], $config['username'], $config['password'], '', $port, $isSocket ? $config['hostname'] : null);
             } catch (mysqli_sql_exception $e) {
                 $this->markTestSkipped('MySQL not reachable for repository tests: ' . $e->getMessage());
             }
@@ -62,11 +64,6 @@ abstract class RepositoryTestCase extends CIUnitTestCase
             }
             $server->query("DROP DATABASE IF EXISTS `{$name}`");
             $server->query("CREATE DATABASE `{$name}` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
-            $server->select_db($name);
-            $server->multi_query((string) file_get_contents(__DIR__ . '/Database/Schema/legacy.sql'));
-
-            while ($server->more_results() && $server->next_result()) {
-            }
             $server->close();
         }
 

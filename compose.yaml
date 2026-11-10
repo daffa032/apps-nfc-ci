@@ -1,0 +1,103 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+      - phpmyadmin
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # Nginx serves static files (assets, uploads, favicon) itself; it needs
+      # the same public/ tree the app container sees, read-only since this
+      # service never writes to it.
+      - ./public:/app/public:ro
+      - nfc_public_uploads:/app/public/uploads:ro
+    ports:
+      - "127.0.0.1:8080:80"
+    mem_limit: 128m
+    cpus: 0.5
+    logging: *default-logging
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    # Database/app settings come from .env.docker-app (mounted below as
+    # /app/.env), not from this section or from the host's own .env:
+    # CodeIgniter's DotEnv writes .env values into $_ENV, and env() reads
+    # $_ENV before getenv(), so compose `environment:` here would lose to
+    # .env every time. The host's .env keeps database.default.hostname as
+    # 127.0.0.1:3307 so `composer test`/`php spark` still work when run
+    # directly on Windows; .env.docker-app instead points to database:3306,
+    # the service name on the container network. One file cannot hold both
+    # hostnames, hence the second file and the mount override below.
+    volumes:
+      - .:/app
+      - ./.env.docker-app:/app/.env:ro
+      # vendor/ is installed INTO the image by the Dockerfile, not bind-mounted
+      # from the host: an anonymous volume here keeps the bind mount above
+      # from hiding it with the host's (possibly absent or Windows-built)
+      # copy. Same reasoning for the Composer-generated autoload cache.
+      - /app/vendor
+      - nfc_writable_cache:/app/writable/cache
+      - nfc_writable_logs:/app/writable/logs
+      - nfc_writable_session:/app/writable/session
+      - nfc_writable_debugbar:/app/writable/debugbar
+      - nfc_public_uploads:/app/public/uploads
+    mem_limit: 512m
+    cpus: 1.0
+    logging: *default-logging
+
+  database:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${NFC_DB_ROOT_PASSWORD:?Create .env.docker first}
+      MARIADB_DATABASE: nfc_local
+      MARIADB_USER: nfc_user
+      MARIADB_PASSWORD: ${NFC_DB_PASSWORD:?Create .env.docker first}
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - nfc_database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    mem_limit: 512m
+    cpus: 1.0
+    logging: *default-logging
+
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_ABSOLUTE_URI: http://localhost:8080/phpmyadmin/
+      UPLOAD_LIMIT: 64M
+    # No host port mapping: reached only through the proxy service at
+    # http://localhost:8080/phpmyadmin/, not directly.
+    mem_limit: 256m
+    cpus: 0.5
+    logging: *default-logging
+
+volumes:
+  nfc_database:
+  nfc_writable_cache:
+  nfc_writable_logs:
+  nfc_writable_session:
+  nfc_writable_debugbar:
+  nfc_public_uploads:
