@@ -1,0 +1,29 @@
+# Dependencies are installed inside the image by the Dockerfile; never send
+# the host's copy as build context (large, platform-specific, breaks cache).
+/vendor/
+
+.git/
+.idea/
+.claude/
+
+# Runtime data, logs, cache: generated at container runtime, not build time.
+/writable/cache/*
+!/writable/cache/index.html
+/writable/logs/*
+!/writable/logs/index.html
+/writable/debugbar/*
+/writable/session/*
+/writable/uploads/*
+!/writable/uploads/index.html
+!/writable/uploads/multiple_images/index.html
+
+/build/
+/docs/
+/docs.zip
+
+Thumbs.db
+.DS_Store
+
+# Local-only secrets, never baked into an image layer.
+.env
+.env.docker

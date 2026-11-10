@@ -1,5 +1,11 @@
 # Environment & credentials
 .env
+.env.docker
+.env.docker-app
+.cache/
+
+# Local database dumps/backups: production data, never committed.
+/backups/
 
 # Dependencies
 /vendor/
